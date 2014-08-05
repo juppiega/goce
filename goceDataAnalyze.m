@@ -1,3 +1,4 @@
+
 function goceDataAnalyze( varargin )
 % goceDataAnalyze( threshold )
 %   Detailed explanation goes here
@@ -30,23 +31,15 @@ for i = 1:cellArrayLength
 %     results = plotAndCalculateCorrelation(timestampsAbsB{i}, timestamps1minFixed{i}, absB{i}, averagedDensityNoBg{i}, 'IMF |B|', plotFigures, results); 
 %     results = plotAndCalculateCorrelation(timestampsEpsilon{i}, timestamps1minFixed{i}, akasofuEpsilon{i}, averagedDensityNoBg{i}, 'Akasofu Epsilon', plotFigures, results);
 %     
-     [results, morningLatitudes, morningCrossingTimes, morningDensityGrid] = plotAndAnalyzeDensityByLatitude(ae{i}, timestamps1min{i}, timestamps1minFixed{i}, ...
-         morningDensityNoBg{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
-%     results = plotAndAnalyzeDensityByLatitude(ae{i}, timestamps1min{i}, timestamps1minFixed{i}, ...
-%         eveningDensityNoBg{i}, eveningTimestamps10s{i}, eveningMagneticLatitude{i}, 'Evening', plotFigures, results);
+%       results = plotAndAnalyzeDensityByLatitude(ae{i}, timestamps1min{i}, timestamps1minFixed{i}, ...
+%          morningDensityNoBg{i}, morningMsisDensity{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
+%       results = plotAndAnalyzeDensityByLatitude(ae{i}, timestamps1min{i}, timestamps1minFixed{i}, ...
+%          eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningTimestamps10s{i}, eveningMagneticLatitude{i}, 'Evening', plotFigures, results);
 %     
-    results = plotAndAnalyzeChangesByOrbit(morningDensityNoBg{i}, morningMagneticLatitude{i}, averagedDensityNoBg{i},...
-        timestamps1minFixed{i}, morningTimestamps10s{i}, 'Morning', plotFigures, results);
-    results = plotAndAnalyzeChangesByOrbit(eveningDensityNoBg{i}, eveningMagneticLatitude{i}, averagedDensityNoBg{i},...
-        timestamps1minFixed{i}, eveningTimestamps10s{i}, 'Evening', plotFigures, results);
-    
-    if plotFigures ~= 0
-        simpleColorMap(morningDensityNoBg{i}, morningMsisDensity{i}, morningMagneticLatitude{i}, morningTimestamps10s{i}, 'Morning');
-        %simpleColorMap(eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningMagneticLatitude{i}, eveningTimestamps10s{i}, 'Evening');
-        plotDensityLatitudeTimeSurf(morningDensityNoBg{i}, morningMsisDensity{i}, morningMagneticLatitude{i}, morningTimestamps10s{i}, ...
-            morningLatitudes, morningCrossingTimes, morningDensityGrid, 'Morning');
-        %plotDensityLatitudeTimeSurf(eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningMagneticLatitude{i}, eveningTimestamps10s{i},'Evening');
-    end
+%     results = plotAndAnalyzeChangesByOrbit(morningDensityNoBg{i}, morningMagneticLatitude{i}, averagedDensityNoBg{i},...
+%         timestamps1minFixed{i}, morningTimestamps10s{i}, 'Morning', plotFigures, results);
+%     results = plotAndAnalyzeChangesByOrbit(eveningDensityNoBg{i}, eveningMagneticLatitude{i}, averagedDensityNoBg{i},...
+%         timestamps1minFixed{i}, eveningTimestamps10s{i}, 'Evening', plotFigures, results);
     
     plotFigures = 0;
 end
@@ -104,7 +97,7 @@ else
     fprintf(2, '%s', 'Warning: no GoceVariables.mat found in Matlab PATH, now attempting to create new one -> readFiles.m');
 end
 
-%compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
+compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
 
 intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, epsilonQualityFlag, timestampsEpsilonDatenum, densityNoBg, timestampsDensityDatenum, threshold);
 
@@ -779,31 +772,64 @@ end
 
 end
 
-function plotDensityLatitudeTimeSurf(correctedDensity, msisDensity, magneticLatitude, timestamps10s, regriddedLatitude, regriddedTime, regriddedDensity, timeOfDay)
-% plotDensityLatitudeTimeSurf(averagedDensity, averagedLatitude, timestamps)
+function plotDensityLatitudeTimeSurf(magneticLatitude, timestamps10s, regriddedLatitude, regriddedTime, regriddedGoceDensity, regriddedMsisDensity, timeOfDay)
+% plotDensityLatitudeTimeSurf(averagedDensity, averagedLatitude, timestamps
 
-figure;
+persistent colormapFigHandle
+
+if ~isempty(strfind(lower(timeOfDay), 'morning'))
+    colormapFigHandle = figure('units','normalized','outerposition',[0 0 1 1]);
+    goceDensitySubplot = 1;
+    msisDensitySubplot = 3;
+else
+    figure(colormapFigHandle);
+    goceDensitySubplot = 2;
+    msisDensitySubplot = 4;
+end
 secondsInDay = 60 * 60 * 24;
 timestampsInDays = timestamps10s; %/ secondsInDay + datenum('2009-11-01', 'yyyy-mm-dd');
 [minLat, maxLat] = findInterpolationLimits(magneticLatitude);
+indicesToRemove = findMatrixIndicesInDatagap(regriddedTime, timestamps10s);
+regriddedTime(indicesToRemove) = nan(1);
+regriddedLatitude(indicesToRemove) = nan(1);
+regriddedGoceDensity(indicesToRemove) = nan(1);
+regriddedMsisDensity(indicesToRemove) = nan(1);
 
-%densityInterp = griddata(timestampsInDays, magneticLatitude, correctedDensity, regriddedTime, regriddedLatitude, 'linear');
-surf(regriddedTime, regriddedLatitude, regriddedDensity, 'EdgeColor', 'None')
-%surf(regriddedTime, regriddedLatitude, densityInterp, 'EdgeColor', 'None')
+subplot(2,2,goceDensitySubplot)
+surf(regriddedTime, regriddedLatitude, regriddedGoceDensity, 'EdgeColor', 'None')
 
 xlim([timestampsInDays(1) timestampsInDays(end)]);
 ylim([minLat maxLat]);
-caxis([min(correctedDensity) max(correctedDensity)])
-colormap jet(500)
+caxis([min(regriddedGoceDensity(:)) max(regriddedGoceDensity(:))])
+% colormap jet(500)
 colorbar
 view(2);
 xlabel('t / days')
 ylabel('Lat (°)')
 zlabel('Density')
+title(['Goce ', timeOfDay,' density'])
+
+subplot(2,2,msisDensitySubplot)
+surf(regriddedTime, regriddedLatitude, regriddedMsisDensity, 'EdgeColor', 'None')
+
+xlim([timestampsInDays(1) timestampsInDays(end)]);
+ylim([minLat maxLat]);
+caxis([min(regriddedGoceDensity(:)) max(regriddedGoceDensity(:))])
+% colormap jet(500)
+colorbar
+view(2);
+xlabel('t / days')
+ylabel('Lat (°)')
+zlabel('Density')
+title(['Msis ', timeOfDay,' density'])
+
+if ~isempty(strfind(lower(timeOfDay), 'evening'))
+    tightfig(colormapFigHandle);
+end
 
 end
 
-function [results, latitudeMatrix, timeMatrix, densityMatrix] = plotAndAnalyzeDensityByLatitude(ae, timestamps1min, timestamps1minFixed, correctedDensity, ...
+function [results] = plotAndAnalyzeDensityByLatitude(ae, timestamps1min, timestamps1minFixed, correctedDensity, msisDensity,...
     timestamps10s, magneticLatitude, timeOfDay, plotFigures, results)
 % plotCorrectedDensityLatitudes(ae, timestamps1min, correctedDensity, timestamps10s, latitude, timestampsDatenum, computeLatitudes);
     
@@ -826,29 +852,41 @@ limitedTimestamps = limitedTimestamps(newIndices);
 limitedLatitude = limitedLatitude(newIndices);
 
 oneDegreeStep = minAllowedLatitude:maxAllowedLatitude;
-oneQuarterDegreeStep = minAllowedLatitude:0.25:maxAllowedLatitude;
+if plotFigures == 0
+    F = scatteredInterpolant(timestamps10s, magneticLatitude, correctedDensity);
+    for i = 1:length(oneDegreeStep)
+        crossingTimes(:,i) = latitudeCrossingTimes(limitedLatitude, limitedTimestamps, oneDegreeStep(i));    
+        densityByLatitude(:,i) = F(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
+    end
+else
+    oneQuarterDegreeStep = minAllowedLatitude:0.25:maxAllowedLatitude;
+    for i = 1:length(oneQuarterDegreeStep)
+        regriddedTime(:,i) = latitudeCrossingTimes(limitedLatitude, limitedTimestamps, oneQuarterDegreeStep(i));    
+    end
 
-parfor i = 1:length(oneQuarterDegreeStep)
-    regriddedTime(:,i) = latitudeCrossingTimes(limitedLatitude, limitedTimestamps, oneQuarterDegreeStep(i));    
-end
-
-% regriddedDensity = griddata(timestamps10s, magneticLatitude, correctedDensity, regriddedTime, latitudeMatrix, 'natural');
-regriddedDensity = interp1(timestamps10s, correctedDensity, regriddedTime, 'linear');
-crossingTimes = regriddedTime(:,1:4:end);
-densityByLatitude = regriddedDensity(:,1:4:end);
-
-numOfOrbits = length(regriddedTime(:,1));
-numOfValuesInOrbit = length(regriddedTime(1,:));
-for i = 1:numOfValuesInOrbit
-    timeThisLatitude = regriddedTime(:,i);
-    densityThisLatitude = regriddedDensity(:,i);
+    regriddedGoceDensity = interp1(timestamps10s, correctedDensity, regriddedTime, 'spline');
+    regriddedMsisDensity = interp1(timestamps10s, msisDensity, regriddedTime, 'spline');
+    crossingTimes = regriddedTime(:,1:4:end);
+    densityByLatitude = regriddedGoceDensity(:,1:4:end);
     
-    tInterp = interp1(1:numOfOrbits, timeThisLatitude, 1:1/8:numOfOrbits);
-    interpolatedDensity = interp1(timeThisLatitude, densityThisLatitude, tInterp, 'linear');
-    
-    latitudeMatrix(:,i) = ones(length(tInterp), 1) * oneQuarterDegreeStep(i); 
-    densityMatrix(:,i) = interpolatedDensity;
-    timeMatrix(:,i) = tInterp;
+    numOfOrbits = length(regriddedTime(:,1));
+    numOfValuesInOrbit = length(regriddedTime(1,:));
+    for i = 1:numOfValuesInOrbit
+        timeThisLatitude = regriddedTime(:,i);
+        goceDensityThisLatitude = regriddedGoceDensity(:,i);
+        msisDensityThisLatitude = regriddedMsisDensity(:,i);
+
+        tInterp = interp1(1:numOfOrbits, timeThisLatitude, 1:1/20:numOfOrbits);
+        interpolatedGoceDensity = interp1(timeThisLatitude, goceDensityThisLatitude, tInterp, 'spline');
+        interpolatedMsisDensity = interp1(timeThisLatitude, msisDensityThisLatitude, tInterp, 'spline');
+
+        latitudeMatrix(:,i) = ones(length(tInterp), 1) * oneQuarterDegreeStep(i); 
+        goceDensityMatrix(:,i) = interpolatedGoceDensity;
+        msisDensityMatrix(:,i) = interpolatedMsisDensity;
+        timeMatrix(:,i) = tInterp;
+    end
+
+    plotDensityLatitudeTimeSurf(magneticLatitude, timestamps10s, latitudeMatrix, timeMatrix, goceDensityMatrix, msisDensityMatrix, timeOfDay);
 end
 
 limitedTimestamps = limitedTimestamps(ismember(limitedTimestamps, timestamps1minFixed));
@@ -1247,51 +1285,69 @@ function compareGoceDensityToMsis(goceDensity, msisDensity, ae, timestampsAeDate
 %
 
 ratio = goceDensity ./ msisDensity;
-ratioTrend = removePeriodicBackground(ratio, 125, 6, 0);
+% ratioTrend = removePeriodicBackground(ratio, 125, 6, 0);
+% 
+% figure;
+% [hAx,hLine1,hLine2] = plotyy(timestampsDensityDatenum, ratio, timestampsAeDatenum, ae);
+% set(hLine1, 'LineStyle', 'none', 'Marker', '.')
+% % For some reason Matlab can't handle axis limits properly, so they need to
+% % be set manually.
+% ratioYmin = 0.1 * floor(min(ratio) / 0.1);
+% ratioYmax = 0.1 * ceil(max(ratio) / 0.1);
+% set(hAx(1), 'YLim', [ratioYmin ratioYmax], 'YTick', ratioYmin:0.1:ratioYmax);
+% set(hAx, 'XLim', [min(timestampsDensityDatenum) max(timestampsDensityDatenum)], 'XMinorTick', 'on'); 
+% aeYmax = 500 * ceil(max(ae) / 500);
+% set(hAx(2),'YLim', [0 aeYmax], 'YTick', 0:250:aeYmax);
+% datetick(hAx(1), 'x', 'yyyy-mm', 'keepticks', 'keeplimits')
+% datetick(hAx(2), 'x', 'yyyy-mm', 'keepticks', 'keeplimits')
+% rotateticklabel(hAx(1), 50);
+% rotateticklabel(hAx(2), 50);
+% hold on;
+% plot(timestampsDensityDatenum, ratioTrend, 'r-');
+% hold off;
+% %plotyy(timestampsInDays, correctedDensity, timestampsInDays, msisDensity270km);
+% ylabel(hAx(1), 'GOCE / NRLMSISE00 density')
+% ylabel(hAx(2), 'AE')
+% title('Ratio of GOCE NON-normalized densities to NRLMSISE00 prediction')
+% 
+% meanRatio = mean(ratio);
+% errRatio = std(ratio);
+% meanReciprocal = mean(1 ./ ratio);
+% errReciprocal = std(1 ./ ratio);
+% textString1 = ['Mean GOCE / NRLMSISE00 density: ', num2str(meanRatio, '%.2f'), ' ± ', num2str(errRatio, '%.2f')];
+% textString2 = ['Mean NRLMSISE00 / GOCE density: ', num2str(meanReciprocal, '%.2f'), ' ± ', num2str(errReciprocal, '%.2f')];
+%      
+% ylimits = get(gca, 'ylim');
+% xlimits = get(gca, 'xlim');
+% textYLocation = ylimits(2) - 0.05 * (ylimits(2) - ylimits(1));
+% textXLocation = xlimits(2) - 0.05 * (xlimits(2) - xlimits(1));
+% text(textXLocation, textYLocation, textString1, 'FontSize', 9, ...
+%     'VerticalAlignment','top', 'HorizontalAlignment','right');
+% 
+% textYLocation = ylimits(2) - 0.1 * (ylimits(2) - ylimits(1));
+% textXLocation = xlimits(2) - 0.05 * (xlimits(2) - xlimits(1));
+% text(textXLocation, textYLocation, textString2, 'FontSize', 9, ...
+%     'VerticalAlignment','top', 'HorizontalAlignment','right');
+% 
+% plotCorrelation(msisDensity, goceDensity, 'NRLMSISE00 density', 'GOCE measured density', 1, results);
 
 figure;
-[hAx,hLine1,hLine2] = plotyy(timestampsDensityDatenum, ratio, timestampsAeDatenum, ae);
-set(hLine1, 'LineStyle', 'none', 'Marker', '.')
-% For some reason Matlab can't handle axis limits properly, so they need to
-% be set manually.
-ratioYmin = 0.1 * floor(min(ratio) / 0.1);
-ratioYmax = 0.1 * ceil(max(ratio) / 0.1);
-set(hAx(1), 'YLim', [ratioYmin ratioYmax], 'YTick', ratioYmin:0.1:ratioYmax);
-set(hAx, 'XLim', [min(timestampsDensityDatenum) max(timestampsDensityDatenum)], 'XMinorTick', 'on'); 
-aeYmax = 500 * ceil(max(ae) / 500);
-set(hAx(2),'YLim', [0 aeYmax], 'YTick', 0:250:aeYmax);
-datetick(hAx(1), 'x', 'yyyy-mm', 'keepticks', 'keeplimits')
-datetick(hAx(2), 'x', 'yyyy-mm', 'keepticks', 'keeplimits')
-rotateticklabel(hAx(1), 50);
-rotateticklabel(hAx(2), 50);
-hold on;
-plot(timestampsDensityDatenum, ratioTrend, 'r-');
-hold off;
-%plotyy(timestampsInDays, correctedDensity, timestampsInDays, msisDensity270km);
-ylabel(hAx(1), 'GOCE / NRLMSISE00 density')
-ylabel(hAx(2), 'AE')
-title('Ratio of GOCE NON-normalized densities to NRLMSISE00 prediction')
+nbins = ceil((max(ratio) - min(ratio)) * 100) + 1;
+histfit(ratio, nbins, 'wbl')
+% [numOfElementsInBin, x] = hist(ratio, nbins);
+% 
+% ratioBestLognormalFit = lognfit(ratio);
+% muLogn = ratioBestLognormalFit(1);
+% sigmaLogn = ratioBestLognormalFit(2);
+% 
+% 
+% dx = diff(x(1:2));
+% bar(x,numOfElementsInBin / sum(numOfElementsInBin * dx))
+% hold all
+% ratio = sort(ratio);
+% lognHandle = plot(ratio, lognpdf(ratio, muLogn, sigmaLogn),'r');
+% hold off
 
-meanRatio = mean(ratio);
-errRatio = std(ratio);
-meanReciprocal = mean(1 ./ ratio);
-errReciprocal = std(1 ./ ratio);
-textString1 = ['Mean GOCE / NRLMSISE00 density: ', num2str(meanRatio, '%.2f'), ' ± ', num2str(errRatio, '%.2f')];
-textString2 = ['Mean NRLMSISE00 / GOCE density: ', num2str(meanReciprocal, '%.2f'), ' ± ', num2str(errReciprocal, '%.2f')];
-     
-ylimits = get(gca, 'ylim');
-xlimits = get(gca, 'xlim');
-textYLocation = ylimits(2) - 0.05 * (ylimits(2) - ylimits(1));
-textXLocation = xlimits(2) - 0.05 * (xlimits(2) - xlimits(1));
-text(textXLocation, textYLocation, textString1, 'FontSize', 9, ...
-    'VerticalAlignment','top', 'HorizontalAlignment','right');
-
-textYLocation = ylimits(2) - 0.1 * (ylimits(2) - ylimits(1));
-textXLocation = xlimits(2) - 0.05 * (xlimits(2) - xlimits(1));
-text(textXLocation, textYLocation, textString2, 'FontSize', 9, ...
-    'VerticalAlignment','top', 'HorizontalAlignment','right');
-
-plotCorrelation(msisDensity, goceDensity, 'NRLMSISE00 density', 'GOCE measured density', 1, results);
 
 end
 
@@ -1303,31 +1359,37 @@ persistent residueFigHandle
 persistent densityByOrbitAxesHandle
 persistent residueAxisHandle
 
-averagedDensityNoBg = averagedDensityNoBg(ismember(timestamps1minFixed, timestamps10s));
-timestamps1minFixed = timestamps1minFixed(ismember(timestamps1minFixed, timestamps10s));
-[~, peakBeginIndex, peakEndIndex] = limitToNearPeak(averagedDensityNoBg, 'noSmooth', 'mean');
-peakBeginIndex = find(timestamps10s == timestamps1minFixed(peakBeginIndex));
-peakEndIndex = find(timestamps10s == timestamps1minFixed(peakEndIndex));
 % orbits = splitIntoOrbits(magneticLatitude);
 
 [latBeginIndex, latEndIndex] = limitLatitudeToIntegerMultipleOfOrbitalPeriod(magneticLatitude);
 limitedLatitude = magneticLatitude(latBeginIndex:latEndIndex);
 limitedTimestamps = timestamps10s(latBeginIndex:latEndIndex);
+limitedDensity = densityNoBg(latBeginIndex:latEndIndex);
 [~, exactOrbitIndices] = splitIntoOrbits(limitedLatitude, limitedTimestamps);
 limitedLatitude = limitedLatitude(exactOrbitIndices);
 limitedTimestamps = limitedTimestamps(exactOrbitIndices);
+limitedDensity = limitedDensity(exactOrbitIndices);
 [orbits, ~] = splitIntoOrbits(limitedLatitude, limitedTimestamps);
 
 [minAllowedLatitude, maxAllowedLatitude] = findInterpolationLimits(limitedLatitude);
-orbitsToDelete = find(abs(limitedLatitude(orbits(:,2)) - limitedLatitude(orbits(:,1))) < ...
-    (maxAllowedLatitude - minAllowedLatitude));
-min(abs(limitedLatitude(orbits(:,2)) - limitedLatitude(orbits(:,1))))
+orbitsToDelete = find(abs(limitedLatitude(orbits(:,2)) - limitedLatitude(orbits(:,1))) < (maxAllowedLatitude - minAllowedLatitude));
 newIndices = 1:length(limitedLatitude);
 for i = 1:length(orbitsToDelete)
     newIndices = setdiff(newIndices, (orbits(orbitsToDelete(i), 1) : orbits(orbitsToDelete(i), 2)));
 end
 limitedTimestamps = limitedTimestamps(newIndices);
 limitedLatitude = limitedLatitude(newIndices);
+limitedDensity = limitedDensity(newIndices);
+[orbits, ~] = splitIntoOrbits(limitedLatitude, limitedTimestamps);
+
+averagedDensityNoBg = averagedDensityNoBg(ismember(timestamps1minFixed, limitedTimestamps));
+timestamps1minFixed = timestamps1minFixed(ismember(timestamps1minFixed, limitedTimestamps));
+[~, peakBeginIndex, peakEndIndex] = limitToNearPeak(averagedDensityNoBg, 'noSmooth', 'mean');
+peakBeginIndex = find(limitedTimestamps == timestamps1minFixed(peakBeginIndex));
+peakEndIndex = find(limitedTimestamps == timestamps1minFixed(peakEndIndex));
+
+% orbitsToConserve = setdiff(1:length(orbits(:,1)), orbitsToDelete);
+% orbits = orbits(orbitsToConserve,:);
 
 if plotFigures ~= 0
 if ~isempty(strfind(lower(timeOfDay), 'morning')); densityByOrbitFigHandle = figure; subplotNum = 1; else subplotNum = 2; end
@@ -1336,8 +1398,8 @@ if ~isempty(strfind(lower(timeOfDay), 'morning')); densityByOrbitFigHandle = fig
     hold all;
 end
 linehandles = [];
-relativeResidues = nan(size(magneticLatitude));
-TADplot = nan(size(magneticLatitude));
+relativeResidues = nan(size(limitedLatitude));
+TADplot = nan(size(limitedLatitude));
 calmOrbits = 5;
 maxNumOfColorOrbits = 10;
 extraColorMapOrbits = 5;
@@ -1354,20 +1416,20 @@ else
 end
 
 loopOrbits = beginOrbit:endOrbit;
-TADPlotIndices = nan(size(magneticLatitude));
+TADPlotIndices = nan(size(limitedLatitude));
 for i = 1:length(loopOrbits)
     indices = orbits(loopOrbits(i),1) : orbits(loopOrbits(i),2);
-    smoothedDensity150s = smooth(densityNoBg(indices), 15);
-    relativeResidues(indices) = (densityNoBg(indices) - smoothedDensity150s) ./ smoothedDensity150s;
+    smoothedDensity150s = smooth(limitedDensity(indices), 15);
+    relativeResidues(indices) = (limitedDensity(indices) - smoothedDensity150s) ./ smoothedDensity150s;
     if (loopOrbits(i) <= endColorOrbit || loopOrbits(i) > endOrbit - calmOrbits) && plotFigures ~= 0
-        h = plot(magneticLatitude(indices), smoothedDensity150s, 'LineWidth', 2);
+        h = plot(limitedLatitude(indices), smoothedDensity150s, 'LineWidth', 2);
         linehandles = [linehandles h];
     end
     
     if loopOrbits(i) <= endColorMapOrbit
         TADPlotIndices(indices) = indices;            
-        smoothedDensity10400km = smooth(densityNoBg(indices), 133);
-        smoothedDensity2600km = smooth(densityNoBg(indices), 33); 
+        smoothedDensity10400km = smooth(limitedDensity(indices), 133);
+        smoothedDensity2600km = smooth(limitedDensity(indices), 33); 
         TADplot(indices) = (smoothedDensity2600km - smoothedDensity10400km) ./ smoothedDensity10400km;
     end    
 end
@@ -1399,7 +1461,7 @@ if plotFigures ~= 0
     end
 
 end
-magneticLatitudeResiduePlot = magneticLatitude(~isnan(relativeResidues));
+magneticLatitudeResiduePlot = limitedLatitude(~isnan(relativeResidues));
 relativeResidues = relativeResidues(~isnan(relativeResidues));
 
 if plotFigures ~= 0
@@ -1465,24 +1527,18 @@ if plotFigures ~= 0
 
     TADplot = TADplot(~isnan(TADplot));
     indices = TADPlotIndices(~isnan(TADPlotIndices));
-    TADlatitude = magneticLatitude(indices);
+    TADlatitude = limitedLatitude(indices);
     secondsInDay = 24 * 60 *60;
     timestampsInDays = datenum('2009-11-01','yyyy-mm-dd') + limitedTimestamps / secondsInDay; % EI OIKEIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    TADtime = timestampsInDays(indices);
+    TADtime = limitedTimestamps(indices);
 
     oneQuarterDegreeStep = minAllowedLatitude:0.25:maxAllowedLatitude;
 
     figure;
     scatter(TADtime, TADlatitude, 60, TADplot,'.');
     
-    regriddedTime(:,1) = latitudeCrossingTimes(TADlatitude, TADtime, oneQuarterDegreeStep(i));
-    for i = 2:length(oneQuarterDegreeStep)
-        times = latitudeCrossingTimes(TADlatitude, TADtime, oneQuarterDegreeStep(i));
-        if length(times) == length(regriddedTime(:,1))
-            regriddedTime(:,i) = times; 
-        else
-            length(times)
-        end
+    for i = 1:length(oneQuarterDegreeStep)
+        regriddedTime(:,i) = latitudeCrossingTimes(TADlatitude, TADtime, oneQuarterDegreeStep(i)); 
     end
 
     % regriddedDensity = griddata(timestamps10s, magneticLatitude, correctedDensity, regriddedTime, latitudeMatrix, 'natural');
@@ -1494,7 +1550,7 @@ if plotFigures ~= 0
         timeThisLatitude = regriddedTime(:,i);
         densityThisLatitude = regriddedDensity(:,i);
 
-        tInterp = interp1(1:numOfOrbits, timeThisLatitude, 1:1/10:numOfOrbits);
+        tInterp = interp1(1:numOfOrbits, timeThisLatitude, 1:1/30:numOfOrbits);
         interpolatedDensity = interp1(timeThisLatitude, densityThisLatitude, tInterp, 'spline');
         thisLatitude = ones(length(tInterp), 1) * oneQuarterDegreeStep(i);
         latitudeMatrix(:,i) = thisLatitude;
@@ -1502,22 +1558,45 @@ if plotFigures ~= 0
         timeMatrix(:,i) = tInterp;
     end
     
+    indicesToRemove = findMatrixIndicesInDatagap(timeMatrix, TADtime);
+    latitudeMatrix(indicesToRemove) = nan(1);
+    densityMatrix(indicesToRemove) = nan(1);
+    timeMatrix(indicesToRemove) = nan(1);
+    
+    firstOrbitTrackInd = orbits(beginOrbit + calmOrbits, 1);
+    lastOrbitTrackInd = orbits(endColorMapOrbit,2);
+    orbitTrackLatitude = limitedLatitude(firstOrbitTrackInd:lastOrbitTrackInd);
+    orbitTrackTime = limitedTimestamps(firstOrbitTrackInd:lastOrbitTrackInd);
+    orbitTrackPlotHeight = ones(size(orbitTrackLatitude)) * max(TADplot);
+    
     figure;
-    %surf(timeMatrix, latitudeMatrix, densityMatrix, 'EdgeColor', 'None')
-    latitude = reshape(latitudeMatrix, [], 1);
-    density = reshape(densityMatrix, [], 1);
-    time = reshape(timeMatrix, [], 1);
-    density(density > 0.5 | density < -0.5) = nan(1);
-    scatter(time, latitude, 60, density,'.');
+    surf(timeMatrix, latitudeMatrix, densityMatrix,'EdgeColor', 'none');
     view(2);
+    hold on;
+    plot3(orbitTrackTime, orbitTrackLatitude, orbitTrackPlotHeight, 'ok');
     ylabel('IGRF Magnetic Latitude')
     title(['1300-5200km changes (TADs) [(2600 km smooth - 10400 km smooth) / 10400 km smooth] ', timeOfDay])
     colorbar
-%     colormap jet(500)
+    colormap jet(500)
     ylim([minAllowedLatitude maxAllowedLatitude]);
     xlim([min(TADtime) max(TADtime)]);
-
 end
+end
+
+function indicesToRemove = findMatrixIndicesInDatagap(timeMatrix, timestamps)
+%
+
+hourInSeconds = 60 * 60;
+gapBeginIndices = find(diff(timestamps) > hourInSeconds);
+gapBeginTimes = timestamps(gapBeginIndices);
+gapEndTimes = timestamps(gapBeginIndices + 1);
+
+indicesToRemove = [];
+for i = 1:length(gapBeginTimes)
+    indicesInGap = find(timeMatrix > gapBeginTimes(i) & timeMatrix < gapEndTimes(i));
+    indicesToRemove = [indicesToRemove; indicesInGap];
+end
+
 end
 
 function [orbitBegin, orbitEnd] = findBeginAndEndOrbits(orbits, peakBeginIndex, peakEndIndex, calmOrbits)
@@ -2161,3 +2240,152 @@ end
 fclose(datei);
 % END
 end
+
+
+function hfig = tightfig(hfig)
+% tightfig: Alters a figure so that it has the minimum size necessary to
+% enclose all axes in the figure without excess space around them.
+% 
+% Note that tightfig will expand the figure to completely encompass all
+% axes if necessary. If any 3D axes are present which have been zoomed,
+% tightfig will produce an error, as these cannot easily be dealt with.
+% 
+% hfig - handle to figure, if not supplied, the current figure will be used
+% instead.
+
+% Copyright (c) 2011, Richard Crozier
+% All rights reserved.
+% 
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are
+% met:
+% 
+%     * Redistributions of source code must retain the above copyright
+%       notice, this list of conditions and the following disclaimer.
+%     * Redistributions in binary form must reproduce the above copyright
+%       notice, this list of conditions and the following disclaimer in
+%       the documentation and/or other materials provided with the distribution
+% 
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+% POSSIBILITY OF SUCH DAMAGE.
+
+
+    if nargin == 0
+        hfig = gcf;
+    end
+
+    % There can be an issue with tightfig when the user has been modifying
+    % the contnts manually, the code below is an attempt to resolve this,
+    % but it has not yet been satisfactorily fixed
+%     origwindowstyle = get(hfig, 'WindowStyle');
+    set(hfig, 'WindowStyle', 'normal');
+    
+    % 1 point is 0.3528 mm for future use
+
+    % get all the axes handles note this will also fetch legends and
+    % colorbars as well
+    hax = findall(hfig, 'type', 'axes');
+    
+    % get the original axes units, so we can change and reset these again
+    % later
+    origaxunits = get(hax, 'Units');
+    
+    % change the axes units to cm
+    set(hax, 'Units', 'centimeters');
+    
+    % get various position parameters of the axes
+    if numel(hax) > 1
+%         fsize = cell2mat(get(hax, 'FontSize'));
+        ti = cell2mat(get(hax,'TightInset'));
+        pos = cell2mat(get(hax, 'Position'));
+    else
+%         fsize = get(hax, 'FontSize');
+        ti = get(hax,'TightInset');
+        pos = get(hax, 'Position');
+    end
+    
+    % ensure very tiny border so outer box always appears
+    ti(ti < 0.1) = 0.15;
+    
+    % we will check if any 3d axes are zoomed, to do this we will check if
+    % they are not being viewed in any of the 2d directions
+    views2d = [0,90; 0,0; 90,0];
+    
+    for i = 1:numel(hax)
+        
+        set(hax(i), 'LooseInset', ti(i,:));
+%         set(hax(i), 'LooseInset', [0,0,0,0]);
+        
+        % get the current viewing angle of the axes
+        [az,el] = view(hax(i));
+        
+        % determine if the axes are zoomed
+        iszoomed = strcmp(get(hax(i), 'CameraViewAngleMode'), 'manual');
+        
+        % test if we are viewing in 2d mode or a 3d view
+        is2d = all(bsxfun(@eq, [az,el], views2d), 2);
+               
+        if iszoomed && ~any(is2d)
+           error('TIGHTFIG:haszoomed3d', 'Cannot make figures containing zoomed 3D axes tight.') 
+        end
+        
+    end
+    
+    % we will move all the axes down and to the left by the amount
+    % necessary to just show the bottom and leftmost axes and labels etc.
+    moveleft = min(pos(:,1) - ti(:,1));
+    
+    movedown = min(pos(:,2) - ti(:,2));
+    
+    % we will also alter the height and width of the figure to just
+    % encompass the topmost and rightmost axes and lables
+    figwidth = max(pos(:,1) + pos(:,3) + ti(:,3) - moveleft);
+    
+    figheight = max(pos(:,2) + pos(:,4) + ti(:,4) - movedown);
+    
+    % move all the axes
+    for i = 1:numel(hax)
+        
+        set(hax(i), 'Position', [pos(i,1:2) - [moveleft,movedown], pos(i,3:4)]);
+        
+    end
+    
+    origfigunits = get(hfig, 'Units');
+    
+    set(hfig, 'Units', 'centimeters');
+    
+    % change the size of the figure
+    figpos = get(hfig, 'Position');
+    
+    set(hfig, 'Position', [figpos(1), figpos(2), figwidth, figheight]);
+    
+    % change the size of the paper
+    set(hfig, 'PaperUnits','centimeters');
+    set(hfig, 'PaperSize', [figwidth, figheight]);
+    set(hfig, 'PaperPositionMode', 'manual');
+    set(hfig, 'PaperPosition',[0 0 figwidth figheight]);    
+    
+    % reset to original units for axes and figure 
+    if ~iscell(origaxunits)
+        origaxunits = {origaxunits};
+    end
+
+    for i = 1:numel(hax)
+        set(hax(i), 'Units', origaxunits{i});
+    end
+
+    set(hfig, 'Units', origfigunits);
+    
+%      set(hfig, 'WindowStyle', origwindowstyle);
+     
+end
+
