@@ -448,12 +448,6 @@ values = abs(ifft(valueFFT));
 
 end
 
-function valueNoBg = normalize(valueNoBg, value)
-% [aeNoBg, averagedDensityNoBg] = normalize(aeNoBg, averagedDensityNoBg)
-
-valueNoBg = mean(value) / mean(valueNoBg) * valueNoBg;
-end
-
 function [magneticLatitude] = convertToMagneticCoordinates(latitude, longitude, altitude)
 % [magneticLatitude] = convertToMagneticCoordinates(latitude, longitude, altitude)
 
