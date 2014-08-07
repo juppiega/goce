@@ -28,19 +28,6 @@ fprintf('%s %d\n', 'Summer: ', length(summerStorms));
 fprintf('%s %d\n', 'Autumn: ', length(autumnStorms));
 fprintf('%s %d\n\n', 'Winter: ', length(winterStorms));
 
-% nanIndices = cellfun(@isnan, results(2:end, 3:end), 'uniformoutput', 0);
-% [row,col] = find(cell2mat(nanIndices));
-% means = cellfun(@nanmean, results(2:end, row+2));
-% results(nanIndices) = means;
-% otherNumericVariables = cellfun(@double, results(2:end, 3:end));
-% numericVariablesMean = mean(otherNumericVariables);
-% numericVariablesStd = std(otherNumericVariables);
-% [rows, ~] = size(results);
-% results(rows + 1, 3:end) = num2cell(numericVariablesMean);
-% results(rows + 2, 3:end) = num2cell(numericVariablesStd);
-% results(rows + 1, 1:2) = {'Mean', 'NaN'};
-% results(rows + 2, 1:2) = {'Std', 'NaN'};
-
 smallVariationsColumns = strfind(results(1,:),'SH/NH');
 smallVariationsColumns = find(~cellfun(@isempty,smallVariationsColumns));
 morningVariations = cell2mat(results(2:end,smallVariationsColumns(1)));
@@ -54,6 +41,15 @@ ylabel('South std / North std');
 xlabel('Decimal Year');
 legend('Morning', 'Evening')
 grid on
+
+numericVariables = cellfun(@double, results(2:end, 3:end));
+numericVariablesMean = mean(numericVariables);
+numericVariablesStd = std(numericVariables);
+[rows, ~] = size(results);
+results(rows + 1, 3:end) = num2cell(numericVariablesMean);
+results(rows + 2, 3:end) = num2cell(numericVariablesStd);
+results(rows + 1, 1:2) = {'Mean', 'NaN'};
+results(rows + 2, 1:2) = {'Std', 'NaN'};
 
 cell2csv('goceResults.csv', results);
 

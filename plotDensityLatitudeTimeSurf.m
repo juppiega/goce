@@ -33,6 +33,7 @@ caxis([min(regriddedGoceDensity(:)) max(regriddedGoceDensity(:))])
 colorbar('Location', 'NorthOutside');
 view(2);
 ylabel('Geomagnetic latitude (°)')
+xlabel(['Days since the UTC beginning of ', referenceDay])
 title(['Goce ', timeOfDay,' density'])
 
 subplot(2,2,msisDensitySubplot)
@@ -43,7 +44,7 @@ ylim([minLat maxLat]);
 caxis([min(regriddedGoceDensity(:)) max(regriddedGoceDensity(:))])
 colorbar('Location', 'NorthOutside');
 view(2);
-xlabel(['Days since the beginning of ', referenceDay])
+xlabel(['Days since the UTC beginning of ', referenceDay])
 ylabel('Geomagnetic latitude (°)')
 title(['Msis ', timeOfDay,' density'])
 

@@ -21,18 +21,18 @@ for i = 1:cellArrayLength
     results = writeTimeIntervalAndMaxAeToResultArray(timestampsDatenum{i}, ae{i}, results);
     progress(i, cellArrayLength);
     
-    if plotFigures ~= 0
-        timeseriesFigHandle = plotTimeseries(firstDatenum, timestamps1min{i}, timestamps1minFixed{i}, timestampsAbsB{i},...
-            timestamps3h{i}, timestamps3hFixed{i}, ae{i}, ap{i}, absB{i},averagedDensityNoBg{i}, density3h{i});
-    else
-        timeseriesFigHandle = nan(1);
-    end
+%     if plotFigures ~= 0
+%         timeseriesFigHandle = plotTimeseries(firstDatenum, timestamps1min{i}, timestamps1minFixed{i}, timestampsAbsB{i},...
+%             timestamps3h{i}, timestamps3hFixed{i}, ae{i}, ap{i}, absB{i},averagedDensityNoBg{i}, density3h{i});
+%     else
+%         timeseriesFigHandle = nan(1);
+%     end
 
-    results = plotAndCalculateCorrelation(firstDatenum, timestamps1min{i}, timestamps1minFixed{i}, ae{i}, averagedDensityNoBg{i}, 'AE', plotFigures, results, timeseriesFigHandle); 
-    results = plotAndCalculateCorrelation(firstDatenum, timestamps3h{i}, timestamps3hFixed{i}, ap{i}, density3h{i}, 'ap', plotFigures, results, timeseriesFigHandle); 
-    results = plotAndCalculateCorrelation(firstDatenum, timestampsAbsB{i}, timestamps1minFixed{i}, absB{i}, averagedDensityNoBg{i}, 'IMF |B|', plotFigures, results, timeseriesFigHandle); 
-    results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, timestamps1minFixed{i}, akasofuEpsilon{i}, averagedDensityNoBg{i}, 'Akasofu Epsilon', plotFigures, results, timeseriesFigHandle);
-    
+%     results = plotAndCalculateCorrelation(firstDatenum, timestamps1min{i}, timestamps1minFixed{i}, ae{i}, averagedDensityNoBg{i}, 'AE', plotFigures, results, timeseriesFigHandle); 
+%     results = plotAndCalculateCorrelation(firstDatenum, timestamps3h{i}, timestamps3hFixed{i}, ap{i}, density3h{i}, 'ap', plotFigures, results, timeseriesFigHandle); 
+%     results = plotAndCalculateCorrelation(firstDatenum, timestampsAbsB{i}, timestamps1minFixed{i}, absB{i}, averagedDensityNoBg{i}, 'IMF |B|', plotFigures, results, timeseriesFigHandle); 
+%     results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, timestamps1minFixed{i}, akasofuEpsilon{i}, averagedDensityNoBg{i}, 'Akasofu Epsilon', plotFigures, results, timeseriesFigHandle);
+%     
     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, timestamps1minFixed{i}, ...
         morningDensityNoBg{i}, morningMsisDensity{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, timestamps1minFixed{i}, ...
@@ -106,7 +106,12 @@ end
 function plotOrNot = userRequestedThisStormToPlot(plotDates, timestampsDatenum)
 %
 
-plotOrNot = plotDates >= min(timestampsDatenum) & plotDates <= max(timestampsDatenum);
+for i = 1:length(plotDates)
+    plotOrNot = plotDates(i) >= min(timestampsDatenum) && plotDates(i) <= max(timestampsDatenum);
+    if plotOrNot == 1
+        break;
+    end
+end
 
 end
 
