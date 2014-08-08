@@ -6,10 +6,12 @@ gapBeginIndices = find(diff(timestamps) > hourInSeconds);
 gapBeginTimes = timestamps(gapBeginIndices);
 gapEndTimes = timestamps(gapBeginIndices + 1);
 
-indicesToRemove = [];
+indicesToRemove = zeros(size(timeMatrix));
 for i = 1:length(gapBeginTimes)
-    indicesInGap = find(timeMatrix > gapBeginTimes(i) & timeMatrix < gapEndTimes(i));
-    indicesToRemove = [indicesToRemove; indicesInGap];
+    indicesInGap = timeMatrix > gapBeginTimes(i) & timeMatrix < gapEndTimes(i);
+    indicesToRemove(indicesInGap) = 1;
 end
+
+indicesToRemove = logical(indicesToRemove);
 
 end

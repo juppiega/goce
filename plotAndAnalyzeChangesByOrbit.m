@@ -204,7 +204,7 @@ plot(confIntervalX, confIntervalMean, 'k--');
 hold off;
 xlabel('Geomagnetic latitude')
 ylabel('Relative residues 95 % confidence')
-title('100-100 km variations')
+title('100-1000 km variations')
 if axisNum == 1
     hold on
 else
@@ -247,8 +247,6 @@ for i = 1:numOfValuesInOrbit
 end
 
 indicesToRemove = findMatrixIndicesInDatagap(timeMatrix, TADtime);
-latitudeMatrix(indicesToRemove) = nan(1);
-densityMatrix(indicesToRemove) = nan(1);
 timeMatrix(indicesToRemove) = nan(1);
 
 timeMatrix = timeMatrix / secondsInDay + firstDatenum;
@@ -270,7 +268,7 @@ view(2);
 hold on;
 h = plot3(orbitTrackTime, orbitTrackLatitude, orbitTrackPlotHeight, '.k');
 set(h, 'MarkerSize', 3)
-ylabel('IGRF Magnetic Latitude')
+ylabel('Magnetic Latitude')
 title(['1300-5200km changes (TADs) [(2600 km smooth - 10400 km smooth) / 10400 km smooth] ', timeOfDay])
 colorbar
 colormap jet(500)

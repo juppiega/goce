@@ -1,4 +1,4 @@
-function results = plotAndCalculateCorrelation(firstDatenum, timestamps, timestampsFixed, geomIndex, density, indexName, plotFigures, results, timeseriesHandle)
+function [results, averageIntegral, timestampsAverInt] = plotAndCalculateCorrelation(firstDatenum, timestamps, timestampsFixed, geomIndex, density, indexName, plotFigures, results, timeseriesHandle)
 % [r, r2] = plotAndCalculateCorrelation(ae, averagedDensity, timelag)
 
 
@@ -48,8 +48,9 @@ bestIntegral = bestIntegral(ismember(timestamps(timelag + 1:end), timestampsFixe
 results = plotCorrelation(bestIntegral, density(densityBestIntIndices), [indexName, ' Best Integral'], 'Density', plotFigures, results);
 
 densityAverageIntIndices = ismember(timestampsFixed, timestamps(averageGoodLag + 1:end));
-averageIntegral = averageIntegral(ismember(timestamps(averageGoodLag + 1:end), timestampsFixed));
-results = plotCorrelation(averageIntegral, density(densityAverageIntIndices), [indexName, ' Average Integral'], 'Density', plotFigures, results);
+timestampsAverInt = timestamps(averageGoodLag + 1:end);
+averageIntegralFixed = averageIntegral(ismember(timestampsAverInt, timestampsFixed));
+results = plotCorrelation(averageIntegralFixed, density(densityAverageIntIndices), [indexName, ' Average Integral'], 'Density', plotFigures, results);
 
 geomIndexFixed = geomIndex(ismember(timestamps, timestampsFixed));
 densityFixed = density(ismember(timestampsFixed, timestamps));

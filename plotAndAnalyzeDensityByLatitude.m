@@ -1,21 +1,21 @@
-function [results] = plotAndAnalyzeDensityByLatitude(firstDatenum, ae, timestamps1min, timestamps1minFixed, correctedDensity, msisDensity,...
+function [results] = plotAndAnalyzeDensityByLatitude(firstDatenum, ae, timestamps1min, aeIntegral, timestampsAeInt, timestamps1minFixed, correctedDensity, msisDensity,...
     timestamps10s, magneticLatitude, timeOfDay, plotFigures, results)
 % plotCorrectedDensityLatitudes(ae, timestamps1min, correctedDensity, timestamps10s, latitude, timestampsDatenum, computeLatitudes);
     
 [limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps10s, magneticLatitude);
 
-[crossingTimes, densityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, ae, timestamps1min, timestamps10s, magneticLatitude, ...
+[crossingTimes, densityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestampsAeInt, timestamps10s, magneticLatitude, ...
     correctedDensity, msisDensity, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay);
 
 if plotFigures ~= 0
-    analyzeLagByLatitude(limitedTimestamps, timestamps1min, timestamps1minFixed, ae, densityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay);
+    analyzeLagByLatitude(timestamps1min, ae, densityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay);
 end
 
 results = plotAndAnalyzeByHemisphere(firstDatenum, densityByLatitude, ae, crossingTimes, timestamps1min, timeOfDay, oneDegreeStep, plotFigures, results);
 
 end
 
-function plotDensityLatitudeTimeSurf(firstDatenum, ae, timestamps1min, magneticLatitude, timestamps10s, regriddedLatitude, regriddedTime, regriddedGoceDensity, regriddedMsisDensity, timeOfDay)
+function plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, regriddedLatitude, regriddedTime, regriddedGoceDensity, regriddedMsisDensity, timeOfDay)
 % plotDensityLatitudeTimeSurf(averagedDensity, averagedLatitude, timestamps
 
 persistent colormapFigHandle
@@ -30,12 +30,10 @@ else
     msisDensitySubplot = 4;
 end
 secondsInDay = 60 * 60 * 24;
+minDensityTime = min(regriddedTime(:));
 [minLat, maxLat] = findInterpolationLimits(magneticLatitude);
-indicesToRemove = findMatrixIndicesInDatagap(regriddedTime, timestamps10s);
+indicesToRemove = findMatrixIndicesInDatagap(regriddedTime, timestamps10s) | (regriddedTime < secondsInDay + minDensityTime);
 regriddedTime(indicesToRemove) = nan(1);
-regriddedLatitude(indicesToRemove) = nan(1);
-regriddedGoceDensity(indicesToRemove) = nan(1);
-regriddedMsisDensity(indicesToRemove) = nan(1);
 
 regriddedTime = regriddedTime / secondsInDay + firstDatenum;
 referenceDay = datestr(min(regriddedTime(:)), 'mmmm dd, yyyy');
@@ -53,37 +51,30 @@ maxDensity = max(regriddedGoceDensity(:));
 [~, maxAeIndex] = min(abs(timestamps1min - maxDensityTime));
 aeIndicesToPlot = minAeIndex:maxAeIndex;
 
-hAx = subplot(2,2,goceDensitySubplot);
-h = plot3(timestamps1min(aeIndicesToPlot), ae(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * maxDensity, 'k');
-view(2);
-set(hAx, 'yaxislocation', 'right');
-ylabel(hAx, 'AE')
-hold all;
-hAxNew = axis();
-surf(regriddedTime, regriddedLatitude, regriddedGoceDensity, 'EdgeColor', 'None')
 
+subplotAxesHandle = subplot(2,2,goceDensitySubplot);
+surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedGoceDensity, 'EdgeColor', 'None')
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
 caxis([minDensity maxDensity])
+view(2);
 colorbar('Location', 'NorthOutside');
 ylabel('Geomagnetic latitude (°)')
 xlabel(['Days since the UTC beginning of ', referenceDay])
 title(['Goce ', timeOfDay,' density'])
 
-% hold on;
-% hAx = axis();
-% ishandle(hAx)
-% h = plot(hAx, timestamps1min(aeIndicesToPlot), ae(aeIndicesToPlot), 'k');% ones(size(aeIndicesToPlot)) * maxDensity,
-% set(hAx, 'yaxislocation', 'right');
-% ylabel(hAx, 'AE')
+hold all;
+aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
+aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * maxDensity, 'k');
+set(aeLineHandle, 'LineWidth', 0.1)
+view(2);
+set(aeAxesHandle, 'yaxislocation', 'right');
+ylabel(aeAxesHandle, 'AE Average Integral')
+set(aeAxesHandle, 'Color', 'none', 'XTick', []);
+hold off;
 
-% hold all;
-% h = plot3(timestamps1min(aeIndicesToPlot), ae(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * maxDensity);
-% set(h, 'yaxislocation', 'right');
-% hold off;
-
-subplot(2,2,msisDensitySubplot)
-surf(regriddedTime, regriddedLatitude, regriddedMsisDensity, 'EdgeColor', 'None')
+subplotAxesHandle = subplot(2,2,msisDensitySubplot);
+surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedMsisDensity, 'EdgeColor', 'None')
 
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
@@ -94,14 +85,15 @@ xlabel(['Days since the UTC beginning of ', referenceDay])
 ylabel('Geomagnetic latitude (°)')
 title(['Msis ', timeOfDay,' density'])
 
-% hold all;
-% h = plot3(timestamps1min(aeIndicesToPlot), ae(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * maxDensity);
-% set(h, 'yaxislocation', 'right');
-% hold off;
-
-% if ~isempty(strfind(lower(timeOfDay), 'evening'))
-%     tightfig(colormapFigHandle);
-% end
+hold all;
+aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
+aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * maxDensity, 'k');
+set(aeLineHandle, 'LineWidth', 0.1)
+view(2);
+set(aeAxesHandle, 'yaxislocation', 'right');
+ylabel(aeAxesHandle, 'AE Average Integral')
+set(aeAxesHandle, 'Color', 'none', 'XTick', []);
+hold off;
 
 end
 
@@ -128,7 +120,7 @@ limitedLatitude = limitedLatitude(newIndices);
 
 end
 
-function [crossingTimes, densityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, ae, timestamps1min, timestamps10s, magneticLatitude, ...
+function [crossingTimes, densityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestamps1min, timestamps10s, magneticLatitude, ...
     correctedDensity, msisDensity, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay)
 %
 
@@ -167,23 +159,13 @@ else
         timeMatrix(:,i) = tInterp;
     end
 
-    plotDensityLatitudeTimeSurf(firstDatenum, ae, timestamps1min, magneticLatitude, timestamps10s, latitudeMatrix, timeMatrix, goceDensityMatrix, msisDensityMatrix, timeOfDay);
+    plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, latitudeMatrix, timeMatrix, goceDensityMatrix, msisDensityMatrix, timeOfDay);
 end
 
 end
 
-function analyzeLagByLatitude(limitedTimestamps, timestamps1min, timestamps1minFixed, ae, densityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay)
+function analyzeLagByLatitude(timestamps1min, ae, densityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay)
 % writeAndPlotPeakAnalysis(timestamps, ae, splinedDensity, computeLatitutes)
-
-% limitedTimestamps = limitedTimestamps(ismember(limitedTimestamps, timestamps1minFixed));
-% ae = ae(ismember(timestamps1min, limitedTimestamps));
-% ae = removePeriodicBackground(ae, 432, 1, 0); % 432 min =^ 0.3 days
-% ae = smooth(ae, 431);
-% [ae, ~, ~] = limitToNearPeak(ae, 'noSmooth', 'mean');
-% for i = 1:length(densityByLatitude(1,:))
-%    samplingFreq = 86400 / mean(diff(crossingTimes(:,i)));
-%    densityByLatitude(:,i) = removePeriodicBackground(densityByLatitude(:,i), 0.3, samplingFreq, 0);
-% end
 
 parfor i = 1:length(minAllowedLatitude:maxAllowedLatitude)
     interpolatedDensity(:,i) = interp1(crossingTimes(:,i), densityByLatitude(:,i), timestamps1min, 'nearest', 'extrap');
