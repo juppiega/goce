@@ -4,14 +4,16 @@ function [results] = plotAndAnalyzeDensityByLatitude(firstDatenum, ae, timestamp
     
 [limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps10s, magneticLatitude);
 
-[crossingTimes, densityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestampsAeInt, timestamps10s, magneticLatitude, ...
+[crossingTimes, goceDensityByLatitude, msisDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestampsAeInt, timestamps10s, magneticLatitude, ...
     correctedDensity, msisDensity, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay);
 
 if plotFigures ~= 0
-    analyzeLagByLatitude(timestamps1min, ae, densityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay);
+    analyzeLagByLatitude(timestamps1min, ae, goceDensityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay, 'Goce');
+    analyzeLagByLatitude(timestamps1min, ae, msisDensityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay, 'Msis');
 end
 
-results = plotAndAnalyzeByHemisphere(firstDatenum, densityByLatitude, ae, crossingTimes, timestamps1min, timeOfDay, oneDegreeStep, plotFigures, results);
+results = plotAndAnalyzeByHemisphere(firstDatenum, goceDensityByLatitude, ae, crossingTimes, timestamps1min, timeOfDay, oneDegreeStep, plotFigures, 'Goce', results);
+results = plotAndAnalyzeByHemisphere(firstDatenum, msisDensityByLatitude, ae, crossingTimes, timestamps1min, timeOfDay, oneDegreeStep, plotFigures, 'Msis', results);
 
 end
 
@@ -120,16 +122,18 @@ limitedLatitude = limitedLatitude(newIndices);
 
 end
 
-function [crossingTimes, densityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestamps1min, timestamps10s, magneticLatitude, ...
+function [crossingTimes, goceDensityByLatitude, msisDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestamps1min, timestamps10s, magneticLatitude, ...
     correctedDensity, msisDensity, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay)
 %
 
 oneDegreeStep = minAllowedLatitude:maxAllowedLatitude;
 if plotFigures == 0   
-    F = scatteredInterpolant(timestamps10s, magneticLatitude, correctedDensity);
+    goceInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, correctedDensity);
+    msisInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, msisDensity);
     for i = 1:length(oneDegreeStep)
         crossingTimes(:,i) = latitudeCrossingTimes(limitedLatitude, limitedTimestamps, oneDegreeStep(i));    
-        densityByLatitude(:,i) = F(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
+        goceDensityByLatitude(:,i) = goceInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
+        msisDensityByLatitude(:,i) = msisInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
     end
 else
     oneQuarterDegreeStep = minAllowedLatitude:0.25:maxAllowedLatitude;
@@ -140,7 +144,8 @@ else
     regriddedGoceDensity = interp1(timestamps10s, correctedDensity, regriddedTime, 'spline');
     regriddedMsisDensity = interp1(timestamps10s, msisDensity, regriddedTime, 'spline');
     crossingTimes = regriddedTime(:,1:4:end);
-    densityByLatitude = regriddedGoceDensity(:,1:4:end);
+    goceDensityByLatitude = regriddedGoceDensity(:,1:4:end);
+    msisDensityByLatitude = regriddedMsisDensity(:,1:4:end);
     
     numOfOrbits = length(regriddedTime(:,1));
     numOfValuesInOrbit = length(regriddedTime(1,:));
@@ -164,7 +169,7 @@ end
 
 end
 
-function analyzeLagByLatitude(timestamps1min, ae, densityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay)
+function analyzeLagByLatitude(timestamps1min, ae, densityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay, densityType)
 % writeAndPlotPeakAnalysis(timestamps, ae, splinedDensity, computeLatitutes)
 
 parfor i = 1:length(minAllowedLatitude:maxAllowedLatitude)
@@ -177,17 +182,20 @@ end
 [timelag, errInLag, intervalLatitudes] = analyzeSouthernLatitudes(minAllowedLatitude, maxAllowedLatitude, ...
     interpolatedDensity, ae, timelag, errInLag, allLatitudesAeLag, step, northernInterval);
      
-plotPeakAnalysisFigure(timelag, errInLag, intervalLatitudes, timeOfDay)
+plotPeakAnalysisFigure(timelag, errInLag, intervalLatitudes, timeOfDay, densityType)
 
 end
 
-function plotPeakAnalysisFigure(timelag, errInLag, intervalLatitudes, timeOfDay)
+function plotPeakAnalysisFigure(timelag, errInLag, intervalLatitudes, timeOfDay, densityType)
 %
 
-persistent aeDensityLagByLatHandle
+persistent aeGoceDensityLagByLatHandle
+persistent aeMsisDensityLagByLatHandle
 
-if ~isempty(strfind(lower(timeOfDay), 'morning')); aeDensityLagByLatHandle = figure; subplotNum = 1; else subplotNum = 2; end
-figure(aeDensityLagByLatHandle);
+if strcmpi(densityType, 'goce'); thisFig = aeGoceDensityLagByLatHandle; else thisFig = aeMsisDensityLagByLatHandle; end
+
+if ~isempty(strfind(lower(timeOfDay), 'morning')); thisFig = figure; subplotNum = 1; else subplotNum = 2; end
+figure(thisFig);
 subplot(1,2,subplotNum)
 timestampsInHours = timelag / 60;
 errInHours = errInLag / 60;
@@ -196,9 +204,11 @@ xlabel('t / h');
 ylabel('Geomagnetic latitude');
 title(timeOfDay)
 annotation('textbox', [0 0.9 1 0.1], ...
-    'String', 'Density-AE lag for different latitudes', ...
+    'String', [densityType, ' Density-AE lag for different latitudes'], ...
     'EdgeColor', 'none', ...
     'HorizontalAlignment', 'center')
+
+if strcmpi(densityType, 'goce'); aeGoceDensityLagByLatHandle = thisFig; else aeMsisDensityLagByLatHandle = thisFig; end
 
 end
 
@@ -266,7 +276,7 @@ intervalLatitudes = [ round(mean([southernInterval(end) minAllowedLatitude]))...
 
 end
 
-function results = plotAndAnalyzeByHemisphere(firstDatenum, densityByLatitude, ae, crossingTimes, timestamps1min, timeOfDay, oneDegreeStep, plotFigures, results)
+function results = plotAndAnalyzeByHemisphere(firstDatenum, densityByLatitude, ae, crossingTimes, timestamps1min, timeOfDay, oneDegreeStep, plotFigures, densityType, results)
 %
 
 northIndices = (oneDegreeStep < 90 & oneDegreeStep > 45);
@@ -293,6 +303,11 @@ northCalmMean = mean(northernDensity(1:northPeakBegin));
 equatorCalmMean = mean(equatorDensity(1:equatorPeakBegin));
 southCalmMean = mean(southernDensity(1:southPeakBegin));
 
+nanIndices = isnan(southCalmMean);
+if ~isempty(find(nanIndices, 1))
+    a = 1;
+end
+
 northAbsDiff = northernDensity - northCalmMean;
 equatorAbsDiff = equatorDensity - equatorCalmMean;
 southAbsDiff = southernDensity - southCalmMean;
@@ -315,13 +330,17 @@ maxNorthRelDiff = max(northRelDiff);
 maxEquatorRelDiff = max(equatorRelDiff);
 maxSouthRelDiff = max(southRelDiff);
 
-northRelDiffForXcorr = interp1(northTimestamps, northRelDiff, timestamps1min, 'nearest', 'extrap');
-equatorRelDiffForXcorr = interp1(equatorTimestamps, equatorRelDiff, timestamps1min, 'nearest', 'extrap');
-southRelDiffForXcorr = interp1(southTimestamps, southRelDiff, timestamps1min, 'nearest', 'extrap');
+northRelDiffForXcorr = interp1(northTimestamps, northRelDiff, timestamps1min, 'linear', 0);
+equatorRelDiffForXcorr = interp1(equatorTimestamps, equatorRelDiff, timestamps1min, 'linear', 0);
+southRelDiffForXcorr = interp1(southTimestamps, southRelDiff, timestamps1min, 'linear', 0);
 
 northLag = giveMaxCrossCorrelation(northRelDiffForXcorr, ae);
 equatorLag = giveMaxCrossCorrelation(equatorRelDiffForXcorr, ae);
 southLag = giveMaxCrossCorrelation(southRelDiffForXcorr, ae);
+
+[northEfoldingTimeRisingLimb, equatorEfoldingTimeRisingLimb, southEfoldingTimeRisingLimb, northEfoldingTimeFallingLimb, equatorEfoldingTimeFallingLimb,...
+ southEfoldingTimeFallingLimb] = giveEfoldingTimes(northTimestamps, equatorTimestamps, southTimestamps, northernDensity, equatorDensity, southernDensity,...
+ northCalmMean, equatorCalmMean, southCalmMean, meanNorthAbsDiff, meanEquatorAbsDiff, meanSouthAbsDiff, timestamps1min, densityType, timeOfDay);
 
 [rowNum, ~] = size(results);
 emptyCells = cellfun(@isempty,results);
@@ -329,23 +348,30 @@ emptyCells = cellfun(@isempty,results);
 colNum = min(emptyColPositions);
 if rowNum == 2
     colNum = length(results(rowNum,:)) + 1;
-    results{1, colNum}     = ['NH AE-Dens. ', timeOfDay, ' lag'];
-    results{1, colNum + 1} = ['EQ AE-Dens. ', timeOfDay, ' lag'];
-    results{1, colNum + 2} = ['SH AE-Dens. ', timeOfDay, ' lag'];
+    results{1, colNum}     = [densityType, ' NH AE-Dens. ', timeOfDay, ' lag'];
+    results{1, colNum + 1} = [densityType, ' EQ AE-Dens. ', timeOfDay, ' lag'];
+    results{1, colNum + 2} = [densityType, ' SH AE-Dens. ', timeOfDay, ' lag'];
     
-    results{1, colNum + 3} = ['Mean NH Abs. Diff ', timeOfDay];
-    results{1, colNum + 4} = ['Mean EQ Abs. Diff ', timeOfDay];
-    results{1, colNum + 5} = ['Mean SH Abs. Diff ', timeOfDay];
-    results{1, colNum + 6} = ['Mean NH Rel. Diff ', timeOfDay];
-    results{1, colNum + 7} = ['Mean EQ Rel. Diff ', timeOfDay];
-    results{1, colNum + 8} = ['Mean SH Rel. Diff ', timeOfDay];
+    results{1, colNum + 3} = [densityType, ' Mean NH Abs. Diff ', timeOfDay];
+    results{1, colNum + 4} = [densityType, ' Mean EQ Abs. Diff ', timeOfDay];
+    results{1, colNum + 5} = [densityType, ' Mean SH Abs. Diff ', timeOfDay];
+    results{1, colNum + 6} = [densityType, ' Mean NH Rel. Diff ', timeOfDay];
+    results{1, colNum + 7} = [densityType, ' Mean EQ Rel. Diff ', timeOfDay];
+    results{1, colNum + 8} = [densityType, ' Mean SH Rel. Diff ', timeOfDay];
     
-    results{1, colNum + 9} = ['Max NH Abs. Diff ', timeOfDay];
-    results{1, colNum + 10} = ['Max EQ Abs. Diff ', timeOfDay];
-    results{1, colNum + 11} = ['Max SH Abs. Diff ', timeOfDay];
-    results{1, colNum + 12} = ['Max NH Rel. Diff ', timeOfDay];
-    results{1, colNum + 13} = ['Max EQ Rel. Diff ', timeOfDay];
-    results{1, colNum + 14} = ['Max SH Rel. Diff ', timeOfDay];
+    results{1, colNum + 9} = [densityType, ' Max NH Abs. Diff ', timeOfDay];
+    results{1, colNum + 10} = [densityType, ' Max EQ Abs. Diff ', timeOfDay];
+    results{1, colNum + 11} = [densityType, ' Max SH Abs. Diff ', timeOfDay];
+    results{1, colNum + 12} = [densityType, ' Max NH Rel. Diff ', timeOfDay];
+    results{1, colNum + 13} = [densityType, ' Max EQ Rel. Diff ', timeOfDay];
+    results{1, colNum + 14} = [densityType, ' Max SH Rel. Diff ', timeOfDay];
+    
+    results{1, colNum + 15} = [densityType, ' NH e-fold.t. rising limb ', timeOfDay];
+    results{1, colNum + 16} = [densityType, ' EQ e-fold.t. rising limb ', timeOfDay];
+    results{1, colNum + 17} = [densityType, ' SH e-fold.t. rising limb ', timeOfDay];
+    results{1, colNum + 18} = [densityType, ' NH e-fold.t. falling limb ', timeOfDay];
+    results{1, colNum + 19} = [densityType, ' EQ e-fold.t. falling limb ', timeOfDay];
+    results{1, colNum + 20} = [densityType, ' SH e-fold.t. falling limb ', timeOfDay];
 end
 results{rowNum, colNum} =     northLag;
 results{rowNum, colNum + 1} = equatorLag;
@@ -364,6 +390,13 @@ results{rowNum, colNum + 11} = maxSouthAbsDiff;
 results{rowNum, colNum + 12} = maxNorthRelDiff;
 results{rowNum, colNum + 13} = maxEquatorRelDiff;
 results{rowNum, colNum + 14} = maxSouthRelDiff;
+
+results{rowNum, colNum + 15} = northEfoldingTimeRisingLimb;
+results{rowNum, colNum + 16} = equatorEfoldingTimeRisingLimb;
+results{rowNum, colNum + 17} = southEfoldingTimeRisingLimb;
+results{rowNum, colNum + 18} = northEfoldingTimeFallingLimb;
+results{rowNum, colNum + 19} = equatorEfoldingTimeFallingLimb;
+results{rowNum, colNum + 20} = southEfoldingTimeFallingLimb;
 
 if plotFigures ~= 0
     secondsInDay = 24 * 60 * 60;
@@ -418,11 +451,95 @@ if plotFigures ~= 0
     axis(hAx, 'tight')
 
     annotation('textbox', [0 0.9 1 0.1], ...
-    'String', ['Absolute and relative density changes on hemispheres: ', timeOfDay], ...
+    'String', [densityType, ' absolute and relative density changes on hemispheres: ', timeOfDay], ...
     'EdgeColor', 'none', ...
     'HorizontalAlignment', 'center')
 
-    tightfig(figHandle);
+    %tightfig(figHandle);
+end
+
+end
+
+function [northEfoldingTimeRisingLimb, equatorEfoldingTimeRisingLimb, southEfoldingTimeRisingLimb, northEfoldingTimeFallingLimb, equatorEfoldingTimeFallingLimb,...
+ southEfoldingTimeFallingLimb] = giveEfoldingTimes(northTimestamps, equatorTimestamps, southTimestamps, northernDensity, equatorDensity, southernDensity, ...
+ northCalmMean, equatorCalmMean, southCalmMean, meanNorthAbsDiff, meanEquatorAbsDiff, meanSouthAbsDiff, timestamps1min, densityType, timeOfDay)
+%
+
+northernDensity = interp1(northTimestamps, northernDensity, timestamps1min, 'linear', 0);
+equatorDensity = interp1(equatorTimestamps, equatorDensity, timestamps1min, 'linear', 0);
+southernDensity = interp1(southTimestamps, southernDensity, timestamps1min, 'linear', 0);
+
+[~, northPeakBegin, northPeakEnd] = limitToNearPeak(northernDensity, 'noSmooth', 'median');
+[~, equatorPeakBegin, equatorPeakEnd] = limitToNearPeak(equatorDensity, 'noSmooth', 'median');
+[~, southPeakBegin, southPeakEnd] = limitToNearPeak(southernDensity, 'noSmooth', 'median');
+
+northPeakBeginTime = timestamps1min(northPeakBegin);
+equatorPeakBeginTime = timestamps1min(equatorPeakBegin);
+southPeakBeginTime = timestamps1min(southPeakBegin);
+
+northPeakBeginDensity = northernDensity(northPeakBegin);
+equatorPeakBeginDensity = equatorDensity(equatorPeakBegin);
+southPeakBeginDensity = southernDensity(southPeakBegin);
+
+northPeakEndTime = timestamps1min(northPeakEnd);
+equatorPeakEndTime = timestamps1min(equatorPeakEnd);
+southPeakEndTime = timestamps1min(southPeakEnd);
+
+northPeakEndDensity = northernDensity(northPeakEnd);
+equatorPeakEndDensity = equatorDensity(equatorPeakEnd);
+southPeakEndDensity = southernDensity(southPeakEnd);
+
+northMeanSubtracted = northernDensity - northCalmMean - meanNorthAbsDiff;
+equatorMeanSubtracted = equatorDensity - equatorCalmMean - meanEquatorAbsDiff;
+southMeanSubtracted = southernDensity - southCalmMean - meanSouthAbsDiff;
+
+northMeanCrossings = find(northMeanSubtracted(1:end - 1) .* northMeanSubtracted(2:end) < 0);
+equatorMeanCrossings = find(equatorMeanSubtracted(1:end - 1) .* equatorMeanSubtracted(2:end) < 0);
+southMeanCrossings = find(southMeanSubtracted(1:end - 1) .* southMeanSubtracted(2:end) < 0);
+
+northFirstMeanCross = northMeanCrossings(find(northMeanCrossings > northPeakBegin, 1, 'first'));
+equatorFirstMeanCross = equatorMeanCrossings(find(equatorMeanCrossings > equatorPeakBegin, 1, 'first'));
+southFirstMeanCross = southMeanCrossings(find(southMeanCrossings > southPeakBegin, 1, 'first'));
+
+northLastMeanCross = northMeanCrossings(find(northMeanCrossings < northPeakEnd, 1, 'last'));
+equatorLastMeanCross = equatorMeanCrossings(find(equatorMeanCrossings < equatorPeakEnd, 1, 'last'));
+southLastMeanCross = southMeanCrossings(find(southMeanCrossings < southPeakEnd, 1, 'last'));
+
+indexList = [northFirstMeanCross, equatorFirstMeanCross, southFirstMeanCross, northLastMeanCross, equatorLastMeanCross, southLastMeanCross];
+indexListShouldBeLength = 6;
+
+failedToComputeEfoldingTimes = length(indexList) ~= indexListShouldBeLength;
+
+if failedToComputeEfoldingTimes
+    northEfoldingTimeRisingLimb = 0;
+    equatorEfoldingTimeRisingLimb = 0;
+    southEfoldingTimeRisingLimb = 0;
+    northEfoldingTimeFallingLimb = 0;
+    equatorEfoldingTimeFallingLimb = 0;
+    southEfoldingTimeFallingLimb = 0;
+    fprintf(2, '%s\n', ['Warning: failed to compute ', densityType ,' e-folding ', timeOfDay, ' times!'])
+else
+    northMeanBeginTime = timestamps1min(northFirstMeanCross);
+    equatorMeanBeginTime = timestamps1min(equatorFirstMeanCross);
+    southMeanBeginTime = timestamps1min(southFirstMeanCross);
+
+    northMeanEndTime = timestamps1min(northLastMeanCross);
+    equatorMeanEndTime = timestamps1min(equatorLastMeanCross);
+    southMeanEndTime = timestamps1min(southLastMeanCross);
+
+    northMeanDensity = northCalmMean + meanNorthAbsDiff;
+    equatorMeanDensity = equatorCalmMean + meanEquatorAbsDiff;
+    southMeanDensity = southCalmMean + meanSouthAbsDiff;
+    
+    secondsInHour = 60 * 60;
+
+    northEfoldingTimeRisingLimb = (northMeanBeginTime - northPeakBeginTime) / log(northMeanDensity / northPeakBeginDensity) / secondsInHour; 
+    equatorEfoldingTimeRisingLimb = (equatorMeanBeginTime - equatorPeakBeginTime) / log(equatorMeanDensity / equatorPeakBeginDensity) / secondsInHour;
+    southEfoldingTimeRisingLimb = (southMeanBeginTime - southPeakBeginTime) / log(southMeanDensity / southPeakBeginDensity) / secondsInHour;
+
+    northEfoldingTimeFallingLimb = (northPeakEndTime - northMeanEndTime) / log(northMeanDensity / northPeakEndDensity) / secondsInHour;
+    equatorEfoldingTimeFallingLimb = (equatorPeakEndTime - equatorMeanEndTime) / log(equatorMeanDensity / equatorPeakEndDensity) / secondsInHour;
+    southEfoldingTimeFallingLimb = (southPeakEndTime - southMeanEndTime) / log(southMeanDensity / southPeakEndDensity) / secondsInHour;
 end
 
 end

@@ -35,7 +35,7 @@ for i = 1:cellArrayLength
         'IMF |B|', plotFigures, results, timeseriesFigHandle); 
     results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, timestamps1minFixed{i}, akasofuEpsilon{i}, ...
         averagedDensityNoBg{i}, 'Akasofu Epsilon', plotFigures, results, timeseriesFigHandle);
-    
+%     
     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
         morningDensityNoBg{i}, morningMsisDensity{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
@@ -150,21 +150,7 @@ fprintf('%s %d\n', 'Summer: ', length(summerStorms));
 fprintf('%s %d\n', 'Autumn: ', length(autumnStorms));
 fprintf('%s %d\n\n', 'Winter: ', length(winterStorms));
 
-smallVariationsColumns = strfind(results(1,:),'SH/NH');
-smallVariationsColumns = find(~cellfun(@isempty,smallVariationsColumns));
-morningVariations = cell2mat(results(2:end,smallVariationsColumns(1)));
-eveningVariations = cell2mat(results(2:end,smallVariationsColumns(2)));
-
-figure;
-plot(decimalYears, eveningVariations, 'r.', 'MarkerSize', 10);
-xlim([0 1]);
-title('South std / North std of small variations')
-ylabel('South std / North std');
-xlabel('Decimal Year');
-legend('Morning', 'Evening')
-grid on
-
-results = computeResultMeanAndStd(results);
+%results = computeResultMeanAndStd(results);
 
 cell2csv('goceResults.csv', results);
 

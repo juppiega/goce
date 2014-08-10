@@ -11,7 +11,7 @@ else
     readFiles();
 end
 
-compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
+%compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
 
 intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
 

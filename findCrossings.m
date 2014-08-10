@@ -19,6 +19,6 @@ else
     end
 end
 
-crossings = find(subtractedVal(1:end-1) .* subtractedVal(2:end) < 0);
+crossings = find(subtractedVal(1:end-1) .* subtractedVal(2:end) <= 0);
 
 end
