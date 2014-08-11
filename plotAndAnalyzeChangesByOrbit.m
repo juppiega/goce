@@ -10,11 +10,11 @@ function results = plotAndAnalyzeChangesByOrbit(firstDatenum, densityNoBg, magne
 
 [results, magneticLatitudeForResidue, relativeResidues] = writeSmallWaveDataToResults(limitedLatitude, relativeResidues, timeOfDay, results);
 
+plotTADcolormap(limitedTimestamps, limitedLatitude, TADplot, TADplotIndices, minAllowedLatitude, maxAllowedLatitude, orbits, beginOrbit, calmOrbits, endColorMapOrbit, firstDatenum, timeOfDay)
+
 if plotFigures ~= 0
 
     plotResiduePlot(magneticLatitudeForResidue, relativeResidues, timeOfDay)
-    
-    plotTADcolormap(limitedTimestamps, limitedLatitude, TADplot, TADplotIndices, minAllowedLatitude, maxAllowedLatitude, orbits, beginOrbit, calmOrbits, endColorMapOrbit, firstDatenum, timeOfDay)
  
 end
 
@@ -91,7 +91,8 @@ limitedDensity = limitedDensity(newIndices);
 end
 
 function [beginOrbit, endColorMapOrbit, TADPlotIndices, TADplot, relativeResidues, calmOrbits] = ...
-    loopAroundOrbits(orbits, timestamps1minFixed, limitedTimestamps, limitedLatitude, averagedDensityNoBg, limitedDensity, plotFigures, timeOfDay)
+    loopAroundOrbits(orbits, timestamps1minFixed, limitedTimestamps, limitedLatitude, averagedDensityNoBg, ...
+    limitedDensity, plotFigures, timeOfDay)
 %
 
 persistent densityByOrbitFigHandle
@@ -123,7 +124,7 @@ for i = 1:length(loopOrbits)
     
     if loopOrbits(i) <= endColorMapOrbit
         TADPlotIndices(indices) = indices;            
-        smoothedDensity10400km = smooth(limitedDensity(indices), 133);
+        smoothedDensity10400km = smooth(limitedDensity(indices), 151);
         smoothedDensity2600km = smooth(limitedDensity(indices), 33); 
         TADplot(indices) = (smoothedDensity2600km - smoothedDensity10400km) ./ smoothedDensity10400km;
     end    
@@ -215,67 +216,74 @@ end
 end
 
 
-function plotTADcolormap(limitedTimestamps, limitedLatitude, TADplot, TADplotIndices, minAllowedLatitude, maxAllowedLatitude, orbits, beginOrbit, calmOrbits, endColorMapOrbit, firstDatenum, timeOfDay)
+function plotTADcolormap(limitedTimestamps, limitedLatitude, TADplot, TADplotIndices, minAllowedLatitude, maxAllowedLatitude, orbits, ...
+    beginOrbit, calmOrbits, endColorMapOrbit, firstDatenum, timeOfDay, plotFigures)
 %
 
-TADplot = TADplot(~isnan(TADplot));
-indices = TADplotIndices(~isnan(TADplotIndices));
-TADlatitude = limitedLatitude(indices);
-secondsInDay = 24 * 60 *60;
-TADtime = limitedTimestamps(indices);
+TADforSpectralDensity = TADplot;
+TADforSpectralDensity = TADforSpectralDensity - nanmean(TADplot);
+TADforSpectralDensity(isnan(TADforSpectralDensity)) = 0;
+estimateSpectralPowerDensity(TADforSpectralDensity)
 
-oneQuarterDegreeStep = minAllowedLatitude:0.25:maxAllowedLatitude;
+if plotFigures ~= 0
+    TADplot = TADplot(~isnan(TADplot));
+    indices = TADplotIndices(~isnan(TADplotIndices));
+    TADlatitude = limitedLatitude(indices);
+    secondsInDay = 24 * 60 *60;
+    TADtime = limitedTimestamps(indices);
 
-for i = 1:length(oneQuarterDegreeStep)
-    regriddedTime(:,i) = latitudeCrossingTimes(TADlatitude, TADtime, oneQuarterDegreeStep(i)); 
+    oneQuarterDegreeStep = minAllowedLatitude:0.25:maxAllowedLatitude;
+
+    for i = 1:length(oneQuarterDegreeStep)
+        regriddedTime(:,i) = latitudeCrossingTimes(TADlatitude, TADtime, oneQuarterDegreeStep(i)); 
+    end
+
+    regriddedDensity = interp1(TADtime, TADplot, regriddedTime, 'spline');
+
+    numOfOrbits = length(regriddedTime(:,1));
+    numOfValuesInOrbit = length(regriddedTime(1,:));
+    for i = 1:numOfValuesInOrbit
+        timeThisLatitude = regriddedTime(:,i);
+        densityThisLatitude = regriddedDensity(:,i);
+
+        tInterp = interp1(1:numOfOrbits, timeThisLatitude, 1:1/30:numOfOrbits);
+        interpolatedDensity = interp1(timeThisLatitude, densityThisLatitude, tInterp, 'spline');
+        thisLatitude = ones(length(tInterp), 1) * oneQuarterDegreeStep(i);
+        latitudeMatrix(:,i) = thisLatitude;
+        densityMatrix(:,i) = interpolatedDensity;
+        timeMatrix(:,i) = tInterp;
+    end
+
+    indicesToRemove = findMatrixIndicesInDatagap(timeMatrix, TADtime);
+    timeMatrix(indicesToRemove) = nan(1);
+
+    timeMatrix = timeMatrix / secondsInDay + firstDatenum;
+    referenceDay = datestr(min(timeMatrix(:)), 'mmmm dd, yyyy');
+    timeMatrix = timeMatrix - datenum(referenceDay, 'mmmm dd, yyyy');
+
+    limitedTimestamps = limitedTimestamps / secondsInDay + firstDatenum;
+    limitedTimestamps = limitedTimestamps - datenum(referenceDay, 'mmmm dd, yyyy');
+
+    firstOrbitTrackInd = orbits(beginOrbit + calmOrbits, 1);
+    lastOrbitTrackInd = orbits(endColorMapOrbit,2);
+    orbitTrackLatitude = limitedLatitude(firstOrbitTrackInd:lastOrbitTrackInd);
+    orbitTrackTime = limitedTimestamps(firstOrbitTrackInd:lastOrbitTrackInd);
+    orbitTrackPlotHeight = ones(size(orbitTrackLatitude)) * max(TADplot);
+
+    figure;
+    surf(timeMatrix, latitudeMatrix, densityMatrix,'EdgeColor', 'none');
+    view(2);
+    hold on;
+    h = plot3(orbitTrackTime, orbitTrackLatitude, orbitTrackPlotHeight, '.k');
+    set(h, 'MarkerSize', 3)
+    ylabel('Magnetic Latitude')
+    title(['1300-5200km changes (TADs) [(2600 km smooth - 10400 km smooth) / 10400 km smooth] ', timeOfDay])
+    colorbar
+    colormap jet(500)
+    ylim([minAllowedLatitude maxAllowedLatitude]);
+    xlim([min(timeMatrix(:)) max(timeMatrix(:))]);
+    xlabel(['Days since the UTC beginning of ', referenceDay])
 end
-
-regriddedDensity = interp1(TADtime, TADplot, regriddedTime, 'spline');
-
-numOfOrbits = length(regriddedTime(:,1));
-numOfValuesInOrbit = length(regriddedTime(1,:));
-for i = 1:numOfValuesInOrbit
-    timeThisLatitude = regriddedTime(:,i);
-    densityThisLatitude = regriddedDensity(:,i);
-
-    tInterp = interp1(1:numOfOrbits, timeThisLatitude, 1:1/30:numOfOrbits);
-    interpolatedDensity = interp1(timeThisLatitude, densityThisLatitude, tInterp, 'spline');
-    thisLatitude = ones(length(tInterp), 1) * oneQuarterDegreeStep(i);
-    latitudeMatrix(:,i) = thisLatitude;
-    densityMatrix(:,i) = interpolatedDensity;
-    timeMatrix(:,i) = tInterp;
-end
-
-indicesToRemove = findMatrixIndicesInDatagap(timeMatrix, TADtime);
-timeMatrix(indicesToRemove) = nan(1);
-
-timeMatrix = timeMatrix / secondsInDay + firstDatenum;
-referenceDay = datestr(min(timeMatrix(:)), 'mmmm dd, yyyy');
-timeMatrix = timeMatrix - datenum(referenceDay, 'mmmm dd, yyyy');
-
-limitedTimestamps = limitedTimestamps / secondsInDay + firstDatenum;
-limitedTimestamps = limitedTimestamps - datenum(referenceDay, 'mmmm dd, yyyy');
-
-firstOrbitTrackInd = orbits(beginOrbit + calmOrbits, 1);
-lastOrbitTrackInd = orbits(endColorMapOrbit,2);
-orbitTrackLatitude = limitedLatitude(firstOrbitTrackInd:lastOrbitTrackInd);
-orbitTrackTime = limitedTimestamps(firstOrbitTrackInd:lastOrbitTrackInd);
-orbitTrackPlotHeight = ones(size(orbitTrackLatitude)) * max(TADplot);
-
-figure;
-surf(timeMatrix, latitudeMatrix, densityMatrix,'EdgeColor', 'none');
-view(2);
-hold on;
-h = plot3(orbitTrackTime, orbitTrackLatitude, orbitTrackPlotHeight, '.k');
-set(h, 'MarkerSize', 3)
-ylabel('Magnetic Latitude')
-title(['1300-5200km changes (TADs) [(2600 km smooth - 10400 km smooth) / 10400 km smooth] ', timeOfDay])
-colorbar
-colormap jet(500)
-ylim([minAllowedLatitude maxAllowedLatitude]);
-xlim([min(timeMatrix(:)) max(timeMatrix(:))]);
-xlabel(['Days since the UTC beginning of ', referenceDay])
-
 end
 
 function [results, magneticLatitudeForResidue, relativeResidues] = writeSmallWaveDataToResults(limitedLatitude, relativeResidues, timeOfDay, results)
@@ -300,5 +308,37 @@ end
 results{rowNum, colNum}     = stdSouth;
 results{rowNum, colNum + 1} = stdNorth;
 results{rowNum, colNum + 2} = stdSouth / stdNorth;
+
+end
+
+function estimateSpectralPowerDensity(filteredDensity)
+%
+
+samplingFreq = 6;
+
+numOfSamples = length(filteredDensity);
+densityFFT = (1 / (samplingFreq * numOfSamples)) * abs(fft(filteredDensity)) .^ 2;
+freq = (0:numOfSamples - 1) * samplingFreq / numOfSamples;
+periodInMinutes = 1 ./ freq;
+
+earthCircumferenceAtGoceOrbit = 2 * pi * (6371 + 270);
+goceOrbitPeriod = 89;
+speed = earthCircumferenceAtGoceOrbit / goceOrbitPeriod;
+periodInKm = speed * periodInMinutes;
+
+minimumResolution = 154.5;
+maximumResolution = 10500;
+
+%densityFFT = smooth(densityFFT, 5);
+densityFFT = removePeriodicBackground(densityFFT, 2000, mean(diff(periodInKm(periodInKm > minimumResolution & periodInKm < maximumResolution))), 0);
+
+densityFFT(periodInKm < minimumResolution | periodInKm > maximumResolution) = 0;
+
+fullPower = trapz(densityFFT);
+relativeSpectralDensity = densityFFT / fullPower;
+
+figure;
+plot(periodInKm, relativeSpectralDensity);
+xlim([minimumResolution maximumResolution])
 
 end
