@@ -127,8 +127,14 @@ for i = 1:length(loopOrbits)
         smoothedDensity10400km = smooth(limitedDensity(indices), 151);
         smoothedDensity2600km = smooth(limitedDensity(indices), 33); 
         TADplot(indices) = (smoothedDensity2600km - smoothedDensity10400km) ./ smoothedDensity10400km;
+        %TADplot(indices) = (limitedDensity(indices) - smoothedDensity10400km) ./ smoothedDensity10400km;
     end    
 end
+
+TADforSpectralDensity = TADplot;
+TADforSpectralDensity = TADforSpectralDensity - nanmean(TADplot);
+TADforSpectralDensity(isnan(TADforSpectralDensity)) = 0;
+estimateSpectralPowerDensity(TADforSpectralDensity)
 
 if plotFigures ~= 0
     plotDensityByOrbit(linehandles, calmOrbits, timeOfDay, densityByOrbitAxesHandle)
@@ -219,11 +225,6 @@ end
 function plotTADcolormap(limitedTimestamps, limitedLatitude, TADplot, TADplotIndices, minAllowedLatitude, maxAllowedLatitude, orbits, ...
     beginOrbit, calmOrbits, endColorMapOrbit, firstDatenum, timeOfDay, plotFigures)
 %
-
-TADforSpectralDensity = TADplot;
-TADforSpectralDensity = TADforSpectralDensity - nanmean(TADplot);
-TADforSpectralDensity(isnan(TADforSpectralDensity)) = 0;
-estimateSpectralPowerDensity(TADforSpectralDensity)
 
 if plotFigures ~= 0
     TADplot = TADplot(~isnan(TADplot));
@@ -329,8 +330,9 @@ periodInKm = speed * periodInMinutes;
 minimumResolution = 154.5;
 maximumResolution = 10500;
 
-%densityFFT = smooth(densityFFT, 5);
-densityFFT = removePeriodicBackground(densityFFT, 2000, mean(diff(periodInKm(periodInKm > minimumResolution & periodInKm < maximumResolution))), 0);
+%densityFFT = smooth(densityFFT, 51);
+% averageFrequency = mean(abs(diff(periodInKm(periodInKm > minimumResolution & periodInKm < maximumResolution))));
+% densityFFT = removePeriodicBackground(densityFFT, 100, averageFrequency, 0);
 
 densityFFT(periodInKm < minimumResolution | periodInKm > maximumResolution) = 0;
 
