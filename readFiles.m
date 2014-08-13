@@ -256,6 +256,13 @@ solarTime = [];
 crwindEast = [];
 crwindNorth = [];
 crwindUp = [];
+absDensityError = [];
+absWindError = [];
+noiseAffected = [];
+eclipseAffected = [];
+isMorningPass = [];
+ionThrusterActive = [];
+
 timestampsDensityDatenum = [];
 
 secondsInDay = 60 * 60 * 24;
@@ -266,16 +273,22 @@ parfor i = 1:length(densityFiles)
         error('densityFile open unsuccesful')
     end
 
-    densityData = textscan(densityFile, '%s %s %s %f %f %f %f %f %f %f %f %f', 'commentStyle','#');
+    densityData = textscan(densityFile, '%s %s %s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f', 'commentStyle','#');
 
     density = [density; densityData{9} * power(10, 11)];
     longitude = [longitude; densityData{5}];
     latitude = [latitude; densityData{6}];
     altitude = [altitude; densityData{4}];
     solarTime = [solarTime; densityData{7}];
-    crwindEast = [crwindEast; densityData{8}];
-    crwindNorth = [crwindNorth; densityData{9}];
-    crwindUp = [crwindUp; densityData{10}];
+    crwindEast = [crwindEast; densityData{10}];
+    crwindNorth = [crwindNorth; densityData{11}];
+    crwindUp = [crwindUp; densityData{12}];
+    absDensityError = [absDensityError; densityData{13} * power(10, 11)];
+    absWindError = [absWindError; densityData{14}];
+    noiseAffected = [noiseAffected; densityData{15}];
+    eclipseAffected = [eclipseAffected; densityData{16}];
+    isMorningPass = [isMorningPass; densityData{17}];
+    ionThrusterActive = [ionThrusterActive; densityData{18}];
     
     timestampsDensityDatenum = [timestampsDensityDatenum; datenum(strcat(densityData{1}, densityData{2}), 'yyyy-mm-ddHH:MM:SS.FFF')];
 end
@@ -289,6 +302,12 @@ solarTime = solarTime(indicesToConserve);
 crwindEast = crwindEast(indicesToConserve);
 crwindNorth = crwindNorth(indicesToConserve);
 crwindUp = crwindUp(indicesToConserve);
+absDensityError = absDensityError(indicesToConserve);
+absWindError = absWindError(indicesToConserve);
+noiseAffected = logical(round(noiseAffected(indicesToConserve)));
+eclipseAffected = logical(round(eclipseAffected(indicesToConserve)));
+isMorningPass = logical(round(isMorningPass(indicesToConserve)));
+ionThrusterActive = ~logical(round(ionThrusterActive(indicesToConserve)));
 
 magneticLatitude = convertToMagneticCoordinates(latitude, longitude, altitude);
 

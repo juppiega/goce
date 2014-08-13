@@ -4,8 +4,8 @@ function [ae, ap, absB, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg,
  morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength, firstDatenum] ...
  = compareToMsisAndGiveVariables(threshold, results)
 
-if exist('GoceVariables.mat', 'file') == 2
-    load('GoceVariables.mat')
+if exist('goceVariables.mat', 'file') == 2
+    load('goceVariables.mat')
 else
     fprintf(2, '%s', 'Warning: no goceVariables.mat found in Matlab PATH, now attempting to create new one -> readFiles.m');
     readFiles();

@@ -71,11 +71,11 @@ limitedDensity = limitedDensity(exactOrbitIndices);
 if satelliteIsGoingSouth(limitedLatitude)
     orbitsEndingTooNorth = find(limitedLatitude(orbits(:,2)) > minAllowedLatitude);
     orbitsBeginningTooSouth = find(limitedLatitude(orbits(:,1)) < maxAllowedLatitude);
-    orbitsToDelete = unique(horzcat(orbitsBeginningTooSouth, orbitsEndingTooNorth));
+    orbitsToDelete = unique(vertcat(orbitsBeginningTooSouth, orbitsEndingTooNorth));
 else
     orbitsEndingTooSouth = find(limitedLatitude(orbits(:,2)) < maxAllowedLatitude);
     orbitsBeginningTooNorth = find(limitedLatitude(orbits(:,1)) > minAllowedLatitude);
-    orbitsToDelete = unique(horzcat(orbitsBeginningTooNorth, orbitsEndingTooSouth));
+    orbitsToDelete = unique(vertcat(orbitsBeginningTooNorth, orbitsEndingTooSouth));
 end
 
 newIndices = 1:length(limitedLatitude);
@@ -132,9 +132,9 @@ TADforSpectralDensity = TADdensity;
 TADforSpectralDensity = TADforSpectralDensity - nanmean(TADdensity);
 TADforSpectralDensity(isnan(TADforSpectralDensity)) = 0;
 [intervalPower, maxPower, scaleAtMax] = estimatePowerSpectralDensity(TADforSpectralDensity, ...
-    orbits(beginStormOrbit:endColorMapOrbit,:), timeOfDay);
+    orbits(beginStormOrbit:endColorMapOrbit,:), timeOfDay, plotFigures);
 
-[results, magneticLatitudeForResidue, relativeResidues] = writeSmallWaveAndTADdataToResults(limitedLatitude, relativeResidues, timeOfDay, results);
+[results, magneticLatitudeForResidue, relativeResidues] = writeSmallWaveAndTADdataToResults(limitedLatitude, relativeResidues, intervalPower, maxPower, scaleAtMax, timeOfDay, results);
 
 if plotFigures ~= 0
 
@@ -256,7 +256,7 @@ set(h, 'MarkerSize', 3)
 ylabel('Magnetic Latitude')
 title(['1300-5200km changes (TADs) [(2600 km smooth - 10400 km smooth) / 10400 km smooth] ', timeOfDay])
 colorbar
-colormap jet(500)
+%colormap jet(500)
 ylim([minAllowedLatitude maxAllowedLatitude]);
 xlim([min(timeMatrix(:)) max(timeMatrix(:))]);
 xlabel(['Days since the UTC beginning of ', referenceDay])
@@ -272,10 +272,10 @@ indices = TADplotIndices(~isnan(TADplotIndices));
 TADlatitude = limitedLatitude(indices);
 TADtime = limitedTimestamps(indices);
 
-oneFifthDegreeStep = minAllowedLatitude:0.2:maxAllowedLatitude;
+oneQuarterDegreeStep = minAllowedLatitude:0.25:maxAllowedLatitude;
 
-for i = 1:length(oneFifthDegreeStep)
-    regriddedTime(:,i) = latitudeCrossingTimes(TADlatitude, TADtime, oneFifthDegreeStep(i)); 
+for i = 1:length(oneQuarterDegreeStep)
+    regriddedTime(:,i) = latitudeCrossingTimes(TADlatitude, TADtime, oneQuarterDegreeStep(i)); 
 end
 
 regriddedDensity = interp1(TADtime, TADplot, regriddedTime, 'spline');
@@ -288,7 +288,7 @@ for i = 1:numOfValuesInOrbit
 
     tInterp = interp1(1:numOfOrbits, timeThisLatitude, 1:1/60:numOfOrbits);
     interpolatedDensity = interp1(timeThisLatitude, densityThisLatitude, tInterp, 'spline');
-    thisLatitude = ones(length(tInterp), 1) * oneFifthDegreeStep(i);
+    thisLatitude = ones(length(tInterp), 1) * oneQuarterDegreeStep(i);
     latitudeMatrix(:,i) = thisLatitude;
     densityMatrix(:,i) = interpolatedDensity;
     timeMatrix(:,i) = tInterp;
@@ -319,24 +319,24 @@ if rowNum == 2
     colNum = length(results(rowNum,:)) + 1;
     results{1, colNum}     = ['Std SH ', timeOfDay];
     results{1, colNum + 1} = ['Std NH ', timeOfDay];
-    results{1, colNum + 2} = ['Std SH/NH ', timeOfDay];
     
-    results{1, colNum + 3} = ['TAD interval power ', timeOfDay];
-    results{1, colNum + 4} = ['TAD max power  ', timeOfDay];
-    results{1, colNum + 5} = ['TAD scale at max', timeOfDay];
+    results{1, colNum + 2} = ['TAD interval power ', timeOfDay];
+    results{1, colNum + 3} = ['TAD max power  ', timeOfDay];
+    results{1, colNum + 4} = ['TAD scale at max', timeOfDay];
 end
 results{rowNum, colNum}     = stdSouth;
 results{rowNum, colNum + 1} = stdNorth;
-results{rowNum, colNum + 2} = stdSouth / stdNorth;
 
-results{rowNum, colNum + 3} = intervalPower;
-results{rowNum, colNum + 4} = maxPower;
-results{rowNum, colNum + 5} = scaleAtMax;
+results{rowNum, colNum + 2} = intervalPower;
+results{rowNum, colNum + 3} = maxPower;
+results{rowNum, colNum + 4} = scaleAtMax;
 
 end
 
 function [intervalPower, maxPower, scaleAtMax] = estimatePowerSpectralDensity(filteredDensity, orbits, timeOfDay, plotFigures)
 %
+
+persistent spectralDensityFigHandle
 
 samplingFreq = 6;
 if mod(length(filteredDensity), 2) == 0
@@ -346,7 +346,7 @@ else
 end
 orbitsToRemove = mod(length(orbits(:,1)), 3);
 if orbitsToRemove > 0
-    orbits(orbitsToRemove,:) = [];
+    orbits(end - orbitsToRemove + 1 : end,:) = [];
 end
 
 loopIteration = 1;
@@ -389,18 +389,33 @@ scaleAtMax = periodInInterval(maxIndex);
 
 if plotFigures ~= 0
 
-    figure;
-    plot(periodInKm, densityPsd, 'k');
+    if ~isempty(strfind(lower(timeOfDay), 'morning')); 
+        spectralDensityFigHandle = figure;
+        lineColor = 'b'; 
+        axisNum = 1;
+    else
+        lineColor = 'r';
+        axisNum = 2;
+    end
+    
+    figure(spectralDensityFigHandle);
+    plot(periodInKm, densityPsd, lineColor);
     xlim([lowerBound upperBound])
     set(gca, 'XTick', [lowerBound 2000:2000:14000])
     title(['TAD Power Spectral Density ', timeOfDay])
     ylabel('Power / Frequency [ 1 / min^{-1} ]')
     xlabel('Horizontal Scale [km]');
 
-    ylimits = get(gca, 'ylim');
-    line([2600 2600], [ylimits(1) ylimits(2)], 'LineStyle', '--', 'Color', 'r');
-    line([11800 11800], [ylimits(1) ylimits(2)], 'LineStyle', '--', 'Color', 'r');
-    
+    if axisNum == 1
+        hold on
+    else
+        hold off
+        legend('Morning', 'Evening');
+        
+        ylimits = get(gca, 'ylim');
+        line([2600 2600], [ylimits(1) ylimits(2)], 'LineStyle', '--', 'Color', 'k');
+        line([11800 11800], [ylimits(1) ylimits(2)], 'LineStyle', '--', 'Color', 'k');
+    end
 end
 
 end
