@@ -4,6 +4,9 @@ function [results, averageIntegral, timestampsAverInt] = plotAndCalculateCorrela
 
 [timelag, timelagInHours, bestIntegral, averageGoodLag, averageIntegral] = compareDensityToGeomIndexIntegral(density, geomIndex, timestamps, timestampsFixed, indexName, plotFigures);
 
+figure;
+plotyy(timestamps, geomIndex, timestampsFixed, density);
+
 [rowNum, ~] = size(results);
 emptyCells = cellfun(@isempty,results);
 [~, emptyColPositions] = find(emptyCells);

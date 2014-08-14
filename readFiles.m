@@ -345,7 +345,7 @@ end
 
 function [F107A81Days, F107Yesterday] = giveF107ValsForMSIS(F107values, F107datenum, timestampsDensityDatenum)
 %
-fprintf('%s\n', 'Computing F107 values for msis')
+fprintf('%s\n', 'Computing F10.7 values for msis')
 
 F107beginDay = floor(timestampsDensityDatenum(1)) - 81;
 F107endDay = floor(timestampsDensityDatenum(end));
@@ -412,9 +412,7 @@ end
 
 function [correctedDensity, msisDensityVariableAlt, msisDensity270km] = relateMsisToDensity(density, altitude, timestampsDatenum, ...
           solarTime, latitude, longtitude, F107A, F107, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
-tic;      
-% [correctedDensity] = subtractMsisFromDensity(density, altitude,
-% timestampsDatenum, latitude, longtitude, F107A, F107, ap)
+      
 fprintf('%s\n', 'Computing normalized densities with msis. This may take even half an hour.')
 
 msisDensity270km = nan(size(density));
@@ -425,7 +423,7 @@ modelingIndices = 1:length(density);
 altitudeInKm = altitude / 1000;
 
 % calculate the day of the year
-doy = ceil(timestampsDatenum) - datenum(datestr(timestampsDatenum, 'yyyy'), 'yyyy');
+doy = ceil(timestampsDatenum) - datenum(datestr(timestampsDatenum, 'yyyy'), 'yyyy'); %ANTAAKO OIKEITA ARVOJA!!!!
 
 % second of the day
 secondsInDay = 24 * 60 * 60;
@@ -457,8 +455,6 @@ correctedDensity = density .* msisDensity270km ./ msisDensityVariableAlt;
 
 msisDensityVariableAlt = msisDensityVariableAlt * power(10, 14);
 msisDensity270km = msisDensity270km * power(10, 14);
-
-toc;
 
 end
 
@@ -513,7 +509,7 @@ function [x, y, z] = geod2ecef(latitude, longitude, altitude)
 % 
 % Copyright (c) 2011, Drew Compston
 % All rights reserved.
-% 
+ 
 % Redistribution and use in source and binary forms, with or without
 % modification, are permitted provided that the following conditions are
 % met:
