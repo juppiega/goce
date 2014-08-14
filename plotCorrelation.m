@@ -17,8 +17,6 @@ end
 
 if plotFigures ~= 0
     r2 = r * r;
-    fprintf('%s %f\n', 'Pearson correlation: ', r)
-    fprintf('%s %d %s\n', 'Thus, ', round(r2 * 100), ['% of variation in ', yvalName, ' can be explained by changes in ', xvalName])
     
     figure;
     plot(xvals, yvals, '.')

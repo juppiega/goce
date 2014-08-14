@@ -7,11 +7,12 @@ function [ae, ap, absB, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg,
 if exist('goceVariables.mat', 'file') == 2
     load('goceVariables.mat')
 else
-    fprintf(2, '%s', 'Warning: no goceVariables.mat found in Matlab PATH, now attempting to create new one -> readFiles.m');
+    fprintf(2, '\n%s\n', 'Warning: no goceVariables.mat found in Matlab PATH, now attempting to create new one -> readFiles.m');
     readFiles();
+    load('goceVariables.mat')
 end
 
-%compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
+compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
 
 intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
 
@@ -57,7 +58,7 @@ function intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum,
 
 intervalsOfInterest = connectStormsWithMuchOverlap(intervalsOfInterest);
 
-intervalsOfInterest = removeStormsWithDatagaps(intervalsOfInterest, timestampsAeDatenum, ...
+intervalsOfInterest = removeStormsWithDatagaps(intervalsOfInterest, ae, timestampsAeDatenum, ...
     timestampsEpsilonDatenum, timestampsDensityDatenum, epsilonQualityFlag, calmDays);
 
 printSelectedStorms(intervalsOfInterest, timestampsAeDatenum);
@@ -90,18 +91,20 @@ end
 function printSelectedStorms(intervalsOfInterest, timestampsAeDatenum)
 %
 
-fprintf('%s\n', 'Following storms will be analyzed:')
+fprintf('\n%s\n', 'Following storms will be analyzed:')
 for i = 1:length(intervalsOfInterest(:,1))
     beginIndex = intervalsOfInterest(i,1);
     endIndex = intervalsOfInterest(i,2);
-    fprintf('%s\n', [datestr(timestampsAeDatenum(beginIndex), 'yyyy-mm-dd'), ' to ', datestr(timestampsAeDatenum(endIndex), 'yyyy-mm-dd')])
+    fprintf('%d%s\n', i, ['. ', datestr(timestampsAeDatenum(beginIndex), 'yyyy-mm-dd'), ' to ', datestr(timestampsAeDatenum(endIndex), 'yyyy-mm-dd')])
 end
 
 end
 
-function intervalsOfInterest = removeStormsWithDatagaps(intervalsOfInterest, timestampsAeDatenum, ...
+function intervalsOfInterest = removeStormsWithDatagaps(intervalsOfInterest, ae, timestampsAeDatenum, ...
     timestampsEpsilonDatenum, timestampsDensityDatenum, epsilonQualityFlag, calmDays)
 %
+
+fprintf('\n%s\n', '')
 
 indicesInDay = 24 * 60;
 intervalsToRemove = [];
@@ -131,18 +134,20 @@ for i = 1:length(intervalsOfInterest(:,1))
     valuesShouldHaveBefore = length(timestampsAeDatenum(aeIndices(1):stormBeginIndex));
     valuesShouldHaveStorm = length(timestampsAeDatenum(stormBeginIndex:stormEndIndex));
     
-    if densityStormIndices / valuesShouldHaveStorm < 0.5 ||...
+    if densityStormIndices / valuesShouldHaveStorm < 0.75 ||...
        (densityAfterIndices / valuesShouldHaveAfter < 0.75 && densityBeforeIndices / valuesShouldHaveBefore < 0.75)
         intervalsToRemove = [intervalsToRemove i];
-        fprintf(2, '%s\n', ['Warning: Storm between dates ', datestr(timestampsAeDatenum(aeIndices(1)), 'yyyy-mm-dd'), ...
-            ' and ', datestr(timestampsAeDatenum(aeIndices(end)), 'yyyy-mm-dd'), ' has too large density data gaps. It will be omitted.']);
+        fprintf(2, '%s%d%s\n', ['Warning: Storm between dates ', datestr(timestampsAeDatenum(aeIndices(1)), 'yyyy-mm-dd'), ...
+            ' and ', datestr(timestampsAeDatenum(aeIndices(end)), 'yyyy-mm-dd'), ' with max AE: '], max(ae(aeIndices)), ...
+            ' has too large density data gaps. It will be omitted.');
     end
     
     if epsilonStormIndices / valuesShouldHaveStorm < 0.5 ||...
        (epsilonAfterIndices / valuesShouldHaveAfter < 0.3 && epsilonBeforeIndices / valuesShouldHaveBefore < 0.3)
         intervalsToRemove = [intervalsToRemove i];
-        fprintf(2, '%s\n', ['Warning: Storm between dates ', datestr(timestampsAeDatenum(aeIndices(1)), 'yyyy-mm-dd'), ...
-            ' and ', datestr(timestampsAeDatenum(aeIndices(end)), 'yyyy-mm-dd'), ' has too large Akasofu epsilon data gaps. It will be omitted.']);
+        fprintf(2, '%s%d%s\n', ['Warning: Storm between dates ', datestr(timestampsAeDatenum(aeIndices(1)), 'yyyy-mm-dd'), ...
+            ' and ', datestr(timestampsAeDatenum(aeIndices(end)), 'yyyy-mm-dd'), ' with max AE: '], max(ae(aeIndices)), ...
+            ' has too large solar wind data gaps. It will be omitted.');
     end
       
 end
@@ -156,22 +161,22 @@ function intervalsOfInterest = connectStormsWithMuchOverlap(intervalsOfInterest)
 %
 
 if length(intervalsOfInterest(:,1)) > 1
-    lengthOfOverlap = 0;
+    previousOverlappingStorms = 0;
     newIntervals = intervalsOfInterest;
     indicesToRemove = [];
     for i = 1:length(intervalsOfInterest(:,1)) - 1
         nextStormOverlap = intervalsOfInterest(i, 2) - intervalsOfInterest(i + 1,1);
         nextStormLength = intervalsOfInterest(i + 1, 2) - intervalsOfInterest(i + 1,1);
         if nextStormOverlap / nextStormLength > 0.4
-            if lengthOfOverlap > 0
-                newIntervals(i - lengthOfOverlap,:) = [newIntervals(i - lengthOfOverlap, 1) intervalsOfInterest(i + 1, 2)];
+            if previousOverlappingStorms > 0
+                newIntervals(i - previousOverlappingStorms,:) = [newIntervals(i - previousOverlappingStorms, 1) intervalsOfInterest(i + 1, 2)];
             else
                 newIntervals(i,:) = [intervalsOfInterest(i, 1) intervalsOfInterest(i + 1, 2)];
             end
             indicesToRemove = [indicesToRemove; (i + 1)];
-            lengthOfOverlap = lengthOfOverlap + 1;
+            previousOverlappingStorms = previousOverlappingStorms + 1;
         else
-            lengthOfOverlap = 0;
+            previousOverlappingStorms = 0;
         end
     end
     indicesToConserve = setdiff(1:length(newIntervals(:,1)), indicesToRemove);
@@ -238,8 +243,8 @@ aeYmax = 500 * ceil(max(ae) / 500);
 set(hAx(2),'YLim', [0 aeYmax], 'YTick', 0:250:aeYmax);
 datetick(hAx(1), 'x', 'yyyy-mm', 'keepticks', 'keeplimits')
 datetick(hAx(2), 'x', 'yyyy-mm', 'keepticks', 'keeplimits')
-rotateticklabel(hAx(1), 50);
-rotateticklabel(hAx(2), 50);
+rotateticklabel(hAx(1), 90);
+rotateticklabel(hAx(2), 90);
 hold on;
 plot(timestampsDensityDatenum, ratioTrend, 'r-');
 hold off;
@@ -324,55 +329,90 @@ legend(h, 'Normal', 'Lognormal', 't Location-Scale', 'Ratio', 'Location', 'North
 
 end
 
+function th=rotateticklabel(h,rot,demo)
+%ROTATETICKLABEL rotates tick labels
+%   TH=ROTATETICKLABEL(H,ROT) is the calling form where H is a handle to
+%   the axis that contains the XTickLabels that are to be rotated. ROT is
+%   an optional parameter that specifies the angle of rotation. The default
+%   angle is 90. TH is a handle to the text objects created. For long
+%   strings such as those produced by datetick, you may have to adjust the
+%   position of the axes so the labels don't get cut off.
+%
+%   Of course, GCA can be substituted for H if desired.
+%
+%   TH=ROTATETICKLABEL([],[],'demo') shows a demo figure.
+%
+%   Known deficiencies: if tick labels are raised to a power, the power
+%   will be lost after rotation.
+%
+%   See also datetick.
 
+% Copyright (c) 2005, Andrew Bliss
+% All rights reserved.
+% 
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are
+% met:
+% 
+%     * Redistributions of source code must retain the above copyright
+%       notice, this list of conditions and the following disclaimer.
+%     * Redistributions in binary form must reproduce the above copyright
+%       notice, this list of conditions and the following disclaimer in
+%       the documentation and/or other materials provided with the distribution
+% 
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+% POSSIBILITY OF SUCH DAMAGE.
 
+%   Written Oct 14, 2005 by Andy Bliss
+%   Copyright 2005 by Andy Bliss
 
+%DEMO:
+if nargin==3
+    x=[now-.7 now-.3 now];
+    y=[20 35 15];
+    figure
+    plot(x,y,'.-')
+    datetick('x',0,'keepticks')
+    h=gca;
+    set(h,'position',[0.13 0.35 0.775 0.55])
+    rot=90;
+end
 
+%set the default rotation if user doesn't specify
+if nargin==1
+    rot=90;
+end
+%make sure the rotation is in the range 0:360 (brute force method)
+while rot>360
+    rot=rot-360;
+end
+while rot<0
+    rot=rot+360;
+end
+%get current tick labels
+a=get(h,'XTickLabel');
+%erase current tick labels from figure
+set(h,'XTickLabel',[]);
+%get tick label positions
+b=get(h,'XTick');
+c=get(h,'YTick');
+%make new tick labels
+if rot<180
+    th=text(b,repmat(c(1)-.1*(c(2)-c(1)),length(b),1),a,'HorizontalAlignment','right','rotation',rot);
+else
+    th=text(b,repmat(c(1)-.1*(c(2)-c(1)),length(b),1),a,'HorizontalAlignment','left','rotation',rot);
+end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-% The following is not for the faint harted!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+end
 
 
 function [ae, ap, absB, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...

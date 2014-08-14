@@ -10,57 +10,65 @@ apAll = readApFile(timestampsAeDatenum);
 
 [F107values, F107datenum] = readF107File();
 
-[absB, timestampsAbsB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilon, timestampsEpsilonDatenum] = readSolarParameterFiles(timestampsAeDatenum);
+[absB, timestampsAbsB, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilon, timestampsEpsilonDatenum] = readSolarParameterFiles(timestampsAeDatenum);
 
 [density, averagedDensity, averagedDensityNoBg, density3h, longitude, latitude, altitude, solarTime, magneticLatitude, crwindEast, crwindNorth, crwindUp, ...
-    timestamps10sFixed, timestamps1min, timestamps1minFixed, timestamps1minFixedDatenum, timestampsDensityDatenum, firstDatenum] = readDensityFile(timestampsAeDatenum);
+ timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, firstDatenum, absDensityError, ...
+ absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = readDensityFile(timestampsAeDatenum);
 
 [F107A81Days, F107Yesterday] = giveF107ValsForMSIS(F107values, F107datenum, timestampsDensityDatenum);
 
 [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, ap, timestamps3h, timestamps3hFixed] =...
     giveApValsForMSIS(apAll, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum);
 
-[densityNoBg, msisDensityVariableAlt, msisDensity270km] = relateMsisToDensity(density, altitude, timestampsDensityDatenum, timestamps10sFixed,...
-    timestamps1min, latitude, longitude, F107A81Days, F107Yesterday, ae, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
+[densityNoBg, msisDensityVariableAlt, msisDensity270km] = relateMsisToDensity(density, altitude, timestampsDensityDatenum,...
+    solarTime, latitude, longitude, F107A81Days, F107Yesterday, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
 measuredDensity = density;
 
 
 if fclose('all') ~= 0
     display('File close unsuccesful - check if some of the files are reserved by another editor.')
 end
-               
-save('goceVariables.mat', 'ae', '-v6')
-save('goceVariables.mat', 'ap', '-v6', '-append')
-save('goceVariables.mat', 'absB', '-v6', '-append')
-save('goceVariables.mat', 'averagedDensity', '-v6', '-append')
-save('goceVariables.mat', 'averagedDensityNoBg', '-v6', '-append')
-save('goceVariables.mat', 'density3h', '-v6', '-append')
-save('goceVariables.mat', 'akasofuEpsilon', '-v6', '-append')
-save('goceVariables.mat', 'epsilonQualityFlag', '-v6', '-append')
-save('goceVariables.mat', 'longitude', '-v6', '-append')
-save('goceVariables.mat', 'latitude', '-v6', '-append')
-save('goceVariables.mat', 'altitude', '-v6', '-append')
-save('goceVariables.mat', 'solarTime', '-v6', '-append')
-save('goceVariables.mat', 'crwindEast', '-v6', '-append')
-save('goceVariables.mat', 'crwindNorth', '-v6', '-append')
-save('goceVariables.mat', 'crwindUp', '-v6', '-append')
-save('goceVariables.mat', 'magneticLatitude', '-v6', '-append')
-save('goceVariables.mat', 'densityNoBg', '-v6', '-append')
-save('goceVariables.mat', 'msisDensityVariableAlt', '-v6', '-append')
-save('goceVariables.mat', 'msisDensity270km', '-v6', '-append')
-save('goceVariables.mat', 'measuredDensity', '-v6', '-append')
-save('goceVariables.mat', 'timestamps10sFixed', '-v6', '-append')
-save('goceVariables.mat', 'timestamps1min', '-v6', '-append')
-save('goceVariables.mat', 'timestamps1minFixed', '-v6', '-append')
-save('goceVariables.mat', 'timestamps3h', '-v6', '-append')
-save('goceVariables.mat', 'timestamps3hFixed', '-v6', '-append')
-save('goceVariables.mat', 'timestampsAbsB', '-v6', '-append')
-save('goceVariables.mat', 'timestampsAbsBDatenum', '-v6', '-append')
-save('goceVariables.mat', 'timestampsDensityDatenum', '-v6', '-append')
-save('goceVariables.mat', 'timestampsAeDatenum', '-v6', '-append')
-save('goceVariables.mat', 'timestampsEpsilon', '-v6', '-append')
-save('goceVariables.mat', 'timestampsEpsilonDatenum', '-v6', '-append')
-save('goceVariables.mat', 'firstDatenum', '-v6', '-append')
+
+fprintf('%s\n', 'Saving results to "goceVariables.mat" file')
+
+save('goceVariables.mat', 'ae', '-v7.3')
+save('goceVariables.mat', 'ap', '-append', '-v7.3', '-v7.3')
+save('goceVariables.mat', 'absB', '-append', '-v7.3')
+save('goceVariables.mat', 'averagedDensity', '-append', '-v7.3')
+save('goceVariables.mat', 'averagedDensityNoBg', '-append', '-v7.3')
+save('goceVariables.mat', 'density3h', '-append', '-v7.3')
+save('goceVariables.mat', 'akasofuEpsilon', '-append', '-v7.3')
+save('goceVariables.mat', 'epsilonQualityFlag', '-append', '-v7.3')
+save('goceVariables.mat', 'longitude', '-append', '-v7.3')
+save('goceVariables.mat', 'latitude', '-append', '-v7.3')
+save('goceVariables.mat', 'altitude', '-append', '-v7.3')
+save('goceVariables.mat', 'solarTime', '-append', '-v7.3')
+save('goceVariables.mat', 'crwindEast', '-append', '-v7.3')
+save('goceVariables.mat', 'crwindNorth', '-append', '-v7.3')
+save('goceVariables.mat', 'crwindUp', '-append', '-v7.3')
+save('goceVariables.mat', 'magneticLatitude', '-append', '-v7.3')
+save('goceVariables.mat', 'densityNoBg', '-append', '-v7.3')
+save('goceVariables.mat', 'msisDensityVariableAlt', '-append', '-v7.3')
+save('goceVariables.mat', 'msisDensity270km', '-append', '-v7.3')
+save('goceVariables.mat', 'measuredDensity', '-append', '-v7.3')
+save('goceVariables.mat', 'absDensityError', '-append', '-v7.3')
+save('goceVariables.mat', 'absWindError', '-append', '-v7.3')
+save('goceVariables.mat', 'noiseAffected', '-append', '-v7.3')
+save('goceVariables.mat', 'eclipseAffected', '-append', '-v7.3')
+save('goceVariables.mat', 'isMorningPass', '-append', '-v7.3')
+save('goceVariables.mat', 'ionThrusterActive', '-append', '-v7.3')
+save('goceVariables.mat', 'timestamps10sFixed', '-append', '-v7.3')
+save('goceVariables.mat', 'timestamps1min', '-append', '-v7.3')
+save('goceVariables.mat', 'timestamps1minFixed', '-append', '-v7.3')
+save('goceVariables.mat', 'timestamps3h', '-append', '-v7.3')
+save('goceVariables.mat', 'timestamps3hFixed', '-append', '-v7.3')
+save('goceVariables.mat', 'timestampsAbsB', '-append', '-v7.3')
+save('goceVariables.mat', 'timestampsEpsilon', '-append', '-v7.3')
+save('goceVariables.mat', 'firstDatenum', '-append', '-v7.3')
+save('goceVariables.mat', 'timestampsDensityDatenum', '-append', '-v7.3')
+save('goceVariables.mat', 'timestampsAeDatenum', '-append', '-v7.3')
+save('goceVariables.mat', 'timestampsEpsilonDatenum', '-append', '-v7.3')
 
 end
 
@@ -148,7 +156,7 @@ F107values = interp1(tF107ToInterpolate, F107valuesToInterpolate, F107datenum, '
 
 end
 
-function [absB, timestampsAbsB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilon, timestampsEpsilonDatenum] = readSolarParameterFiles(timestampsAeDatenum)
+function [absB, timestampsAbsB, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilon, timestampsEpsilonDatenum] = readSolarParameterFiles(timestampsAeDatenum)
 %
 fprintf('%s\n', 'Began reading IMF and SW files')
 
@@ -241,7 +249,8 @@ timestampsEpsilonDatenum = tVToInterpolate;
 end
 
 function [density, averagedDensity, averagedDensityNoBg, density3h, longitude, latitude, altitude, solarTime, magneticLatitude, crwindEast, crwindNorth, crwindUp,...
-    timestamps10sFixed, timestamps1min, timestamps1minFixed, timestamps1minFixedDatenum, timestampsDensityDatenum, firstDatenum] = ...
+    timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, firstDatenum,...
+    absDensityError, absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = ...
     readDensityFile(timestampsAeDatenum)
 %
 fprintf('%s\n', 'Began reading density files')
@@ -401,69 +410,55 @@ timestamps3h = timestamps3h(ismember(timestamps3h, timestamps1min))';
 
 end
 
-function [correctedDensity, msisDensityVariableAlt, msisDensity270km] = relateMsisToDensity(density, altitude, timestampsDatenum, timestamps10s, ...
-    timestamps1min, latitude,longtitude, F107A, F107, ae, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
+function [correctedDensity, msisDensityVariableAlt, msisDensity270km] = relateMsisToDensity(density, altitude, timestampsDatenum, ...
+          solarTime, latitude, longtitude, F107A, F107, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
+tic;      
 % [correctedDensity] = subtractMsisFromDensity(density, altitude,
 % timestampsDatenum, latitude, longtitude, F107A, F107, ap)
-fprintf('%s\n', 'Computing normalized densities with msis')
+fprintf('%s\n', 'Computing normalized densities with msis. This may take even half an hour.')
 
-correctedDensity = zeros(size(density));
-msisDensity270km = zeros(size(density));
-msisDensityVariableAlt = zeros(size(density));
+msisDensity270km = nan(size(density));
+msisDensityVariableAlt = nan(size(density));
 
 modelingIndices = 1:length(density);
 
-altitudeKm = altitude / 1000;
+altitudeInKm = altitude / 1000;
+
+% calculate the day of the year
+doy = ceil(timestampsDatenum) - datenum(datestr(timestampsDatenum, 'yyyy'), 'yyyy');
+
+% second of the day
+secondsInDay = 24 * 60 * 60;
+seconds = (timestampsDatenum - floor(timestampsDatenum)) * secondsInDay;
+
+targetCount = round(length(modelingIndices) / 10000);
+barWidth = 50;
+p = TimedProgressBar( targetCount, barWidth, ...
+                    'Running MSIS, ETA ', ...
+                    '. Now at ', ...
+                    'Concluded in ' );
 
 parfor i = modelingIndices
-    modelVariableAlt = run_nrlmsise00(altitudeKm(i), timestampsDatenum(i), latitude(i), longtitude(i), F107A(i), F107(i),...
-        ApDaily(i), apNow(i), ap3h(i), ap6h(i), ap9h(i), apAver12To33h(i), apAver36To57h(i));
-    modelConst270km = run_nrlmsise00(270, timestampsDatenum(i), latitude(i), longtitude(i), F107A(i), F107(i),...
-        ApDaily(i), apNow(i), ap3h(i), ap6h(i), ap9h(i), apAver12To33h(i), apAver36To57h(i));
-    correctedDensity(i) = density(i) * modelConst270km(:,7) / modelVariableAlt(:,7);
-    msisDensity270km(i) = 1000 * modelConst270km(:,7);
-    msisDensityVariableAlt(i) = 1000 * modelVariableAlt(:,7);
+      [~,~,~,~,~,msisDensityVariableAlt(i),~,~,~,~,~]...
+          =nrlmsise_mex(doy(i),seconds(i),altitudeInKm(i),latitude(i),longtitude(i),solarTime(i),F107A(i),F107(i),...
+          ApDaily(i),apNow(i),ap3h(i),ap6h(i),ap9h(i),apAver12To33h(i),apAver36To57h(i));
+      
+      [~,~,~,~,~,msisDensity270km(i),~,~,~,~,~]...
+          =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longtitude(i),solarTime(i),F107A(i),F107(i),...
+          ApDaily(i),apNow(i),ap3h(i),ap6h(i),ap9h(i),apAver12To33h(i),apAver36To57h(i));
+      
+      if mod(i, 10000) == 0
+         p.progress;
+      end
 end
+p.stop;
 
-msisDensityVariableAlt = msisDensityVariableAlt * power(10, 11);
-msisDensity270km = msisDensity270km * power(10, 11);
+correctedDensity = density .* msisDensity270km ./ msisDensityVariableAlt;
 
-plot(timestamps10s, density, timestamps10s, msisDensityVariableAlt);
+msisDensityVariableAlt = msisDensityVariableAlt * power(10, 14);
+msisDensity270km = msisDensity270km * power(10, 14);
 
-plotCorrelation(msisDensityVariableAlt, density, 'NRLMSISE00 density', 'GOCE measured density')
-
-end
-
-function plotCorrelation(xvals, yvals, xvalName, yvalName)
-%
-
-r = corr(xvals, yvals);
-r2 = r * r;
-fprintf('%s %f\n', 'Pearson correlation: ', r)
-fprintf('%s %d %s\n', 'Thus, ', round(r2 * 100), ['% of variation in ', yvalName, ' can be explained by changes in ', xvalName])
-
-end
-
-function [values] = removePeriodicBackground( values, removeShorterPeriods, samplingFreq, plotOrNot )
-% [averagedDensity] = removePeriodicBackground( values, removeShorterPeriods, samplingFreq, plotOrNot )
-
-numOfSamples = length(values);
-valueFFT = fft(values);
-Freq = (0:numOfSamples - 1) * samplingFreq / numOfSamples;
-period = 1 ./ Freq;
-
-if plotOrNot > 0
-    figure;
-    plotIndices = find(period < 500);
-    plot(period(plotIndices), abs(valueFFT(plotIndices)))
-    title('Density FFT')
-    xlabel('T / min')
-end
-
-indicesToRemove = period < removeShorterPeriods;
-valueFFT(indicesToRemove) = 0;
-
-values = abs(ifft(valueFFT));
+toc;
 
 end
 
@@ -585,3 +580,5 @@ if nargout <= 1
 end
 
 end
+
+

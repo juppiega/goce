@@ -123,7 +123,6 @@ if plotFigures ~= 0
     ylabel([correlationType, ' correlation']);
     xlabel('lags / h')
     integralWindowSize = lagsInHours(correlations == max(correlations));
-    fprintf('\n%s %f %s\n\n', [indexName, ' integral - Density timelag:'], integralWindowSize, 'h')
     ylimits = get(gca, 'ylim');
     line([integralWindowSize integralWindowSize], [ylimits(1) max(correlations)], 'LineStyle', '--');
     textYLocation = mean([ylimits(1) max(correlations)]);
