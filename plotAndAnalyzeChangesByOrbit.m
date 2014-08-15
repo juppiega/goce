@@ -131,10 +131,10 @@ end
 TADforSpectralDensity = TADdensity;
 TADforSpectralDensity = TADforSpectralDensity - nanmean(TADdensity);
 TADforSpectralDensity(isnan(TADforSpectralDensity)) = 0;
-[intervalPower, maxPower, scaleAtMax] = estimatePowerSpectralDensity(TADforSpectralDensity, ...
+[intervalPower, maxPower, scaleAtMax, averageScale] = estimatePowerSpectralDensity(TADforSpectralDensity, ...
     orbits(beginStormOrbit:endColorMapOrbit,:), timeOfDay, plotFigures);
 
-[results, magneticLatitudeForResidue, relativeResidues] = writeSmallWaveAndTADdataToResults(limitedLatitude, relativeResidues, intervalPower, maxPower, scaleAtMax, timeOfDay, results);
+[results, magneticLatitudeForResidue, relativeResidues] = writeSmallWaveAndTADdataToResults(limitedLatitude, relativeResidues, intervalPower, maxPower, scaleAtMax, averageScale, timeOfDay, results);
 
 if plotFigures ~= 0
 
@@ -302,7 +302,7 @@ densityMatrix(indicesToRemove) = 0;
 end
 
 function [results, magneticLatitudeForResidue, relativeResidues] = writeSmallWaveAndTADdataToResults(limitedLatitude, ...
-    relativeResidues, intervalPower, maxPower, scaleAtMax, timeOfDay, results)
+    relativeResidues, intervalPower, maxPower, scaleAtMax, averageScale, timeOfDay, results)
 %
 
 magneticLatitudeForResidue = limitedLatitude(~isnan(relativeResidues));
@@ -322,7 +322,8 @@ if rowNum == 2
     
     results{1, colNum + 2} = ['TAD interval power ', timeOfDay];
     results{1, colNum + 3} = ['TAD max power  ', timeOfDay];
-    results{1, colNum + 4} = ['TAD scale at max', timeOfDay];
+    results{1, colNum + 4} = ['TAD scale at max ', timeOfDay];
+    results{1, colNum + 5} = ['TAD mean scale ', timeOfDay];
 end
 results{rowNum, colNum}     = stdSouth;
 results{rowNum, colNum + 1} = stdNorth;
@@ -330,10 +331,11 @@ results{rowNum, colNum + 1} = stdNorth;
 results{rowNum, colNum + 2} = intervalPower;
 results{rowNum, colNum + 3} = maxPower;
 results{rowNum, colNum + 4} = scaleAtMax;
+results{rowNum, colNum + 5} = averageScale;
 
 end
 
-function [intervalPower, maxPower, scaleAtMax] = estimatePowerSpectralDensity(filteredDensity, orbits, timeOfDay, plotFigures)
+function [intervalPower, maxPower, scaleAtMax, averageScale] = estimatePowerSpectralDensity(filteredDensity, orbits, timeOfDay, plotFigures)
 %
 
 persistent spectralDensityFigHandle
@@ -386,6 +388,7 @@ intervalEnd = find(interval, 1, 'last');
 intervalPower = cumPower(intervalBegin) + 0.5 * (cumPower(intervalEnd) - cumPower(intervalBegin));
 [maxPower, maxIndex] = max(psdInInterval);
 scaleAtMax = periodInInterval(maxIndex);
+averageScale = sum(periodInInterval' .* psdInInterval) / sum(psdInInterval);
 
 if plotFigures ~= 0
 

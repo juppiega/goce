@@ -115,11 +115,11 @@ limitedTimestamps = limitedTimestamps(exactOrbitIndices);
 if satelliteIsGoingSouth(limitedLatitude)
     orbitsEndingTooNorth = find(limitedLatitude(orbits(:,2)) > minAllowedLatitude);
     orbitsBeginningTooSouth = find(limitedLatitude(orbits(:,1)) < maxAllowedLatitude);
-    orbitsToDelete = unique(horzcat(orbitsBeginningTooSouth, orbitsEndingTooNorth));
+    orbitsToDelete = unique(vertcat(orbitsBeginningTooSouth, orbitsEndingTooNorth));
 else
     orbitsEndingTooSouth = find(limitedLatitude(orbits(:,2)) < maxAllowedLatitude);
     orbitsBeginningTooNorth = find(limitedLatitude(orbits(:,1)) > minAllowedLatitude);
-    orbitsToDelete = unique(horzcat(orbitsBeginningTooNorth, orbitsEndingTooSouth));
+    orbitsToDelete = unique(vertcat(orbitsBeginningTooNorth, orbitsEndingTooSouth));
 end
 
 newIndices = 1:length(limitedLatitude);
