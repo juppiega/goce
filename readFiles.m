@@ -4,25 +4,27 @@ if matlabpool('size') <= 0
     matlabpool open
 end
 
+tic;
 [ae, timestampsAeDatenum] = readAeFiles();
-
-apAll = readApFile(timestampsAeDatenum);
 
 [F107values, F107datenum] = readF107File();
 
-[absB, timestampsAbsB, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilon, timestampsEpsilonDatenum] = readSolarParameterFiles(timestampsAeDatenum);
+[absB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilonDatenum] ...
+    = readSolarParameterFiles(timestampsAeDatenum);
 
-[density, averagedDensity, averagedDensityNoBg, density3h, longitude, latitude, altitude, solarTime, magneticLatitude, crwindEast, crwindNorth, crwindUp, ...
- timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, firstDatenum, absDensityError, ...
- absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = readDensityFile(timestampsAeDatenum);
+[density, longitude, latitude, altitude, solarTime, magneticLatitude, crwindEast, crwindNorth, crwindUp, ...
+ timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, timestampsAbsB, timestampsEpsilon, firstDatenum, absDensityError, ...
+ absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = readDensityFile(timestampsAeDatenum, timestampsAbsBDatenum, timestampsEpsilonDatenum);
+
+apAll = readApFile(timestampsDensityDatenum);
 
 [F107A81Days, F107Yesterday] = giveF107ValsForMSIS(F107values, F107datenum, timestampsDensityDatenum);
 
 [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, ap, timestamps3h, timestamps3hFixed] =...
     giveApValsForMSIS(apAll, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum);
 
-[densityNoBg, msisDensityVariableAlt, msisDensity270km] = relateMsisToDensity(density, altitude, timestampsDensityDatenum,...
-    solarTime, latitude, longitude, F107A81Days, F107Yesterday, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
+[densityNoBg, msisDensityVariableAlt, msisDensity270km, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDensityDatenum,...
+    timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F107A81Days, F107Yesterday, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
 measuredDensity = density;
 
 
@@ -70,6 +72,7 @@ save('goceVariables.mat', 'timestampsDensityDatenum', '-append', '-v7.3')
 save('goceVariables.mat', 'timestampsAeDatenum', '-append', '-v7.3')
 save('goceVariables.mat', 'timestampsEpsilonDatenum', '-append', '-v7.3')
 
+toc;
 end
 
 function [ae, timestampsAeDatenum] = readAeFiles()
@@ -101,7 +104,7 @@ ae = interp1(tInterp, aeInterp, timestampsAeDatenum, 'linear', 'extrap');
 
 end
 
-function ap = readApFile(timestampsAeDatenum)
+function ap = readApFile(timestampsDensityDatenum)
 %
 fprintf('%s\n', 'Began reading ap file')
 
@@ -129,8 +132,12 @@ for i = 1:length(row)
 end
 
 timestampsAp = datenum(apData{1}, 'yyyymmdd');
-apRows = find(timestampsAp >= timestampsAeDatenum(1) - 3 & timestampsAp <= timestampsAeDatenum(end));
+apRows = find(timestampsAp > timestampsDensityDatenum(1) - 4 & timestampsAp <= timestampsDensityDatenum(end));
 ap = reshape(apValues(apRows, :)', numel(apValues(apRows, :)), 1);
+
+firstHour = round(str2double(datestr(timestampsDensityDatenum(1), 'HH')));
+ap(1:firstHour/3) = [];
+
 
 end
 
@@ -156,7 +163,8 @@ F107values = interp1(tF107ToInterpolate, F107valuesToInterpolate, F107datenum, '
 
 end
 
-function [absB, timestampsAbsB, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilon, timestampsEpsilonDatenum] = readSolarParameterFiles(timestampsAeDatenum)
+function [absB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilonDatenum] = ...
+    readSolarParameterFiles(timestampsAeDatenum)
 %
 fprintf('%s\n', 'Began reading IMF and SW files')
 
@@ -248,10 +256,10 @@ timestampsEpsilonDatenum = tVToInterpolate;
 
 end
 
-function [density, averagedDensity, averagedDensityNoBg, density3h, longitude, latitude, altitude, solarTime, magneticLatitude, crwindEast, crwindNorth, crwindUp,...
-    timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, firstDatenum,...
+function [density, longitude, latitude, altitude, solarTime, magneticLatitude, crwindEast, crwindNorth, crwindUp,...
+    timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, timestampsAbsB, timestampsEpsilon, firstDatenum,...
     absDensityError, absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = ...
-    readDensityFile(timestampsAeDatenum)
+    readDensityFile(timestampsAeDatenum, timestampsAbsBDatenum, timestampsEpsilonDatenum)
 %
 fprintf('%s\n', 'Began reading density files')
 
@@ -302,7 +310,13 @@ parfor i = 1:length(densityFiles)
     timestampsDensityDatenum = [timestampsDensityDatenum; datenum(strcat(densityData{1}, densityData{2}), 'yyyy-mm-ddHH:MM:SS.FFF')];
 end
 
-[timestampsDensityDatenum, indicesToConserve, ~] = unique(timestampsDensityDatenum);
+indicesToRemove = roundTimestampsToBeginFromNearestThreeHourMark(timestampsDensityDatenum);
+
+[~, uniqueIndices, ~] = unique(timestampsDensityDatenum);
+uniqueIndices = ismember(1:length(timestampsDensityDatenum), uniqueIndices)';
+indicesToConserve = ~indicesToRemove & uniqueIndices;
+
+timestampsDensityDatenum = timestampsDensityDatenum(indicesToConserve);
 density = density(indicesToConserve);
 longitude = longitude(indicesToConserve);
 latitude = latitude(indicesToConserve);
@@ -320,14 +334,8 @@ ionThrusterActive = ~logical(round(ionThrusterActive(indicesToConserve)));
 
 magneticLatitude = convertToMagneticCoordinates(latitude, longitude, altitude);
 
-averagedDensity = smooth(density, 7);
-averagedDensity = averagedDensity(ismember(timestampsDensityDatenum, timestampsAeDatenum));
-averagedDensityNoBg = removePeriodicBackground(averagedDensity, 125, 1, 0);
-averagedDensityNoBg = normalize(averagedDensityNoBg, averagedDensity);
-
 timestamps10sFixed = timestampsDensityDatenum * secondsInDay;
 timestamps1minFixed = timestamps10sFixed(ismember(timestampsDensityDatenum, timestampsAeDatenum));
-timestamps1minFixedDatenum = timestampsDensityDatenum(ismember(timestampsDensityDatenum, timestampsAeDatenum));
 firstDatenum = datenum(datestr(timestampsDensityDatenum(1), 'yyyy-mm-dd'), 'yyyy-mm-dd');
 timestamps10sFixed = timestamps10sFixed - firstDatenum * secondsInDay;
 timestamps1minFixed = timestamps1minFixed - firstDatenum * secondsInDay;
@@ -335,11 +343,32 @@ timestamps10sFixed = round(timestamps10sFixed);
 timestamps1minFixed = round(timestamps1minFixed);
 timestamps1min = round((timestampsAeDatenum - firstDatenum) * secondsInDay);
 
-lastDatenum = datenum(datestr(timestampsDensityDatenum(end), 'yyyy-mm-dd'), 'yyyy-mm-dd');
-threeHinSec = 3 * 60 * 60;
-timestamps3h = threeHinSec : threeHinSec : ceil(lastDatenum - firstDatenum + 1) * secondsInDay;
-density3h = smooth(averagedDensity, 179);
-density3h = density3h(find(ismember(timestamps1minFixed, timestamps3h)) - 90);
+timestampsAbsB = round((timestampsAbsBDatenum - firstDatenum) * secondsInDay);
+timestampsEpsilon = round((timestampsEpsilonDatenum - firstDatenum) * secondsInDay);
+
+end
+
+function indicesToRemove = roundTimestampsToBeginFromNearestThreeHourMark(timestampsDensityDatenum)
+%
+
+[y, m, d, hours, minutes, seconds] = datevec(timestampsDensityDatenum(1));
+hours = hours + minutes / 60 + seconds / 3600;
+hours = 3 * ceil(hours / 3);
+nearest3hTime = datenum(y, m, d, hours, 0, 0);
+
+if isempty(find(timestampsDensityDatenum == nearest3hTime, 1))
+    while 1
+        
+        hours = hours + 3;
+        nearest3hTime = datenum(y, m, d, hours, 0, 0);
+        
+        if ~isempty(find(timestampsDensityDatenum == nearest3hTime, 1))
+            break;
+        end
+    end
+end
+
+indicesToRemove = timestampsDensityDatenum < nearest3hTime;
 
 end
 
@@ -376,8 +405,9 @@ secondsInDay = 24 * 60 * 60;
 firstDatenum = datenum(datestr(timestampsDensityDatenum(1), 'yyyy-mm-dd'));
 lastDatenum = datenum(datestr(timestampsDensityDatenum(end), 'yyyy-mm-dd'));
 timestamps3h = -3 * 8 * threeHinSec + threeHinSec : threeHinSec : ceil(lastDatenum - firstDatenum + 1) * secondsInDay;
+firstHour = round(str2double(datestr(timestampsDensityDatenum(1), 'HH')));
+timestamps3h(1: firstHour / 3) = [];
 timestamps10s = min(timestamps10sFixed) : 10 : max(timestamps10sFixed);
-% nextThreeHStamp = threeHinSec * floor(timestamps10s / threeHinSec) + threeHinSec;
 nextThreeHStamp = threeHinSec * ceil(timestamps10s / threeHinSec);
 
 ap10s = reshape(repmat(apAll', 180 * 6, 1),[],1);
@@ -403,15 +433,15 @@ apAver12To33h = apAver12To33h(finalIndices);
 apAver36To57h = apAver36To57h(finalIndices);
 ApDaily = ApDaily(finalIndices);
 
-timestamps3h(timestamps3h <= 0) = -1;
+timestamps3h(timestamps3h <= firstHour * threeHinSec) = nan(1);
 apAllFixed = apAll(ismember(timestamps3h, timestamps1min));
 timestamps3hFixed = timestamps3h(ismember(timestamps3h, timestamps1minFixed))';
 timestamps3h = timestamps3h(ismember(timestamps3h, timestamps1min))';
 
 end
 
-function [correctedDensity, msisDensityVariableAlt, msisDensity270km] = relateMsisToDensity(density, altitude, timestampsDatenum, ...
-          solarTime, latitude, longtitude, F107A, F107, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
+function [correctedDensity, msisDensityVariableAlt, msisDensity270km, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDatenum, ...
+          timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longtitude, F107A, F107, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
       
 fprintf('%s\n', 'Computing normalized densities with msis. This may take even half an hour.')
 
@@ -455,6 +485,14 @@ correctedDensity = density .* msisDensity270km ./ msisDensityVariableAlt;
 
 msisDensityVariableAlt = msisDensityVariableAlt * power(10, 14);
 msisDensity270km = msisDensity270km * power(10, 14);
+
+averagedDensity = smooth(correctedDensity, 7);
+averagedDensity = averagedDensity(ismember(timestampsDatenum, timestampsAeDatenum));
+averagedDensityNoBg = removePeriodicBackground(averagedDensity, 125, 1, 0);
+averagedDensityNoBg = normalize(averagedDensityNoBg, averagedDensity);
+
+density3h = smooth(averagedDensityNoBg, 179);
+density3h = density3h(find(ismember(timestamps1minFixed, timestamps3hFixed)) - 90);
 
 end
 
