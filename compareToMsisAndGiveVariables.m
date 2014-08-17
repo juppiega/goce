@@ -14,7 +14,7 @@ end
 
 %compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
 
-intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
+intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
 
 [morningTimestamps10s, morningMagneticLatitude, morningDensityNoBg, morningMsisDensity, eveningTimestamps10s, ...
     eveningMagneticLatitude, eveningDensityNoBg, eveningMsisDensity] = ...
@@ -51,7 +51,7 @@ eveningMsisDensity = msisDensity(eveningIndices);
 end
 
 
-function intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold)
+function intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold)
 %
 
 [intervalsOfInterest, calmDays] = findAllStormsAboveThreshold(ae, timestampsAeDatenum, threshold);
@@ -154,6 +154,11 @@ end
 
 intervalsToConserve = setdiff(1:length(intervalsOfInterest(:,1)), intervalsToRemove);
 intervalsOfInterest = intervalsOfInterest(intervalsToConserve,:);
+
+if isempty(intervalsOfInterest)
+    fprintf(2, '\n%s \n', 'All storms over threshold contained too large data gaps. Decrease the threshold!')
+    error('Too large data gaps during all requested storms')
+end
 
 end
 

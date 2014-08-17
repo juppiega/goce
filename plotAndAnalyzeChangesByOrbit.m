@@ -124,7 +124,7 @@ for i = 1:length(loopOrbits)
         TADplotIndices(indices) = indices;            
         smoothedDensity11800km = smooth(limitedDensity(indices), 151);
         smoothedDensity2600km = smooth(limitedDensity(indices), 33); 
-        TADdensity(indices) = (smoothedDensity2600km - smoothedDensity11800km) ./ smoothedDensity11800km;
+        TADdensity(indices) = (smoothedDensity2600km - smoothedDensity11800km);% ./ smoothedDensity11800km;
     end    
 end
 
@@ -382,10 +382,8 @@ cumPower = cumtrapz(densityPsd);
 intervalBegin = find(interval, 1, 'first');
 intervalEnd = find(interval, 1, 'last');
 
-% Power in a frequency band is twice the contribution of power from zero frequency to interval
-% begin frequency (largest scale!) plus once the power between largest and
-% smallest scales. Keep in mind we have multiplied the original full spectrum by two.
-intervalPower = cumPower(intervalBegin) + 0.5 * (cumPower(intervalEnd) - cumPower(intervalBegin));
+%intervalPower = cumPower(intervalEnd);
+intervalPower = trapz(psdInInterval);
 [maxPower, maxIndex] = max(psdInInterval);
 scaleAtMax = periodInInterval(maxIndex);
 averageScale = sum(periodInInterval' .* psdInInterval) / sum(psdInInterval);
@@ -406,7 +404,7 @@ if plotFigures ~= 0
     xlim([lowerBound upperBound])
     set(gca, 'XTick', [lowerBound 2000:2000:14000])
     title(['TAD Power Spectral Density ', timeOfDay])
-    ylabel('Power / Frequency [ 1 / min^{-1} ]')
+    ylabel('Power / Frequency [ 10^{-12}kg / (m^{3} min^{-1}) ]')
     xlabel('Horizontal Scale [km]');
 
     if axisNum == 1
