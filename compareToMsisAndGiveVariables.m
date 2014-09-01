@@ -1,4 +1,4 @@
-function [ae, ap, absB, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
+function [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, ...
  morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength, firstDatenum] ...
@@ -12,6 +12,23 @@ else
     load('goceVariables.mat')
 end
 
+plotFigures = 0;
+timeseriesFigHandle = nan(1);
+corrResults = cell(1,1);
+
+[corrResults, ~, ~] = plotAndCalculateCorrelation(firstDatenum, timestamps1min, timestamps1minFixed, ...
+    ae, averagedDensityNoBg, 'AE', plotFigures, corrResults, timeseriesFigHandle); 
+corrResults = plotAndCalculateCorrelation(firstDatenum, timestamps3h, timestamps3hFixed, ap, density3h, 'ap',...
+    plotFigures, corrResults, timeseriesFigHandle); 
+corrResults = plotAndCalculateCorrelation(firstDatenum, timestampsAbsB, timestamps1minFixed, absB, averagedDensityNoBg,...
+    'IMF |B|', plotFigures, corrResults, timeseriesFigHandle); 
+corrResults = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon, timestamps1minFixed, akasofuEpsilon, ...
+    averagedDensityNoBg, 'Akasofu Epsilon', plotFigures, corrResults, timeseriesFigHandle);
+corrResults = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon, timestamps1minFixed, vBz, ...
+    averagedDensityNoBg, '|V| * Bz', plotFigures, corrResults, timeseriesFigHandle);
+
+printCorrResults(corrResults);
+
 %compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
 
 intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
@@ -20,10 +37,10 @@ intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestam
     eveningMagneticLatitude, eveningDensityNoBg, eveningMsisDensity] = ...
     splitBySolarTime(timestamps10sFixed, magneticLatitude, densityNoBg, msisDensity270km, solarTime);
 
-[ae, ap, absB, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
+[ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
- = sliceToInterestingIntervals(ae, ap, absB, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
+ = sliceToInterestingIntervals(ae, ap, absB, vBz, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
  density3h, morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, intervalsOfInterest);
 
@@ -212,6 +229,14 @@ end
 
 intervalBegin = find(timestampsAeDatenum == intervalBegin);
 intervalEnd = find(timestampsAeDatenum == intervalEnd);
+
+end
+
+
+function printCorrResults(corrResults)
+%
+
+celldisp(corrResults);
 
 end
 
@@ -420,10 +445,10 @@ end
 end
 
 
-function [ae, ap, absB, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
+function [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minOut, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
- = sliceToInterestingIntervals(ae, ap, absB, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
+ = sliceToInterestingIntervals(ae, ap, absB, vBz, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
  density3h, morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDatenum, intervalsOfInterest)
 % 
@@ -435,12 +460,12 @@ eveningMsisDensityTemp = eveningMsisDensity; morningTimestamps10sTemp = morningT
 eveningTimestamps10sTemp = eveningTimestamps10s; timestamps1minFixedTemp = timestamps1minFixed; 
 timestamps3hTemp = timestamps3h; timestamps3hFixedTemp = timestamps3hFixed; density3hTemp = density3h; morningMagneticLatitudeTemp = morningMagneticLatitude;
 eveningMagneticLatitudeTemp = eveningMagneticLatitude; timestampsEpsilonTemp = timestampsEpsilon; akasofuEpsilonTemp = akasofuEpsilon;
-timestampsAbsBTemp = timestampsAbsB; absBTemp = absB; timestampsDatenumTemp = timestampsDatenum; 
+vBzTemp = vBz; timestampsAbsBTemp = timestampsAbsB; absBTemp = absB; timestampsDatenumTemp = timestampsDatenum; 
 
 ae = {}; ap = {};  averagedDensityNoBg = {}; morningDensityNoBg = {};
 eveningDensityNoBg = {}; morningMsisDensity = {}; eveningMsisDensity = {}; morningTimestamps10s = {};
 eveningTimestamps10s = {}; timestamps1minFixed = {}; timestamps3h = {}; density3h = {}; morningMagneticLatitude = {};
-eveningMagneticLatitude = {}; timestampsAbsB = {}; akasofuEpsilon = {}; timestampsEpsilon = {}; absB = {}; timestampsDatenum = {};
+eveningMagneticLatitude = {}; timestampsAbsB = {}; akasofuEpsilon = {}; vBz = {}; timestampsEpsilon = {}; absB = {}; timestampsDatenum = {};
 timestamps3hFixed = {};
 
 cellArrayLength = length(intervalsOfInterest(:,1));
@@ -470,6 +495,7 @@ for i = 1:cellArrayLength
     [~, beginIndexEpsilon] = min(abs(timestampsEpsilonTemp - timestamps1min(beginIndex)));
     [~, endIndexEpsilon] = min(abs(timestampsEpsilonTemp - timestamps1min(endIndex)));
     akasofuEpsilon{i} = akasofuEpsilonTemp(beginIndexEpsilon:endIndexEpsilon);
+    vBz{i} = vBzTemp(beginIndexEpsilon:endIndexEpsilon);
     timestampsEpsilon{i} = timestampsEpsilonTemp(beginIndexEpsilon:endIndexEpsilon);
     
     [~, beginIndex1min] = min(abs(timestamps1minFixedTemp - timestamps1min(beginIndex)));

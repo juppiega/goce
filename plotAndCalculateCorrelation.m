@@ -61,7 +61,8 @@ if strcmpi(indexName, 'ae')
     geomIndexNoBg = removePeriodicBackground(geomIndexFixed, 125, 1, 0);
     geomIndexNoBg = normalize(geomIndexNoBg, geomIndexFixed);
     results = plotCorrelation(geomIndexNoBg, densityFixed, indexName, 'Density at 270 km', plotFigures, results);
-elseif strcmpi(indexName, 'Akasofu Epsilon') || ~isempty(strfind(upper(indexName), '|B|'))
+elseif strcmpi(indexName, 'Akasofu Epsilon') || ~isempty(strfind(upper(indexName), '|B|')) ...
+        || ~isempty(strfind(upper(indexName), '|V|'))
     timestamps6hAgo = timestamps(ismember(timestamps, timestamps - 6 * 60 * 60));
     timestampsShorter = timestamps6hAgo + 6 * 60 * 60;
     geomIndex6hAgo = geomIndex(ismember(timestamps, timestamps6hAgo));
@@ -87,6 +88,8 @@ if strcmpi(indexName, 'ae')
 elseif strcmpi(indexName, 'Akasofu Epsilon')
     averageGoodLag = 38 * indicesInHour;
 elseif ~isempty(strfind(upper(indexName), '|B|'))
+    averageGoodLag = 34 * indicesInHour;
+elseif ~isempty(strfind(upper(indexName), '|V|'))
     averageGoodLag = 34 * indicesInHour;
 else
     averageGoodLag = 8;
@@ -118,6 +121,7 @@ else
     geomIndexBestInt = geomIndex;
 end
 averageLagInt = cumulativeGeomIndex(averageGoodLag + 1 : end) - cumulativeGeomIndex(1 : end - averageGoodLag);
+fprintf('\n');
 
 if plotFigures ~= 0
     figure;

@@ -9,7 +9,7 @@ tic;
 
 [F107values, F107datenum] = readF107File();
 
-[absB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilonDatenum] ...
+[absB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilonDatenum, vBz] ...
     = readSolarParameterFiles(timestampsAeDatenum);
 
 [density, longitude, latitude, altitude, solarTime, magneticLatitude, crwindEast, crwindNorth, crwindUp, ...
@@ -23,7 +23,7 @@ apAll = readApFile(timestampsDensityDatenum);
 [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, ap, timestamps3h, timestamps3hFixed] =...
     giveApValsForMSIS(apAll, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum);
 
-[densityNoBg, msisDensityVariableAlt, msisDensity270km, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDensityDatenum,...
+[densityNoBg, msisDensityVariableAlt, msisDensity270km, densityIndex, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDensityDatenum,...
     timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F107A81Days, F107Yesterday, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
 measuredDensity = density;
 
@@ -37,6 +37,9 @@ fprintf('%s\n', 'Saving results to "goceVariables.mat" file')
 save('goceVariables.mat', 'ae', '-v7.3')
 save('goceVariables.mat', 'ap', '-append')
 save('goceVariables.mat', 'absB', '-append')
+save('goceVariables.mat', 'vBz', '-append')
+save('goceVariables.mat', 'densityIndex', '-append')
+save('goceVariables.mat', 'densityIndexNoBg', '-append')
 save('goceVariables.mat', 'averagedDensity', '-append')
 save('goceVariables.mat', 'averagedDensityNoBg', '-append')
 save('goceVariables.mat', 'density3h', '-append')
@@ -163,7 +166,7 @@ F107values = interp1(tF107ToInterpolate, F107valuesToInterpolate, F107datenum, '
 
 end
 
-function [absB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilonDatenum] = ...
+function [absB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilonDatenum, vBz] = ...
     readSolarParameterFiles(timestampsAeDatenum)
 %
 fprintf('%s\n', 'Began reading IMF and SW files')
@@ -197,10 +200,12 @@ indicesToConserve = find(Bx > -1e30 & By > -1e30 & Bz > -1e30);
 tBNoNans = timestampsBDatenum(indicesToConserve);
 thetaNoNans = theta(indicesToConserve);
 B2NoNans = B2(indicesToConserve);
+BzNoNans = Bz(indicesToConserve);
 
 tBToInterpolate = timestampsAeDatenum(timestampsAeDatenum>=min(timestampsBDatenum) & timestampsAeDatenum<=max(timestampsBDatenum));
 tThetaToInterpolate = tBToInterpolate;
 B2Interpolated = interp1(tBNoNans, B2NoNans, tBToInterpolate, 'linear', 'extrap');
+BzInterpolated = interp1(tBNoNans, BzNoNans, tBToInterpolate, 'linear', 'extrap');
 thetaInterpolated = interp1(tBNoNans, thetaNoNans, tThetaToInterpolate, 'linear', 'extrap');
 
 secondsInDay = 24 * 60 * 60;
@@ -247,11 +252,13 @@ epsilonQualityFlag(badDataIndices) = 0;
 VInterpolated = VInterpolated(ismember(tVToInterpolate, tBToInterpolate)) * 1000;
 epsilonQualityFlag = epsilonQualityFlag(ismember(tVToInterpolate, tBToInterpolate));
 B2Interpolated = B2Interpolated(ismember(tBToInterpolate, tVToInterpolate)) * 1e-9;
+BzInterpolated = BzInterpolated(ismember(tBToInterpolate, tVToInterpolate)) * 1e-9;
 thetaInterpolated = thetaInterpolated(ismember(tThetaToInterpolate, tVToInterpolate));
 
-akasofuEpsilon = VInterpolated .* B2Interpolated .* sin(thetaInterpolated * 0.5).^4; 
+akasofuEpsilon = VInterpolated .* B2Interpolated .* sin(thetaInterpolated * 0.5).^4;
+vBz = VInterpolated .* BzInterpolated;
+
 tVToInterpolate = tVToInterpolate(ismember(tVToInterpolate, tBToInterpolate));
-timestampsEpsilon = round((tVToInterpolate-tVToInterpolate(1))*secondsInDay + find(timestampsAeDatenum<tVToInterpolate(1), 1, 'last') * 60);
 timestampsEpsilonDatenum = tVToInterpolate;
 
 end
@@ -440,13 +447,14 @@ timestamps3h = timestamps3h(ismember(timestamps3h, timestamps1min))';
 
 end
 
-function [correctedDensity, msisDensityVariableAlt, msisDensity270km, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDatenum, ...
+function [correctedDensity, msisDensityVariableAlt, msisDensity270km, densityIndex, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDatenum, ...
           timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longtitude, F107A, F107, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
       
 fprintf('%s\n', 'Computing normalized densities with msis. This may take even half an hour.')
 
 msisDensity270km = nan(size(density));
 msisDensityVariableAlt = nan(size(density));
+msisDensity270kmNoAp = nan(size(density));
 
 modelingIndices = 1:length(density);
 
@@ -464,7 +472,7 @@ barWidth = 50;
 p = TimedProgressBar( targetCount, barWidth, ...
                     'Running MSIS, ETA ', ...
                     '. Now at ', ...
-                    'Concluded in ' );
+                    'Completed in ' );
 
 parfor i = modelingIndices
       [~,~,~,~,~,msisDensityVariableAlt(i),~,~,~,~,~]...
@@ -474,6 +482,9 @@ parfor i = modelingIndices
       [~,~,~,~,~,msisDensity270km(i),~,~,~,~,~]...
           =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longtitude(i),solarTime(i),F107A(i),F107(i),...
           ApDaily(i),apNow(i),ap3h(i),ap6h(i),ap9h(i),apAver12To33h(i),apAver36To57h(i));
+      
+      [~,~,~,~,~,msisDensity270kmNoAp(i),~,~,~,~,~]...
+          =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longtitude(i),solarTime(i),F107A(i),F107(i),0,0,0,0,0,0,0);
       
       if mod(i, 10000) == 0
          p.progress;
@@ -485,6 +496,13 @@ correctedDensity = density .* msisDensity270km ./ msisDensityVariableAlt;
 
 msisDensityVariableAlt = msisDensityVariableAlt * power(10, 14);
 msisDensity270km = msisDensity270km * power(10, 14);
+msisDensity270kmNoAp = msisDensity270kmNoAp * power(10, 14);
+
+densityNoAp = correctedDensity - msisDensity270kmNoAp;
+densityIndex = smooth(densityNoAp, 7);
+densityIndex = densityIndex(ismember(timestampsDatenum, timestampsAeDatenum));
+densityIndexNoBg = removePeriodicBackground(densityIndex, 125, 1, 0);
+densityIndexNoBg = normalize(densityIndexNoBg, densityIndex);
 
 averagedDensity = smooth(correctedDensity, 7);
 averagedDensity = averagedDensity(ismember(timestampsDatenum, timestampsAeDatenum));
