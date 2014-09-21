@@ -12,30 +12,16 @@ else
     load('goceVariables.mat')
 end
 
-plotFigures = 0;
-timeseriesFigHandle = nan(1);
-corrResults = cell(1,1);
-
-[corrResults, ~, ~] = plotAndCalculateCorrelation(firstDatenum, timestamps1min, timestamps1minFixed, ...
-    ae, averagedDensityNoBg, 'AE', plotFigures, corrResults, timeseriesFigHandle); 
-corrResults = plotAndCalculateCorrelation(firstDatenum, timestamps3h, timestamps3hFixed, ap, density3h, 'ap',...
-    plotFigures, corrResults, timeseriesFigHandle); 
-corrResults = plotAndCalculateCorrelation(firstDatenum, timestampsAbsB, timestamps1minFixed, absB, averagedDensityNoBg,...
-    'IMF |B|', plotFigures, corrResults, timeseriesFigHandle); 
-corrResults = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon, timestamps1minFixed, akasofuEpsilon, ...
-    averagedDensityNoBg, 'Akasofu Epsilon', plotFigures, corrResults, timeseriesFigHandle);
-corrResults = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon, timestamps1minFixed, vBz, ...
-    averagedDensityNoBg, '|V| * Bz', plotFigures, corrResults, timeseriesFigHandle);
-
-printCorrResults(corrResults);
-
 %compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
 
 intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
 
 [morningTimestamps10s, morningMagneticLatitude, morningDensityNoBg, morningMsisDensity, eveningTimestamps10s, ...
-    eveningMagneticLatitude, eveningDensityNoBg, eveningMsisDensity] = ...
-    splitBySolarTime(timestamps10sFixed, magneticLatitude, densityNoBg, msisDensity270km, solarTime);
+    eveningMagneticLatitude, eveningDensityNoBg, eveningMsisDensity, morningIndex, eveningIndex] = ...
+    splitBySolarTime(timestamps10sFixed, magneticLatitude, densityNoBg, msisDensity270km, densityIndex, solarTime);
+
+[morningGrid, morningBins] = computeDensityGrid(morningTimestamps10s, timestamps1minFixed, morningMagneticLatitude, morningIndex);
+[eveningGrid, eveningBins] = computeDensityGrid(eveningTimestamps10s, timestamps1minFixed, eveningMagneticLatitude, eveningIndex);
 
 [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
@@ -48,8 +34,8 @@ end
 
 
 function [morningTimestamps10s, morningMagneticLatitude, morningDensityNoBg, morningMsisDensity, eveningTimestamps10s, ...
-    eveningMagneticLatitude, eveningDensityNoBg, eveningMsisDensity] = ...
-    splitBySolarTime(timestamps10s, magneticLatitude, densityNoBg, msisDensity, solarTime)
+    eveningMagneticLatitude, eveningDensityNoBg, eveningMsisDensity, morningIndex, eveningIndex] = ...
+    splitBySolarTime(timestamps10s, magneticLatitude, densityNoBg, msisDensity, densityIndex, solarTime)
 %
 
 morningIndices = find(solarTime <= 12);
@@ -59,11 +45,13 @@ morningTimestamps10s = timestamps10s(morningIndices);
 morningMagneticLatitude = magneticLatitude(morningIndices);
 morningDensityNoBg = densityNoBg(morningIndices);
 morningMsisDensity = msisDensity(morningIndices);
+morningIndex = densityIndex(morningIndices);
 
 eveningTimestamps10s = timestamps10s(eveningIndices);
 eveningMagneticLatitude = magneticLatitude(eveningIndices);
 eveningDensityNoBg = densityNoBg(eveningIndices);
 eveningMsisDensity = msisDensity(eveningIndices);
+eveningIndex = densityIndex(eveningIndices);
 
 end
 
@@ -237,6 +225,31 @@ function printCorrResults(corrResults)
 %
 
 celldisp(corrResults);
+
+end
+
+
+function [densityByLatitude, latitudeBins] = computeDensityGrid(timestamps10s, timestamps1min, magneticLatitude, density)
+%
+
+%[minLatitude, maxLatitude] = findInterpolationLimits(magneticLatitude);
+minLatitude = -70;
+maxLatitude = 70;
+
+% if mod(maxLatitude - minLatitude, 2) ~= 0
+%     maxLatitude = maxLatitude + 1;
+% end
+
+latitudeBins = minLatitude + 1 : 3 : maxLatitude - 1;
+
+densityByLatitude = zeros(length(timestamps1min), length(latitudeBins));
+
+parfor i = 1:length(latitudeBins)
+    indices = (latitudeBins(i) - 1 < magneticLatitude & magneticLatitude <= latitudeBins(i) + 1);
+    densityInterval = density(indices);
+    timestampsInterval = timestamps10s(indices);
+    densityByLatitude(:,i) = interp1(timestampsInterval, densityInterval, timestamps1min, 'linear', 0);
+end
 
 end
 

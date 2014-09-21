@@ -7,8 +7,6 @@ end
 tic;
 [ae, timestampsAeDatenum] = readAeFiles();
 
-[aeIntegrals] = computeAeIntegrals(ae);
-
 [F107values, F107datenum] = readF107File();
 
 [absB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilonDatenum, vBz] ...
@@ -18,6 +16,8 @@ tic;
  timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, doy, timestampsAbsB, timestampsEpsilon, firstDatenum, absDensityError, ...
  absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = readDensityFile(timestampsAeDatenum, timestampsAbsBDatenum, timestampsEpsilonDatenum);
 
+[aeIntegrals] = computeAeIntegrals(ae, timestamps1min);
+
 apAll = readApFile(timestampsDensityDatenum);
 
 [F107A81Days, F107Yesterday] = giveF107ValsForMSIS(F107values, F107datenum, timestampsDensityDatenum);
@@ -25,7 +25,7 @@ apAll = readApFile(timestampsDensityDatenum);
 [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, ap, timestamps3h, timestamps3hFixed] =...
     giveApValsForMSIS(apAll, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum);
 
-[densityNoBg, msisDensityVariableAlt, msisDensity270km, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDensityDatenum, doy,...
+[densityNoBg, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDensityDatenum, doy,...
     timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F107A81Days, F107Yesterday, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
 measuredDensity = density;
 
@@ -60,6 +60,7 @@ save('goceVariables.mat', 'magneticLatitude', '-append')
 save('goceVariables.mat', 'densityNoBg', '-append')
 save('goceVariables.mat', 'msisDensityVariableAlt', '-append')
 save('goceVariables.mat', 'msisDensity270km', '-append')
+save('goceVariables.mat', 'msisDensity270kmNoAp', '-append')
 save('goceVariables.mat', 'measuredDensity', '-append')
 save('goceVariables.mat', 'absDensityError', '-append')
 save('goceVariables.mat', 'absWindError', '-append')
@@ -323,7 +324,7 @@ parfor i = 1:length(densityFiles)
     timestampsThisFile = datenum(strcat(densityData{1}, densityData{2}), 'yyyy-mm-ddHH:MM:SS.FFF');
     timestampsDensityDatenum = [timestampsDensityDatenum; timestampsThisFile];
     
-    doyThisFile = ceil(timestampsThisFile) - datenum(datestr(timestampsThisFile, 'yyyy'), 'yyyy');
+    doyThisFile = timestampsThisFile - datenum(datestr(timestampsThisFile, 'yyyy'), 'yyyy');
     doy = [doy; doyThisFile];
 end
 
@@ -390,19 +391,23 @@ indicesToRemove = timestampsDensityDatenum < nearest3hTime;
 
 end
 
-function [aeIntegrals] = computeAeIntegrals(ae)
+function [aeIntegrals] = computeAeIntegrals(ae, timestamps)
 %
 
-aeIntegrals = cell(41,1);
+aeIntegrals = zeros(length(timestamps), 41);
 cumulativeAe = cumsum(ae);
 
-thirtyMinutes = 60 * 30;
-aeIntegrals{1} = cumulativeAe(thirtyMinutes + 1 : end) - cumulativeAe(1 : end - thirtyMinutes);
+thirtyMinutes = 30;
+firstAeInt = cumulativeAe(thirtyMinutes + 1 : end) - cumulativeAe(1 : end - thirtyMinutes);
+firstAeTime = timestamps(thirtyMinutes + 1 : end);
+aeIntegrals(:,1) = interp1(firstAeTime, firstAeInt, timestamps, 'linear', 0);
 
-oneHour = 60 * 60;
+oneHour = 60;
 for i = 1:40
     lag = i * oneHour;
-    aeIntegrals{i + 1} = cumulativeAe(lag + 1 : end) - cumulativeAe(1 : end - lag);
+    aeInt = cumulativeAe(lag + 1 : end) - cumulativeAe(1 : end - lag);
+    aeTime = timestamps(lag + 1 : end);
+    aeIntegrals(:,i + 1) = interp1(aeTime, aeInt, timestamps, 'linear', 0);
 end
 
 end
@@ -475,7 +480,7 @@ timestamps3h = timestamps3h(ismember(timestamps3h, timestamps1min))';
 
 end
 
-function [correctedDensity, msisDensityVariableAlt, msisDensity270km, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDatenum, doy,...
+function [correctedDensity, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDatenum, doy,...
           timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longtitude, F107A, F107, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
       
 fprintf('%s\n', 'Computing normalized densities with msis. This may take even half an hour.')
@@ -487,6 +492,9 @@ msisDensity270kmNoAp = nan(size(density));
 modelingIndices = 1:length(density);
 
 altitudeInKm = altitude / 1000;
+
+doy = ceil(doy);
+doy(doy == 0) = 1;
 
 % second of the day
 secondsInDay = 24 * 60 * 60;
