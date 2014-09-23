@@ -23,7 +23,8 @@ intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestam
 [morningGrid, morningBins] = computeDensityGrid(morningTimestamps10s, timestamps1minFixed, morningLatitude, morningIndex);
 [eveningGrid, eveningBins] = computeDensityGrid(eveningTimestamps10s, timestamps1minFixed, eveningLatitude, eveningIndex);
 
-computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, aeIntegrals, timestamps1min, timestamps1minFixed, timestamps10sFixed);
+[predictedDensityIndex] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, aeIntegrals, timestamps1min, timestamps1minFixed, timestamps10sFixed,...
+    morningLatitude, eveningLatitude, morningTimestamps10s, eveningTimestamps10s);
 
 [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
@@ -237,8 +238,8 @@ function [densityByLatitude, latitudeBins] = computeDensityGrid(timestamps10s, t
 %
 
 [minLatitude, maxLatitude] = findInterpolationLimits(latitude);
-minLatitude = minLatitude - 2;
-maxLatitude = maxLatitude + 2;
+% minLatitude = minLatitude - 1;
+% maxLatitude = maxLatitude + 1;
 
 % if mod(maxLatitude - minLatitude, 2) ~= 0
 %     maxLatitude = maxLatitude + 1;
@@ -246,22 +247,30 @@ maxLatitude = maxLatitude + 2;
 
 latitudeBins = minLatitude + 1 : 3 : maxLatitude - 1;
 if maxLatitude - 1 > max(latitudeBins)
-    latitudeBins(end + 1) = maxLatitude - 1;
+    latitudeBins(end + 1) = max(latitudeBins) + 3;
 end
 
 densityByLatitude = zeros(length(timestamps1min), length(latitudeBins));
-
+indicesToRemove = false(length(latitudeBins),1);
 parfor i = 1:length(latitudeBins)
     indices = (latitudeBins(i) - 1 < latitude & latitude <= latitudeBins(i) + 1);
+    if isempty(find(indices, 1))
+        indicesToRemove(i) = 1;
+        continue;
+    end
     densityInterval = density(indices);
     timestampsInterval = timestamps10s(indices);
-    densityByLatitude(:,i) = interp1(timestampsInterval, densityInterval, timestamps1min, 'linear', 0);
+    densityByLatitude(:,i) = interp1(timestampsInterval', densityInterval, timestamps1min, 'linear', 0);
 end
 
+latitudeBins = latitudeBins(~indicesToRemove);
+densityByLatitude = densityByLatitude(:,~indicesToRemove);
+
 end
 
 
-function computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, aeIntegrals, timestamps1min, timestamps1minFixed, timestamps10sFixed)
+function [predictedDensity] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, aeIntegrals, timestamps1min, timestamps1minFixed, timestamps10sFixed,...
+    morningLatitude, eveningLatitude, morningTimestamps10s, eveningTimestamps10s)
 %
 
 doy = ceil(doy(ismember(timestamps10sFixed, timestamps1minFixed)));
@@ -321,6 +330,25 @@ parfor i = 1:length(eveningBins)
 end
 
 
+[morningTimestampsGrid, morningLatitudeGrid] = meshgrid(timestamps10sFixed, morningBins);
+morningProxy = morningProxy';
+morningDensity = interp2(morningTimestampsGrid, morningLatitudeGrid, morningProxy, morningTimestamps10s, morningLatitude);
+
+[eveningTimestampsGrid, eveningLatitudeGrid] = meshgrid(timestamps10sFixed, eveningBins);
+eveningProxy = eveningProxy';
+eveningDensity = interp2(eveningTimestampsGrid, eveningLatitudeGrid, eveningProxy, eveningTimestamps10s, eveningLatitude);
+
+t = [morningTimestamps10s; eveningTimestamps10s];
+proxy = [morningDensity; eveningDensity];
+[t, order] = sort(t);
+proxy = proxy(order);
+
+tNoNans = t(~isnan(proxy));
+proxyNoNans = proxy(~isnan(proxy));
+tToInterpolate = t;
+
+predictedDensity = interp1(tNoNans, proxyNoNans, tToInterpolate, 'linear');
+save('predictedDensity.m', 'predictedDensity', '-v7.3')
 
 end
 
