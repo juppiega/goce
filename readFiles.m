@@ -3,7 +3,7 @@ function readFiles()
 
 poolobj = gcp('nocreate'); % If no pool, do not create new one.
 if isempty(poolobj)
-    parpool(4);
+    parpool(16);
 end
 
 tic;
@@ -432,12 +432,12 @@ for i = [2 4 8 16 21 30 40 50 60]
     aeIntegrals(:,i) = interp1(aeTime, aeInt, timestampsAe, 'linear', 0);
 end
 
-for i = [2 4 8 16 30 37 50 60]
-    lag = i * oneHour;
-    absBInt = cumulativeAbsB(lag + 1 : end) - cumulativeAbsB(1 : end - lag);
-    absBTime = timestampsAe(lag + 1 : end);
-    aeIntegrals(:,i + 61) = interp1(absBTime, absBInt, timestampsAe, 'linear', 0);
-end
+% for i = [2 4 8 16 30 37 50 60]
+%     lag = i * oneHour;
+%     absBInt = cumulativeAbsB(lag + 1 : end) - cumulativeAbsB(1 : end - lag);
+%     absBTime = timestampsAe(lag + 1 : end);
+%     aeIntegrals(:,i + 61) = interp1(absBTime, absBInt, timestampsAe, 'linear', 0);
+% end
 
 columnsToConserve = sum(aeIntegrals) > 1;
 aeIntegrals = aeIntegrals(:,columnsToConserve);
@@ -672,14 +672,12 @@ parfor i = 1:length(morningBins)
 %     proxyCoeffs = repmat(proxyCoeffs', length(timestamps1minFixed), 1);
 %     finalProxyDensity = sum(proxyCoeffs .* proxyMatrix, 2);
 % 
-    proxyMatrix = [fourierFit(doy) aeIntFixed];   
-    linearModel = fitlm(proxyMatrix, dens, fitFormula);
+    proxyMatrix = [fourierFit(doy) aeIntFixed];  
     x5x7 = proxyMatrix(:,5) .* proxyMatrix(:,7);
     x5x8 = proxyMatrix(:,5) .* proxyMatrix(:,8);
-    x14x16 = proxyMatrix(:,14) .* proxyMatrix(:,16);
-    x17x18 = proxyMatrix(:,17) .* proxyMatrix(:,18);
-    x3x3 = proxyMatrix(:,3) .^2;
-    proxyMatrix = [ones(length(timestamps1minFixed),1) proxyMatrix(:,[1 2 3 4 5 9 13]) x5x7 x5x8 x14x16 x17x18 x3x3];
+    x9x10 = proxyMatrix(:,9) .* proxyMatrix(:,10);
+    proxyMatrix = [proxyMatrix(:,[1 2 3 4 5 8 9]) x5x7 x5x8 x9x10];
+    linearModel = fitlm(proxyMatrix, dens);
     finalProxyDensity = feval(linearModel, proxyMatrix);
     
     resultArray = table2array(anova(linearModel, 'component'));
@@ -713,13 +711,11 @@ parfor i = 1:length(eveningBins)
 %     finalProxyDensity = sum(proxyCoeffs .* proxyMatrix, 2);
 
     proxyMatrix = [fourierFit(doy) aeIntFixed];
-    linearModel = fitlm(proxyMatrix, dens, fitFormula);
     x5x7 = proxyMatrix(:,5) .* proxyMatrix(:,7);
     x5x8 = proxyMatrix(:,5) .* proxyMatrix(:,8);
-    x14x16 = proxyMatrix(:,14) .* proxyMatrix(:,16);
-    x17x18 = proxyMatrix(:,17) .* proxyMatrix(:,18);
-    x3x3 = proxyMatrix(:,3) .^2;
-    proxyMatrix = [ones(length(timestamps1minFixed),1) proxyMatrix(:,[1 2 3 4 5 9 13]) x5x7 x5x8 x14x16 x17x18 x3x3];
+    x9x10 = proxyMatrix(:,9) .* proxyMatrix(:,10);
+    proxyMatrix = [proxyMatrix(:,[1 2 3 4 5 8 9]) x5x7 x5x8 x9x10];
+    linearModel = fitlm(proxyMatrix, dens);
     finalProxyDensity = feval(linearModel, proxyMatrix);
     
     resultArray = table2array(anova(linearModel, 'component'));
@@ -743,41 +739,41 @@ morningProxy = morningProxy';
 [eveningTimestampsGrid, eveningLatitudeGrid] = meshgrid(timestamps10sFixed, eveningBins);
 eveningProxy = eveningProxy';
 
-morningDensity = [];
-eveningDensity = [];
-morningTimes = [];
-eveningTimes = [];
-intervals = 3;
-intervalLength = floor(length(timestamps10sFixed) / intervals);
-for i = 1:intervals
-    if i < intervals
-        k = (i - 1) * intervalLength + 1 : i * intervalLength;
-    else
-        k = (i - 1) * intervalLength + 1 : length(timestamps10sFixed);
-    end
-    
-    beginTime = timestamps10sFixed(k(1));
-    endTime = timestamps10sFixed(k(end));
-    
-    morningInterp = interp2(morningTimestampsGrid(:,k), morningLatitudeGrid(:,k), morningProxy(:,k), morningTimestamps10s, morningLatitude, 'spline');
-    eveningInterp = interp2(eveningTimestampsGrid(:,k), eveningLatitudeGrid(:,k), eveningProxy(:,k), eveningTimestamps10s, eveningLatitude, 'spline');
-    
-    morningIndices = morningTimestamps10s >= beginTime & morningTimestamps10s <= endTime;
-    eveningIndices = eveningTimestamps10s >= beginTime & eveningTimestamps10s <= endTime;
-    morningInterp(~morningIndices) = [];
-    eveningInterp(~eveningIndices) = [];
-    morningTimes = [morningTimes; morningTimestamps10s(morningIndices)];
-    eveningTimes = [eveningTimes; eveningTimestamps10s(eveningIndices)];
-    
-    morningDensity = [morningDensity; morningInterp];
-    eveningDensity = [eveningDensity; eveningInterp];
-end
+% morningDensity = [];
+% eveningDensity = [];
+% morningTimes = [];
+% eveningTimes = [];
+% intervals = 3;
+% intervalLength = floor(length(timestamps10sFixed) / intervals);
+% for i = 1:intervals
+%     if i < intervals
+%         k = (i - 1) * intervalLength + 1 : i * intervalLength;
+%     else
+%         k = (i - 1) * intervalLength + 1 : length(timestamps10sFixed);
+%     end
+%     
+%     beginTime = timestamps10sFixed(k(1));
+%     endTime = timestamps10sFixed(k(end));
+%     
+%     morningInterp = interp2(morningTimestampsGrid(:,k), morningLatitudeGrid(:,k), morningProxy(:,k), morningTimestamps10s, morningLatitude, 'spline');
+%     eveningInterp = interp2(eveningTimestampsGrid(:,k), eveningLatitudeGrid(:,k), eveningProxy(:,k), eveningTimestamps10s, eveningLatitude, 'spline');
+%     
+%     morningIndices = morningTimestamps10s >= beginTime & morningTimestamps10s <= endTime;
+%     eveningIndices = eveningTimestamps10s >= beginTime & eveningTimestamps10s <= endTime;
+%     morningInterp(~morningIndices) = [];
+%     eveningInterp(~eveningIndices) = [];
+%     morningTimes = [morningTimes; morningTimestamps10s(morningIndices)];
+%     eveningTimes = [eveningTimes; eveningTimestamps10s(eveningIndices)];
+%     
+%     morningDensity = [morningDensity; morningInterp];
+%     eveningDensity = [eveningDensity; eveningInterp];
+% end
+% 
+% t = [morningTimes; eveningTimes];
 
-t = [morningTimes; eveningTimes];
-
-% morningDensity = interp2(morningTimestampsGrid, morningLatitudeGrid, morningProxy, morningTimestamps10s, morningLatitude, 'linear');
-% eveningDensity = interp2(eveningTimestampsGrid, eveningLatitudeGrid, eveningProxy, eveningTimestamps10s, eveningLatitude, 'linear');
-% t = [morningTimestamps10s; eveningTimestamps10s];
+morningDensity = interp2(morningTimestampsGrid, morningLatitudeGrid, morningProxy, morningTimestamps10s, morningLatitude, 'linear');
+eveningDensity = interp2(eveningTimestampsGrid, eveningLatitudeGrid, eveningProxy, eveningTimestamps10s, eveningLatitude, 'linear');
+t = [morningTimestamps10s; eveningTimestamps10s];
 proxy = [morningDensity; eveningDensity];
 [t, order, ~] = unique(t);
 proxy = proxy(order);
