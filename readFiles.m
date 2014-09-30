@@ -1,7 +1,9 @@
 function readFiles()
 %
-if matlabpool('size') <= 0
-    matlabpool open
+
+poolobj = gcp('nocreate'); % If no pool, do not create new one.
+if isempty(poolobj)
+    parpool(4);
 end
 
 tic;
@@ -16,7 +18,7 @@ tic;
  timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, doy, timestampsAbsB, timestampsEpsilon, firstDatenum, absDensityError, ...
  absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = readDensityFile(timestampsAeDatenum, timestampsAbsBDatenum, timestampsEpsilonDatenum);
 
-[aeIntegrals] = computeAeIntegrals(ae, timestamps1min);
+[aeIntegrals] = computeAeIntegrals(ae, timestamps1min, absB, timestampsAbsB);
 
 apAll = readApFile(timestampsDensityDatenum);
 
@@ -28,6 +30,15 @@ apAll = readApFile(timestampsDensityDatenum);
 [densityNoBg, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, timestampsDensityDatenum, doy,...
     timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F107A81Days, F107Yesterday, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
 measuredDensity = density;
+
+[morningTimestamps10s, eveningTimestamps10s, morningLatitude, eveningLatitude, morningIndex, eveningIndex] = ...
+    splitBySolarTime(timestamps10sFixed, latitude, densityIndex, solarTime);
+
+[morningGrid, morningBins] = computeDensityGrid(morningTimestamps10s, timestamps1minFixed, morningLatitude, morningIndex);
+[eveningGrid, eveningBins] = computeDensityGrid(eveningTimestamps10s, timestamps1minFixed, eveningLatitude, eveningIndex);
+
+[aeProxyDensity, morningFourierGrid, eveningFourierGrid, morningFtest, eveningFtest] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, aeIntegrals, timestamps1min, timestamps1minFixed, timestamps10sFixed,...
+    morningLatitude, eveningLatitude, morningTimestamps10s, eveningTimestamps10s, msisDensity270kmNoAp, densityNoBg);
 
 
 if fclose('all') ~= 0
@@ -61,6 +72,13 @@ save('goceVariables.mat', 'densityNoBg', '-append')
 save('goceVariables.mat', 'msisDensityVariableAlt', '-append')
 save('goceVariables.mat', 'msisDensity270km', '-append')
 save('goceVariables.mat', 'msisDensity270kmNoAp', '-append')
+save('goceVariables.mat', 'aeProxyDensity', '-append')
+save('goceVariables.mat', 'morningFtest', '-append')
+save('goceVariables.mat', 'eveningFtest', '-append')
+save('goceVariables.mat', 'morningFourierGrid', '-append')
+save('goceVariables.mat', 'eveningFourierGrid', '-append')
+save('goceVariables.mat', 'morningBins', '-append')
+save('goceVariables.mat', 'eveningBins', '-append')
 save('goceVariables.mat', 'measuredDensity', '-append')
 save('goceVariables.mat', 'absDensityError', '-append')
 save('goceVariables.mat', 'absWindError', '-append')
@@ -391,24 +409,38 @@ indicesToRemove = timestampsDensityDatenum < nearest3hTime;
 
 end
 
-function [aeIntegrals] = computeAeIntegrals(ae, timestamps)
+function [aeIntegrals] = computeAeIntegrals(ae, timestampsAe, absB, timestampsAbsB)
 %
-
-aeIntegrals = zeros(length(timestamps), 41);
+absB = interp1(timestampsAbsB, absB, timestampsAe, 'linear', 0);
+aeIntegrals = zeros(length(timestampsAe), 122);
 cumulativeAe = cumsum(ae);
+cumulativeAbsB = cumsum(absB);
 
-thirtyMinutes = 30;
-firstAeInt = cumulativeAe(thirtyMinutes + 1 : end) - cumulativeAe(1 : end - thirtyMinutes);
-firstAeTime = timestamps(thirtyMinutes + 1 : end);
-aeIntegrals(:,1) = interp1(firstAeTime, firstAeInt, timestamps, 'linear', 0);
+% thirtyMinutes = 30;
+% firstAeInt = cumulativeAe(thirtyMinutes + 1 : end) - cumulativeAe(1 : end - thirtyMinutes);
+% firstAeTime = timestampsAe(thirtyMinutes + 1 : end);
+% aeIntegrals(:,1) = interp1(firstAeTime, firstAeInt, timestampsAe, 'linear', 0);
+% 
+% firstAbsBint = cumulativeAbsB(thirtyMinutes + 1 : end) - cumulativeAbsB(1 : end - thirtyMinutes);
+% aeIntegrals(:,62) = interp1(firstAeTime, firstAbsBint, timestampsAe, 'linear', 0);
 
 oneHour = 60;
-for i = 1:40
+for i = [2 4 8 16 21 30 40 50 60]
     lag = i * oneHour;
     aeInt = cumulativeAe(lag + 1 : end) - cumulativeAe(1 : end - lag);
-    aeTime = timestamps(lag + 1 : end);
-    aeIntegrals(:,i + 1) = interp1(aeTime, aeInt, timestamps, 'linear', 0);
+    aeTime = timestampsAe(lag + 1 : end);
+    aeIntegrals(:,i) = interp1(aeTime, aeInt, timestampsAe, 'linear', 0);
 end
+
+for i = [2 4 8 16 30 37 50 60]
+    lag = i * oneHour;
+    absBInt = cumulativeAbsB(lag + 1 : end) - cumulativeAbsB(1 : end - lag);
+    absBTime = timestampsAe(lag + 1 : end);
+    aeIntegrals(:,i + 61) = interp1(absBTime, absBInt, timestampsAe, 'linear', 0);
+end
+
+columnsToConserve = sum(aeIntegrals) > 1;
+aeIntegrals = aeIntegrals(:,columnsToConserve);
 
 end
 
@@ -532,7 +564,7 @@ msisDensity270km = msisDensity270km * power(10, 14);
 msisDensity270kmNoAp = msisDensity270kmNoAp * power(10, 14);
 
 correctionFactor = mean(msisDensityVariableAlt ./ density);
-densityIndex = (correctionFactor * correctedDensity) - msisDensity270kmNoAp;
+densityIndex = (correctionFactor .* correctedDensity) - msisDensity270kmNoAp;
 densityIndex1min = smooth(densityIndex, 7);
 densityIndex1min = densityIndex1min(ismember(timestampsDatenum, timestampsAeDatenum));
 densityIndexNoBg = removePeriodicBackground(densityIndex1min, 30, 1, 0);
@@ -545,6 +577,218 @@ averagedDensityNoBg = normalize(averagedDensityNoBg, averagedDensity);
 
 density3h = smooth(averagedDensityNoBg, 179);
 density3h = density3h(find(ismember(timestamps1minFixed, timestamps3hFixed)) - 90);
+
+end
+
+function [morningTimestamps10s, eveningTimestamps10s, morningLatitude, eveningLatitude, morningIndex, eveningIndex] = ...
+    splitBySolarTime(timestamps10s, latitude, densityIndex, solarTime)
+%
+
+morningIndices = find(solarTime <= 12);
+eveningIndices = find(solarTime > 12);
+
+morningTimestamps10s = timestamps10s(morningIndices);
+morningLatitude = latitude(morningIndices);
+morningIndex = densityIndex(morningIndices);
+
+eveningTimestamps10s = timestamps10s(eveningIndices);
+eveningLatitude = latitude(eveningIndices);
+eveningIndex = densityIndex(eveningIndices);
+
+end
+
+function [densityByLatitude, latitudeBins] = computeDensityGrid(timestamps10s, timestamps1min, latitude, density)
+%
+
+[minLatitude, maxLatitude] = findInterpolationLimits(latitude);
+% minLatitude = minLatitude - 1;
+% maxLatitude = maxLatitude + 1;
+
+% if mod(maxLatitude - minLatitude, 2) ~= 0
+%     maxLatitude = maxLatitude + 1;
+% end
+
+latitudeBins = minLatitude + 1 : 3 : maxLatitude - 1;
+if maxLatitude - 1 > max(latitudeBins)
+    latitudeBins(end + 1) = max(latitudeBins) + 3;
+end
+
+densityByLatitude = zeros(length(timestamps1min), length(latitudeBins));
+indicesToRemove = false(length(latitudeBins),1);
+parfor i = 1:length(latitudeBins)
+    indices = (latitudeBins(i) - 1 < latitude & latitude <= latitudeBins(i) + 1);
+    if isempty(find(indices, 1))
+        indicesToRemove(i) = 1;
+        continue;
+    end
+    densityInterval = density(indices);
+    timestampsInterval = timestamps10s(indices);
+    densityByLatitude(:,i) = interp1(timestampsInterval', densityInterval, timestamps1min, 'linear', 0);
+end
+
+latitudeBins = latitudeBins(~indicesToRemove);
+densityByLatitude = densityByLatitude(:,~indicesToRemove);
+
+end
+
+function [predictedDensity, morningFourierGrid, eveningFourierGrid, morningFtest, eveningFtest] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, aeIntegrals, timestamps1min, timestamps1minFixed, timestamps10sFixed,...
+    morningLatitude, eveningLatitude, morningTimestamps10s, eveningTimestamps10s, msis270kmNoAp, densityNoBg)
+%
+
+fprintf('%s\n', 'Computing parametrizations. This may take up to two to three hours.')
+
+doy = ceil(doy(ismember(timestamps10sFixed, timestamps1minFixed)));
+aeIntFixed = aeIntegrals(ismember(timestamps1min, timestamps1minFixed),:);
+aeIntFixed = aeIntFixed ./ mean(aeIntFixed(:));
+%aeIntFixed = [ones(length(timestamps1minFixed), 1) aeIntFixed]; % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! POIS, kun kaytetaan fitlm:aa!!!!!!!!!!!!!!!!!
+
+targetCount = length(morningBins) + length(eveningBins);
+barWidth = 50;
+p = TimedProgressBar( targetCount, barWidth, ...
+                    'Running Parametrizations, ETA ', ...
+                    '. Now at ', ...
+                    'Completed in ' );
+
+morningProxy = zeros(length(timestamps10sFixed), length(morningBins));
+fitCoeffs(18) = 2 * pi / 365;
+fitFormula = 'y ~ x1 + x2 + x3 + x4 + x5 + x9 + x13 + x5:x7 + x5:x8 + x14:x16 + x17:x18 + x3:x3';
+parfor i = 1:length(morningBins)
+    dens = morningGrid(:,i);
+    
+    doy1day = (1:365)';
+    fourierDoyDens = zeros(365,1);
+    for k = 1:length(doy1day)
+        fourierDoyDens(k,:) = mean(dens(doy == doy1day(k)));
+    end
+
+    x = [doy1day - 365; doy1day; doy1day + 365];
+    y = repmat(fourierDoyDens, 3, 1);
+    fourierFit = fit(x, y, 'fourier8', 'StartPoint', fitCoeffs);
+    
+%     %fourierMatrix = repmat(fourierFit(doy), 1, length(aeIntFixed(1,2:end)));
+%     proxyMatrix = [fourierFit(doy) aeIntFixed];
+%     %proxyMatrix = horzcat(aeIntFixed(:,1), fourierMatrix .* aeIntFixed(:,2:end));
+%     proxyCoeffs = regress(dens, proxyMatrix);
+%     proxyCoeffs = repmat(proxyCoeffs', length(timestamps1minFixed), 1);
+%     finalProxyDensity = sum(proxyCoeffs .* proxyMatrix, 2);
+% 
+    proxyMatrix = [fourierFit(doy) aeIntFixed];   
+    linearModel = fitlm(proxyMatrix, dens, fitFormula);
+    x5x7 = proxyMatrix(:,5) .* proxyMatrix(:,7);
+    x5x8 = proxyMatrix(:,5) .* proxyMatrix(:,8);
+    x14x16 = proxyMatrix(:,14) .* proxyMatrix(:,16);
+    x17x18 = proxyMatrix(:,17) .* proxyMatrix(:,18);
+    x3x3 = proxyMatrix(:,3) .^2;
+    proxyMatrix = [ones(length(timestamps1minFixed),1) proxyMatrix(:,[1 2 3 4 5 9 13]) x5x7 x5x8 x14x16 x17x18 x3x3];
+    finalProxyDensity = feval(linearModel, proxyMatrix);
+    
+    resultArray = table2array(anova(linearModel, 'component'));
+    morningFtest(:,i) = resultArray(:,4);     
+    morningFourierGrid(:,i) = fourierFit(doy1day);% .* proxyCoeffs(1);
+    
+    morningProxy(:,i) = interp1(timestamps1minFixed, finalProxyDensity, timestamps10sFixed, 'linear', 0);
+    
+    p.progress;
+end
+
+eveningProxy = zeros(length(timestamps10sFixed), length(eveningBins));
+parfor i = 1:length(eveningBins)
+    dens = eveningGrid(:,i);
+    
+    doy1day = (1:365)';
+    fourierDoyDens = zeros(365,1);
+    for k = 1:length(doy1day)
+        fourierDoyDens(k,:) = mean(dens(doy == doy1day(k)));
+    end
+
+    x = [doy1day - 365; doy1day; doy1day + 365];
+    y = repmat(fourierDoyDens, 3, 1);
+    fourierFit = fit(x, y, 'fourier8', 'StartPoint', fitCoeffs);
+    
+%     %fourierMatrix = repmat(fourierFit(doy), 1, length(aeIntFixed(1,2:end)));
+%     proxyMatrix = [fourierFit(doy) aeIntFixed];
+%     %proxyMatrix = horzcat(aeIntFixed(:,1), fourierMatrix .* aeIntFixed(:,2:end));
+%     proxyCoeffs = regress(dens, proxyMatrix);
+%     proxyCoeffs = repmat(proxyCoeffs', length(timestamps1minFixed), 1);
+%     finalProxyDensity = sum(proxyCoeffs .* proxyMatrix, 2);
+
+    proxyMatrix = [fourierFit(doy) aeIntFixed];
+    linearModel = fitlm(proxyMatrix, dens, fitFormula);
+    x5x7 = proxyMatrix(:,5) .* proxyMatrix(:,7);
+    x5x8 = proxyMatrix(:,5) .* proxyMatrix(:,8);
+    x14x16 = proxyMatrix(:,14) .* proxyMatrix(:,16);
+    x17x18 = proxyMatrix(:,17) .* proxyMatrix(:,18);
+    x3x3 = proxyMatrix(:,3) .^2;
+    proxyMatrix = [ones(length(timestamps1minFixed),1) proxyMatrix(:,[1 2 3 4 5 9 13]) x5x7 x5x8 x14x16 x17x18 x3x3];
+    finalProxyDensity = feval(linearModel, proxyMatrix);
+    
+    resultArray = table2array(anova(linearModel, 'component'));
+    eveningFtest(:,i) = resultArray(:,4);    
+    eveningFourierGrid(:,i) = fourierFit(doy1day);% .* proxyCoeffs(1);
+    
+    eveningProxy(:,i) = interp1(timestamps1minFixed, finalProxyDensity, timestamps10sFixed, 'linear', 0);
+    
+    p.progress;
+end
+p.stop;
+
+morningFtest = morningFtest';
+eveningFtest = eveningFtest';
+
+morningFourierGrid = morningFourierGrid';
+eveningFourierGrid = eveningFourierGrid';
+
+[morningTimestampsGrid, morningLatitudeGrid] = meshgrid(timestamps10sFixed, morningBins);
+morningProxy = morningProxy';
+[eveningTimestampsGrid, eveningLatitudeGrid] = meshgrid(timestamps10sFixed, eveningBins);
+eveningProxy = eveningProxy';
+
+morningDensity = [];
+eveningDensity = [];
+morningTimes = [];
+eveningTimes = [];
+intervals = 3;
+intervalLength = floor(length(timestamps10sFixed) / intervals);
+for i = 1:intervals
+    if i < intervals
+        k = (i - 1) * intervalLength + 1 : i * intervalLength;
+    else
+        k = (i - 1) * intervalLength + 1 : length(timestamps10sFixed);
+    end
+    
+    beginTime = timestamps10sFixed(k(1));
+    endTime = timestamps10sFixed(k(end));
+    
+    morningInterp = interp2(morningTimestampsGrid(:,k), morningLatitudeGrid(:,k), morningProxy(:,k), morningTimestamps10s, morningLatitude, 'spline');
+    eveningInterp = interp2(eveningTimestampsGrid(:,k), eveningLatitudeGrid(:,k), eveningProxy(:,k), eveningTimestamps10s, eveningLatitude, 'spline');
+    
+    morningIndices = morningTimestamps10s >= beginTime & morningTimestamps10s <= endTime;
+    eveningIndices = eveningTimestamps10s >= beginTime & eveningTimestamps10s <= endTime;
+    morningInterp(~morningIndices) = [];
+    eveningInterp(~eveningIndices) = [];
+    morningTimes = [morningTimes; morningTimestamps10s(morningIndices)];
+    eveningTimes = [eveningTimes; eveningTimestamps10s(eveningIndices)];
+    
+    morningDensity = [morningDensity; morningInterp];
+    eveningDensity = [eveningDensity; eveningInterp];
+end
+
+t = [morningTimes; eveningTimes];
+
+% morningDensity = interp2(morningTimestampsGrid, morningLatitudeGrid, morningProxy, morningTimestamps10s, morningLatitude, 'linear');
+% eveningDensity = interp2(eveningTimestampsGrid, eveningLatitudeGrid, eveningProxy, eveningTimestamps10s, eveningLatitude, 'linear');
+% t = [morningTimestamps10s; eveningTimestamps10s];
+proxy = [morningDensity; eveningDensity];
+[t, order, ~] = unique(t);
+proxy = proxy(order);
+
+tNoNans = t(~isnan(proxy));
+proxyNoNans = proxy(~isnan(proxy));
+tToInterpolate = t;
+
+geomagneticPrediction = interp1(tNoNans, proxyNoNans, tToInterpolate, 'linear');
+predictedDensity = geomagneticPrediction + msis270kmNoAp;
+
 
 end
 

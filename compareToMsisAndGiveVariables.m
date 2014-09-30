@@ -1,5 +1,5 @@
 function [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
- morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
+ morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, ...
  morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength, firstDatenum] ...
  = compareToMsisAndGiveVariables(threshold, results)
@@ -17,28 +17,24 @@ end
 intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
 
 [morningTimestamps10s, morningMagneticLatitude, morningDensityNoBg, morningMsisDensity, eveningTimestamps10s, ...
-    eveningMagneticLatitude, morningLatitude, eveningLatitude, eveningDensityNoBg, eveningMsisDensity, morningIndex, eveningIndex] = ...
-    splitBySolarTime(timestamps10sFixed, magneticLatitude, latitude, densityNoBg, msisDensity270km, densityIndex, solarTime);
+    morningAeProxy, eveningAeProxy, eveningMagneticLatitude, eveningDensityNoBg, eveningMsisDensity] = ...
+    splitBySolarTime(timestamps10sFixed, magneticLatitude, densityNoBg, msisDensity270km, aeProxyDensity, solarTime);
 
-[morningGrid, morningBins] = computeDensityGrid(morningTimestamps10s, timestamps1minFixed, morningLatitude, morningIndex);
-[eveningGrid, eveningBins] = computeDensityGrid(eveningTimestamps10s, timestamps1minFixed, eveningLatitude, eveningIndex);
-
-[predictedDensityIndex] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, aeIntegrals, timestamps1min, timestamps1minFixed, timestamps10sFixed,...
-    morningLatitude, eveningLatitude, morningTimestamps10s, eveningTimestamps10s);
+plotParametrizationResults(morningFourierGrid, eveningFourierGrid, morningBins, eveningBins);
 
 [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
- morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
+ morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
  = sliceToInterestingIntervals(ae, ap, absB, vBz, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
- morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
+ morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
  density3h, morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, intervalsOfInterest);
 
 end
 
 
 function [morningTimestamps10s, morningMagneticLatitude, morningDensityNoBg, morningMsisDensity, eveningTimestamps10s, ...
-    eveningMagneticLatitude, morningLatitude, eveningLatitude, eveningDensityNoBg, eveningMsisDensity, morningIndex, eveningIndex] = ...
-    splitBySolarTime(timestamps10s, magneticLatitude, latitude, densityNoBg, msisDensity, densityIndex, solarTime)
+    morningAeProxy, eveningAeProxy, eveningMagneticLatitude, eveningDensityNoBg, eveningMsisDensity] = ...
+    splitBySolarTime(timestamps10s, magneticLatitude, densityNoBg, msisDensity, aeProxy, solarTime)
 %
 
 morningIndices = find(solarTime <= 12);
@@ -46,17 +42,15 @@ eveningIndices = find(solarTime > 12);
 
 morningTimestamps10s = timestamps10s(morningIndices);
 morningMagneticLatitude = magneticLatitude(morningIndices);
-morningLatitude = latitude(morningIndices);
 morningDensityNoBg = densityNoBg(morningIndices);
 morningMsisDensity = msisDensity(morningIndices);
-morningIndex = densityIndex(morningIndices);
+morningAeProxy = aeProxy(morningIndices);
 
 eveningTimestamps10s = timestamps10s(eveningIndices);
 eveningMagneticLatitude = magneticLatitude(eveningIndices);
-eveningLatitude = latitude(eveningIndices);
 eveningDensityNoBg = densityNoBg(eveningIndices);
 eveningMsisDensity = msisDensity(eveningIndices);
-eveningIndex = densityIndex(eveningIndices);
+eveningAeProxy = aeProxy(eveningIndices);
 
 end
 
@@ -268,99 +262,46 @@ densityByLatitude = densityByLatitude(:,~indicesToRemove);
 
 end
 
-
-function [predictedDensity] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, aeIntegrals, timestamps1min, timestamps1minFixed, timestamps10sFixed,...
-    morningLatitude, eveningLatitude, morningTimestamps10s, eveningTimestamps10s)
+function plotParametrizationResults(morningFourierGrid, eveningFourierGrid, morningBins, eveningBins)
 %
 
-doy = ceil(doy(ismember(timestamps10sFixed, timestamps1minFixed)));
-aeIntFixed = aeIntegrals(ismember(timestamps1min, timestamps1minFixed),:);
+[morningDoyGrid, morningBinGrid] = meshgrid(1:365, morningBins);
+[eveningDoyGrid, eveningBinGrid] = meshgrid(1:365, eveningBins);
 
-morningProxy = zeros(length(timestamps10sFixed), length(morningBins));
-fitCoeffs(18) = 2 * pi / 365;
-parfor i = 1:length(morningBins)
-    dens = morningGrid(:,i);
-    
-    doy1day = (1:365)';
-    fourierDoyDens = zeros(365,1);
-    for k = 1:length(doy1day)
-        fourierDoyDens(k,:) = mean(dens(doy == doy1day(k)));
-    end
+figure;
+subplot(2,1,1);
+surf(morningDoyGrid, morningBinGrid, morningFourierGrid);
+title('Morning Fourier coeffs');
+ylabel('Geographic Latitude')
+xlabel('doy')
+xlim([1 365]);
+ylim([min(morningBinGrid(:,1)) max(morningBinGrid(:,1))]);
+colorbar;
+view(2);
+shading interp
 
-    x = [doy1day - 365; doy1day; doy1day + 365];
-    y = repmat(fourierDoyDens, 3, 1);
-    fourierFit = fit(x, y, 'fourier8', 'StartPoint', fitCoeffs);
-    
-    aeCoeffs = regress(dens, aeIntFixed);
-    aeCoeffs = repmat(aeCoeffs', length(timestamps1minFixed), 1);
-    aeProxyDensity = sum(aeCoeffs .* aeIntFixed, 2);
-    
-    fourierAeProduct = fourierFit(doy) .* aeProxyDensity;
-    
-    finalFit = mean(dens ./ fourierAeProduct);
-    finalProxyDens = finalFit .* fourierAeProduct;
-    
-    morningProxy(:,i) = interp1(timestamps1minFixed, finalProxyDens, timestamps10sFixed, 'linear', 0);
-end
-
-eveningProxy = zeros(length(timestamps10sFixed), length(eveningBins));
-parfor i = 1:length(eveningBins)
-    dens = eveningGrid(:,i);
-    
-    doy1day = (1:365)';
-    fourierDoyDens = zeros(365,1);
-    for k = 1:length(doy1day)
-        fourierDoyDens(k,:) = mean(dens(doy == doy1day(k)));
-    end
-
-    x = [doy1day - 365; doy1day; doy1day + 365];
-    y = repmat(fourierDoyDens, 3, 1);
-    fourierFit = fit(x, y, 'fourier8', 'StartPoint', fitCoeffs);
-    
-    aeCoeffs = regress(dens, aeIntFixed);
-    aeCoeffs = repmat(aeCoeffs', length(timestamps1minFixed), 1);
-    aeProxyDensity = sum(aeCoeffs .* aeIntFixed, 2);
-    
-    fourierAeProduct = fourierFit(doy) .* aeProxyDensity;
-    
-    finalFit = mean(dens ./ fourierAeProduct);
-    finalProxyDens = finalFit .* fourierAeProduct;
-    
-    eveningProxy(:,i) = interp1(timestamps1minFixed, finalProxyDens, timestamps10sFixed, 'linear', 0);
-end
-
-
-[morningTimestampsGrid, morningLatitudeGrid] = meshgrid(timestamps10sFixed, morningBins);
-morningProxy = morningProxy';
-morningDensity = interp2(morningTimestampsGrid, morningLatitudeGrid, morningProxy, morningTimestamps10s, morningLatitude);
-
-[eveningTimestampsGrid, eveningLatitudeGrid] = meshgrid(timestamps10sFixed, eveningBins);
-eveningProxy = eveningProxy';
-eveningDensity = interp2(eveningTimestampsGrid, eveningLatitudeGrid, eveningProxy, eveningTimestamps10s, eveningLatitude);
-
-t = [morningTimestamps10s; eveningTimestamps10s];
-proxy = [morningDensity; eveningDensity];
-[t, order] = sort(t);
-proxy = proxy(order);
-
-tNoNans = t(~isnan(proxy));
-proxyNoNans = proxy(~isnan(proxy));
-tToInterpolate = t;
-
-predictedDensity = interp1(tNoNans, proxyNoNans, tToInterpolate, 'linear');
-save('predictedDensity.m', 'predictedDensity', '-v7.3')
+subplot(2,1,2);
+surf(eveningDoyGrid, eveningBinGrid, eveningFourierGrid);
+title('Evening Fourier coeffs');
+ylabel('Geographic Latitude')
+xlabel('doy')
+xlim([1 365]);
+ylim([min(eveningBinGrid(:,1)) max(eveningBinGrid(:,1))]);
+colorbar;
+view(2);
+shading interp
 
 end
 
 
-function compareGoceDensityToMsis(goceDensity, msisDensity, ae, timestampsAeDatenum, timestampsDensityDatenum, results)
+function compareGoceDensityToModel(goceDensity, modelDensity, ae, timestampsAeDatenum, timestampsDensityDatenum, results)
 %
 
-ratio = goceDensity ./ msisDensity;
+ratio = goceDensity ./ modelDensity;
 
 plotTimeseriesOfRatio(ratio, ae, timestampsAeDatenum, timestampsDensityDatenum);
 
-plotCorrelation(msisDensity, goceDensity, 'NRLMSISE00 density', 'GOCE measured density', 1, results);
+plotCorrelation(modelDensity, goceDensity, 'NRLMSISE00 density', 'GOCE measured density', 1, results);
 
 plotHistogramFits(ratio);
 
@@ -558,17 +499,17 @@ end
 
 
 function [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
- morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minOut, timestampsAbsB, ...
+ morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1minOut, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
  = sliceToInterestingIntervals(ae, ap, absB, vBz, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
- morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
+ morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
  density3h, morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDatenum, intervalsOfInterest)
 % 
 
 aeTemp = ae; apTemp = ap;
 averagedDensityNoBgTemp = averagedDensityNoBg; morningDensityNoBgTemp = morningDensityNoBg; 
-eveningDensityNoBgTemp = eveningDensityNoBg; morningMsisDensityTemp = morningMsisDensity;
-eveningMsisDensityTemp = eveningMsisDensity; morningTimestamps10sTemp = morningTimestamps10s; 
+eveningDensityNoBgTemp = eveningDensityNoBg; morningMsisDensityTemp = morningMsisDensity; eveningAeProxyTemp = eveningAeProxy;
+eveningMsisDensityTemp = eveningMsisDensity; morningAeProxyTemp = morningAeProxy; morningTimestamps10sTemp = morningTimestamps10s; 
 eveningTimestamps10sTemp = eveningTimestamps10s; timestamps1minFixedTemp = timestamps1minFixed; 
 timestamps3hTemp = timestamps3h; timestamps3hFixedTemp = timestamps3hFixed; density3hTemp = density3h; morningMagneticLatitudeTemp = morningMagneticLatitude;
 eveningMagneticLatitudeTemp = eveningMagneticLatitude; timestampsEpsilonTemp = timestampsEpsilon; akasofuEpsilonTemp = akasofuEpsilon;
@@ -578,7 +519,7 @@ ae = {}; ap = {};  averagedDensityNoBg = {}; morningDensityNoBg = {};
 eveningDensityNoBg = {}; morningMsisDensity = {}; eveningMsisDensity = {}; morningTimestamps10s = {};
 eveningTimestamps10s = {}; timestamps1minFixed = {}; timestamps3h = {}; density3h = {}; morningMagneticLatitude = {};
 eveningMagneticLatitude = {}; timestampsAbsB = {}; akasofuEpsilon = {}; vBz = {}; timestampsEpsilon = {}; absB = {}; timestampsDatenum = {};
-timestamps3hFixed = {};
+timestamps3hFixed = {}; morningAeProxy = {}; eveningAeProxy = {};
 
 cellArrayLength = length(intervalsOfInterest(:,1));
 
@@ -627,6 +568,8 @@ for i = 1:cellArrayLength
     eveningTimestamps10s{i} = eveningTimestamps10sTemp(beginIndexEvening10s:endIndexEvening10s);
     morningMagneticLatitude{i} = morningMagneticLatitudeTemp(beginIndexMorning10s:endIndexMorning10s);
     eveningMagneticLatitude{i} = eveningMagneticLatitudeTemp(beginIndexEvening10s:endIndexEvening10s);
+    morningAeProxy{i} = morningAeProxyTemp(beginIndexMorning10s:endIndexMorning10s);
+    eveningAeProxy{i} = eveningAeProxyTemp(beginIndexEvening10s:endIndexEvening10s);
     
     [~, beginIndex10s] = min(abs(timestamps10sFixed - timestamps1min(beginIndex)));
     [~, endIndex10s] = min(abs(timestamps10sFixed - timestamps1min(endIndex)));
