@@ -12,36 +12,49 @@ else
     load('goceVariables.mat')
 end
 
-%compareGoceDensityToMsis(measuredDensity, msisDensityVariableAlt, ae, timestampsAeDatenum, timestampsDensityDatenum, results);
+compareGoceDensityToModel(densityNoBg, msisDensity270km, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'NRLMSISE00');
 
-intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
+% intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
+% 
+% [morningTimestamps10s, morningMagneticLatitude, morningDensityNoBg, morningMsisDensity, eveningTimestamps10s, ...
+%     morningAeProxy, eveningAeProxy, eveningMagneticLatitude, morningLatitudeForFit, eveningLatitudeForFit, eveningDensityNoBg, eveningMsisDensity, morningIndex, eveningIndex] = ...
+%     splitBySolarTime(timestamps10sFixed, magneticLatitude, latitude, densityNoBg, msisDensity270km, aeProxyDensity, densityIndex, solarTime);
+% morningTimestamps10sAll = morningTimestamps10s;
+% eveningTimestamps10sAll = eveningTimestamps10s;
+% 
+% %plotParametrizationResults(morningFourierGrid, eveningFourierGrid, morningBins, eveningBins);
+% 
+% [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
+%  morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
+%  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
+%  = sliceToInterestingIntervals(ae, ap, absB, vBz, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
+%  morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
+%  density3h, morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, intervalsOfInterest);
 
-[morningTimestamps10s, morningMagneticLatitude, morningDensityNoBg, morningMsisDensity, eveningTimestamps10s, ...
-    morningAeProxy, eveningAeProxy, eveningMagneticLatitude, morningLatitudeForFit, eveningLatitudeForFit, eveningDensityNoBg, eveningMsisDensity, morningIndex, eveningIndex] = ...
-    splitBySolarTime(timestamps10sFixed, magneticLatitude, latitude, densityNoBg, msisDensity270km, aeProxyDensity, densityIndex, solarTime);
-morningTimestamps10sAll = morningTimestamps10s;
-eveningTimestamps10sAll = eveningTimestamps10s;
+if ~exist('predictedStormDensity', 'var')
+    
+    [morningGrid, morningBins] = computeTimeCells(timestamps10sFixed, morningTimestamps10s, latitude);
+    [eveningGrid, eveningBins] = computeTimeCells(timestamps10sFixed, eveningTimestamps10s, latitude);
 
-%plotParametrizationResults(morningFourierGrid, eveningFourierGrid, morningBins, eveningBins);
+    [predictedStormDensity, morningFtest, eveningFtest, morningFits, eveningFits] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, aeIntegrals, morningFourierGrid, eveningFourierGrid, timestamps10sFixed,...
+        morningLatitudeForFit, eveningLatitudeForFit, morningTimestamps10sAll, eveningTimestamps10sAll, doy, msisDensity270kmNoAp, densityIndex);
 
-[ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
- morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
- timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
- = sliceToInterestingIntervals(ae, ap, absB, vBz, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
- morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
- density3h, morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, intervalsOfInterest);
+    save('goceVariables.mat', 'morningFtest', '-append');
+    save('goceVariables.mat', 'eveningFtest', '-append');
+    save('goceVariables.mat', 'morningFits', '-append');
+    save('goceVariables.mat', 'eveningFits', '-append');
+    save('goceVariables.mat', 'morningBins', '-append');
+    save('goceVariables.mat', 'eveningBins', '-append');
+    save('goceVariables.mat', 'morningGrid', '-append');
+    save('goceVariables.mat', 'eveningGrid', '-append');
+    save('goceVariables.mat', 'predictedStormDensity', '-append');
+    
+    clear;
+    load('goceVariables.mat')
+    
+end
 
-[morningGrid, morningBins] = computeTimeCells(timestamps10sFixed, morningTimestamps10s, latitude);
-[eveningGrid, eveningBins] = computeTimeCells(timestamps10sFixed, eveningTimestamps10s, latitude);
-
-[predictedStormDensity, morningFtest, eveningFtest, morningFits, eveningFits] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, aeIntegrals, morningFourierGrid, eveningFourierGrid, timestamps10sFixed,...
-    morningLatitudeForFit, eveningLatitudeForFit, morningTimestamps10sAll, eveningTimestamps10sAll, doy, msisDensity270kmNoAp, densityIndex);
-
-save('stormfits.mat', 'morningFtest', '-v7.3');
-save('stormfits.mat', 'eveningFtest', '-append');
-save('stormfits.mat', 'morningFits', '-append');
-save('stormfits.mat', 'eveningFits', '-append');
-save('stormfits.mat', 'predictedStormDensity', '-append');
+compareGoceDensityToModel(densityNoBg, predictedStormDensity, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'AE proxy model');
 
 end
 
@@ -377,37 +390,6 @@ predictedDensity = geomagneticPrediction + msis270kmNoAp;
 
 end
 
-function plotParametrizationResults(morningFourierGrid, eveningFourierGrid, morningBins, eveningBins)
-%
-
-[morningDoyGrid, morningBinGrid] = meshgrid(1:365, morningBins);
-[eveningDoyGrid, eveningBinGrid] = meshgrid(1:365, eveningBins);
-
-figure;
-subplot(2,1,1);
-surf(morningDoyGrid, morningBinGrid, morningFourierGrid);
-title('Morning Fourier coeffs');
-ylabel('Geographic Latitude')
-xlabel('doy')
-xlim([1 365]);
-ylim([min(morningBinGrid(:,1)) max(morningBinGrid(:,1))]);
-colorbar;
-view(2);
-shading interp
-
-subplot(2,1,2);
-surf(eveningDoyGrid, eveningBinGrid, eveningFourierGrid);
-title('Evening Fourier coeffs');
-ylabel('Geographic Latitude')
-xlabel('doy')
-xlim([1 365]);
-ylim([min(eveningBinGrid(:,1)) max(eveningBinGrid(:,1))]);
-colorbar;
-view(2);
-shading interp
-
-end
-
 
 function [timeByLatitude, latitudeBins] = computeTimeCells(allTimestamps10s, timestamps10s, latitude)
 %
@@ -442,6 +424,11 @@ end
 function [vector] = cell2vector(cellArray)
 %
 
+if ~iscell(cellArray)
+    vector = cellArray;
+    return;
+end
+
 vector = [];
 
 for i = 1:numel(cellArray)
@@ -457,21 +444,80 @@ end
 end
 
 
-function compareGoceDensityToModel(goceDensity, modelDensity, ae, timestampsAeDatenum, timestampsDensityDatenum, results)
+function compareGoceDensityToModel(goceDensity, modelDensity, ae, timestamps10s, doy, latitude, aeInt8h, timestampsAeDatenum, timestampsDensityDatenum, results, name)
 %
 
 ratio = goceDensity ./ modelDensity;
 
-plotTimeseriesOfRatio(ratio, ae, timestampsAeDatenum, timestampsDensityDatenum);
+plotAgainstLatitude(timestamps10s, doy, aeInt8h, latitude, ratio, name);
 
-plotCorrelation(modelDensity, goceDensity, 'NRLMSISE00 density', 'GOCE measured density', 1, results);
-
-plotHistogramFits(ratio);
+% plotTimeseriesOfRatio(ratio, ae, timestampsAeDatenum, timestampsDensityDatenum, name);
+% 
+% plotCorrelation(modelDensity, goceDensity, [name, ' density'], 'GOCE measured density', 1, results);
+% 
+% plotHistogramFits(ratio, name);
 
 end
 
 
-function plotTimeseriesOfRatio(ratio, ae, timestampsAeDatenum, timestampsDensityDatenum)
+function plotAgainstLatitude(timestamps10s, doy, aeInt8h, latitude, ratio, name)
+%
+
+persistent figHandle;
+persistent msisColorLimits;
+if ~isempty(strfind(lower(name), 'msis'))
+    figHandle = figure;
+    subplotnum = 1;
+else
+    figure(figHandle);
+    subplotnum = 2;
+end
+
+[timeByLatitude, latitudeBins] = computeTimeCells(timestamps10s, timestamps10s, latitude);
+
+numOfIntervals = 100;
+intervalSize = round((max(aeInt8h) - min(aeInt8h)) / numOfIntervals);
+aeInt8h = intervalSize .* round(aeInt8h ./ intervalSize);
+
+aeMatrix = zeros(numOfIntervals + 1, length(latitudeBins));
+for i = 1:length(latitudeBins)
+    timeThisLat = timeByLatitude{i};
+    thisLatIndices = ismember(timestamps10s, timeThisLat);
+    aeIntThisLat = aeInt8h(thisLatIndices);
+    ratioThisLat = ratio(thisLatIndices);
+    
+    for k = 0:numOfIntervals
+        aeMatrix(k+1,i) = mean(ratioThisLat(aeIntThisLat == k * intervalSize));
+    end
+end
+
+aeMatrix = aeMatrix';
+[aeIntGrid, latitudeGrid] = meshgrid((0:numOfIntervals) * intervalSize, latitudeBins);
+
+h = subplot(2,1,subplotnum);
+surf(aeIntGrid, latitudeGrid, aeMatrix);
+view(2);
+title([name, ' / GOCE density versus 8h AE integral']);
+xlabel('AE 8h integral')
+ylabel('Geogr. latitude');
+if subplotnum == 1
+    colorbar;
+    msisColorLimits = get(h, 'clim');
+else
+    thisAxis = colorbar;
+end
+shading interp
+xlim([0 max(aeInt8h)])
+ylim([min(latitudeBins) max(latitudeBins)])
+
+if subplotnum == 2
+    set(h, 'clim', msisColorLimits);
+end
+
+end
+
+
+function plotTimeseriesOfRatio(ratio, ae, timestampsAeDatenum, timestampsDensityDatenum, name)
 %
 
 ratioTrend = removePeriodicBackground(ratio, 125, 6, 0);
@@ -494,16 +540,16 @@ rotateticklabel(hAx(2), 90);
 hold on;
 plot(timestampsDensityDatenum, ratioTrend, 'r-');
 hold off;
-ylabel(hAx(1), 'GOCE / NRLMSISE00 density')
+ylabel(hAx(1), ['GOCE / ', name, ' density'])
 ylabel(hAx(2), 'AE')
-title('Ratio of GOCE NON-normalized densities to NRLMSISE00 prediction')
+title(['Ratio of GOCE NON-normalized densities to ', name, ' prediction'])
 
 meanRatio = mean(ratio);
 errRatio = std(ratio);
 meanReciprocal = mean(1 ./ ratio);
 errReciprocal = std(1 ./ ratio);
-textString1 = ['Mean GOCE / NRLMSISE00 density: ', num2str(meanRatio, '%.2f'), ' ± ', num2str(errRatio, '%.2f')];
-textString2 = ['Mean NRLMSISE00 / GOCE density: ', num2str(meanReciprocal, '%.2f'), ' ± ', num2str(errReciprocal, '%.2f')];
+textString1 = ['Mean GOCE / ', name, ' density: ', num2str(meanRatio, '%.2f'), ' ± ', num2str(errRatio, '%.2f')];
+textString2 = ['Mean ', name, ' / GOCE density: ', num2str(meanReciprocal, '%.2f'), ' ± ', num2str(errReciprocal, '%.2f')];
      
 ylimits = get(gca, 'ylim');
 xlimits = get(gca, 'xlim');
@@ -519,7 +565,7 @@ text(textXLocation, textYLocation, textString2, 'FontSize', 9, ...
 
 end
 
-function plotHistogramFits(ratio)
+function plotHistogramFits(ratio, name)
 %
 
 figure;
@@ -539,8 +585,8 @@ pdfTlocationScale = pdf(pdTlocationScale, ratio);
 
 dx = diff(x(1:2));
 bar(x,numOfElementsInBin / sum(numOfElementsInBin * dx))
-title('Goce/Msis histogram with pdf fits')
-xlabel('Goce/NRLMSISE00 density ratio')
+title('Goce/', name,' histogram with pdf fits')
+xlabel('Goce/', name,' density ratio')
 ylabel('Percentage of data');
 xlim([0.25 1.25])
 
