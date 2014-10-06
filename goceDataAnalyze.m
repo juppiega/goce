@@ -59,10 +59,11 @@ end
 function results = initialize()
 % initialize()
 
-format compact
-if matlabpool('size') <= 0
-    matlabpool open
+poolobj = gcp('nocreate'); % If no pool, do not create new one.
+if isempty(poolobj)
+    parpool(6);
 end
+
 results = {};
 
 end
