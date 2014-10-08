@@ -61,7 +61,7 @@ function results = initialize()
 
 poolobj = gcp('nocreate'); % If no pool, do not create new one.
 if isempty(poolobj)
-    parpool(6);
+    parpool(4);
 end
 
 results = {};
