@@ -1,4 +1,4 @@
-
+%%
 
 format compact
 
@@ -10,3 +10,9 @@ t = t(order);
 goodPredictors = t(end-10:end);
 coefnames = morningFits{1}.CoefficientNames;
 coefnames(goodPredictors)
+
+%%
+coefVals = morningFits{1}.Coefficients;
+coefIntervals = morningFits{1}.coefCI;
+morningFits{1}.NumCoefficients
+coefVals = coefVals(:,1);
