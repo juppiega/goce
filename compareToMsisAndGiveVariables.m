@@ -23,15 +23,15 @@ morningTimestamps10sAll = morningTimestamps10s;
 eveningTimestamps10sAll = eveningTimestamps10s;
 
 if exist('predictedStormDensity', 'var')
-    plotParametrizationResults(morningFourierGrid, eveningFourierGrid, morningFits, eveningFits, morningBins, eveningBins, mean(aeIntegrals(:)));
+    %plotParametrizationResults(morningFourierGrid, eveningFourierGrid, morningFits, eveningFits, morningBins, eveningBins, mean(aeIntegrals(:)));
 end
 
 [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
- = sliceToInterestingIntervals(ae, ap, absB, vBz, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
+ = sliceToInterestingIntervals(ae, ap, absB, vBz, densityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
- density3h, morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, intervalsOfInterest);
+ morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, intervalsOfInterest);
 
 if ~exist('predictedStormDensity', 'var')
     
@@ -287,8 +287,7 @@ parfor i = 1:length(morningBins)
     fullMatrix = [fourierFit(doy) aeIntFixed];
     x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
     x7square = fullMatrix(:,7) .^2;
-    x4square = fullMatrix(:,4) .^2;
-    fullMatrix = [fullMatrix(:,[1 2 3 4 5 8 9]) x9x10 x4square x7square];
+    fullMatrix = [fullMatrix(:,[1 2 3 4 5 8 9]) x9x10 x7square];
     
     proxyMatrix = fullMatrix(thisLatIndices,:);
     linearModel = fitlm(proxyMatrix, densityThisLat);
@@ -315,8 +314,7 @@ parfor i = 1:length(eveningBins)
     fullMatrix = [fourierFit(doy) aeIntFixed];
     x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
     x7square = fullMatrix(:,7) .^2;
-    x4square = fullMatrix(:,4) .^2;
-    fullMatrix = [fullMatrix(:,[1 2 3 4 5 8 9]) x9x10 x4square x7square];
+    fullMatrix = [fullMatrix(:,[1 2 3 4 5 8 9]) x9x10 x7square];
     
     proxyMatrix = fullMatrix(thisLatIndices,:);
     linearModel = fitlm(proxyMatrix, densityThisLat);
@@ -475,13 +473,13 @@ xlabel('Geogr. lat.')
 xlim([min(morningBins) max(morningBins)])
 
 subplot(2,4,4);
-x = repmat(morningBins', 1, 3);
+x = repmat(morningBins', 1, 2);
 y = morningCoeffs(:,9:end);
 l = morningLowerCI(:,9:end);
 u = morningUpperCI(:,9:end);
 errorbar(x,y,l,u);
 title('Morning 2^{nd} order terms')
-legend('AE(50h)*AE(60h)', 'AE(8h)^{2}', 'AE(30h)^{2}');
+legend('AE(50h)*AE(60h)', 'AE(30h)^{2}');
 xlabel('Geogr. lat.')
 xlim([min(morningBins) max(morningBins)])
 
@@ -519,13 +517,13 @@ xlabel('Geogr. lat.')
 xlim([min(eveningBins) max(eveningBins)])
 
 subplot(2,4,8);
-x = repmat(eveningBins', 1, 3);
+x = repmat(eveningBins', 1, 2);
 y = eveningCoeffs(:,9:end);
 l = eveningLowerCI(:,9:end);
 u = eveningUpperCI(:,9:end);
 errorbar(x,y,l,u);
 title('Evening 2^{nd} order terms')
-legend('AE(50h)*AE(60h)', 'AE(8h)^{2}', 'AE(30h)^{2}');
+legend('AE(50h)*AE(60h)', 'AE(30h)^{2}');
 xlabel('Geogr. lat.')
 xlim([min(eveningBins) max(eveningBins)])
 
@@ -899,17 +897,16 @@ end
 function [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minOut, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
- = sliceToInterestingIntervals(ae, ap, absB, vBz, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
+ = sliceToInterestingIntervals(ae, ap, absB, vBz, densityAll, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
- density3h, morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDatenum, intervalsOfInterest)
+ morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDatenum, intervalsOfInterest)
 % 
 
-aeTemp = ae; apTemp = ap;
-averagedDensityNoBgTemp = averagedDensityNoBg; morningDensityNoBgTemp = morningDensityNoBg; 
+aeTemp = ae; apTemp = ap; morningDensityNoBgTemp = morningDensityNoBg; 
 eveningDensityNoBgTemp = eveningDensityNoBg; morningMsisDensityTemp = morningMsisDensity;
 eveningMsisDensityTemp = eveningMsisDensity; morningTimestamps10sTemp = morningTimestamps10s; 
 eveningTimestamps10sTemp = eveningTimestamps10s; timestamps1minFixedTemp = timestamps1minFixed; 
-timestamps3hTemp = timestamps3h; timestamps3hFixedTemp = timestamps3hFixed; density3hTemp = density3h; morningMagneticLatitudeTemp = morningMagneticLatitude;
+timestamps3hTemp = timestamps3h; timestamps3hFixedTemp = timestamps3hFixed; morningMagneticLatitudeTemp = morningMagneticLatitude;
 eveningMagneticLatitudeTemp = eveningMagneticLatitude; timestampsEpsilonTemp = timestampsEpsilon; akasofuEpsilonTemp = akasofuEpsilon;
 vBzTemp = vBz; timestampsAbsBTemp = timestampsAbsB; absBTemp = absB; timestampsDatenumTemp = timestampsDatenum; 
 
@@ -917,7 +914,7 @@ ae = {}; ap = {};  averagedDensityNoBg = {}; morningDensityNoBg = {};
 eveningDensityNoBg = {}; morningMsisDensity = {}; eveningMsisDensity = {}; morningTimestamps10s = {};
 eveningTimestamps10s = {}; timestamps1minFixed = {}; timestamps3h = {}; density3h = {}; morningMagneticLatitude = {};
 eveningMagneticLatitude = {}; timestampsAbsB = {}; akasofuEpsilon = {}; vBz = {}; timestampsEpsilon = {}; absB = {}; timestampsDatenum = {};
-timestamps3hFixed = {};
+timestamps3hFixed = {}; 
 
 cellArrayLength = length(intervalsOfInterest(:,1));
 
@@ -933,10 +930,26 @@ for i = 1:cellArrayLength
     ap{i} = apTemp(beginIndex3h:endIndex3h);
     timestamps3h{i} = timestamps3hTemp(beginIndex3h:endIndex3h);
     
+    [~, beginIndex10s] = min(abs(timestamps10sFixed - timestamps1min(beginIndex)));
+    [~, endIndex10s] = min(abs(timestamps10sFixed - timestamps1min(endIndex)));
+    timestampsDatenum{i} = timestampsDatenumTemp(beginIndex10s:endIndex10s);
+    correctedDensity = densityAll(beginIndex10s:endIndex10s);
+    timestamps10sThisStorm = timestamps10sFixed(beginIndex10s:endIndex10s);
+    
+    [~, beginIndex1min] = min(abs(timestamps1minFixedTemp - timestamps1min(beginIndex)));
+    [~, endIndex1min] = min(abs(timestamps1minFixedTemp - timestamps1min(endIndex)));
+    timestamps1minFixed{i} = timestamps1minFixedTemp(beginIndex1min:endIndex1min);
+    averagedDensity = smooth(correctedDensity, 7);
+    averagedDensity = averagedDensity(ismember(timestamps10sThisStorm, timestamps1minFixed{i}));
+    averagedDensityNoBgThisStorm = removePeriodicBackground(averagedDensity, 125, 1, 0);
+    averagedDensityNoBg{i} = normalize(averagedDensityNoBgThisStorm, averagedDensity);
+    
     [~, beginIndex3hFixed] = min(abs(timestamps3hFixedTemp - threeHinSec * round(timestamps1min(beginIndex) / threeHinSec)));
     [~, endIndex3hFixed] = min(abs(timestamps3hFixedTemp - threeHinSec * round(timestamps1min(endIndex) / threeHinSec)));
-    density3h{i} = density3hTemp(beginIndex3hFixed:endIndex3hFixed);
     timestamps3hFixed{i} = timestamps3hFixedTemp(beginIndex3hFixed:endIndex3hFixed);
+    density3hThisStorm = smooth(averagedDensityNoBg{i}, 179);
+    oneAndHalfHours = round(1.5 * 60 * 60);
+    density3h{i} = interp1(timestamps1minFixed{i}, density3hThisStorm, timestamps3hFixed{i} - oneAndHalfHours, 'nearest', 'extrap');
     
     [~, beginIndexAbsB] = min(abs(timestampsAbsBTemp - timestamps1min(beginIndex)));
     [~, endIndexAbsB] = min(abs(timestampsAbsBTemp - timestamps1min(endIndex)));
@@ -948,11 +961,6 @@ for i = 1:cellArrayLength
     akasofuEpsilon{i} = akasofuEpsilonTemp(beginIndexEpsilon:endIndexEpsilon);
     vBz{i} = vBzTemp(beginIndexEpsilon:endIndexEpsilon);
     timestampsEpsilon{i} = timestampsEpsilonTemp(beginIndexEpsilon:endIndexEpsilon);
-    
-    [~, beginIndex1min] = min(abs(timestamps1minFixedTemp - timestamps1min(beginIndex)));
-    [~, endIndex1min] = min(abs(timestamps1minFixedTemp - timestamps1min(endIndex)));
-    averagedDensityNoBg{i} = averagedDensityNoBgTemp(beginIndex1min:endIndex1min);
-    timestamps1minFixed{i} = timestamps1minFixedTemp(beginIndex1min:endIndex1min);
     
     [~, beginIndexMorning10s] = min(abs(morningTimestamps10sTemp - timestamps1min(beginIndex)));
     [~, endIndexMorning10s] = min(abs(morningTimestamps10sTemp - timestamps1min(endIndex)));   
@@ -967,9 +975,6 @@ for i = 1:cellArrayLength
     morningMagneticLatitude{i} = morningMagneticLatitudeTemp(beginIndexMorning10s:endIndexMorning10s);
     eveningMagneticLatitude{i} = eveningMagneticLatitudeTemp(beginIndexEvening10s:endIndexEvening10s);
     
-    [~, beginIndex10s] = min(abs(timestamps10sFixed - timestamps1min(beginIndex)));
-    [~, endIndex10s] = min(abs(timestamps10sFixed - timestamps1min(endIndex)));
-    timestampsDatenum{i} = timestampsDatenumTemp(beginIndex10s:endIndex10s);
 end
 
 end
