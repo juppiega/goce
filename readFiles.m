@@ -37,8 +37,7 @@ measuredDensity = density;
 [morningGrid, morningBins] = computeTimeCells(morningTimestamps10s, firstDatenum, morningLatitude);
 [eveningGrid, eveningBins] = computeTimeCells(eveningTimestamps10s, firstDatenum, eveningLatitude);
 
-[morningFourierGrid, eveningFourierGrid] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, timestamps10sFixed, densityIndex);
-
+[morningFourierGrid, eveningFourierGrid] = computeFourierGrids(morningGrid, morningBins, eveningGrid, eveningBins, doy, timestamps10sFixed, densityIndex, aeIntegrals(:,9));
 
 if fclose('all') ~= 0
     display('File close unsuccesful - check if some of the files are reserved by another editor.')
@@ -628,7 +627,7 @@ timeByLatitude = timeByLatitude(~indicesToRemove);
 
 end
 
-function [morningFourierGrid, eveningFourierGrid] = computeParametrization(morningGrid, morningBins, eveningGrid, eveningBins, doy, timestamps10sFixed, densityIndex)
+function [morningFourierGrid, eveningFourierGrid] = computeFourierGrids(morningGrid, morningBins, eveningGrid, eveningBins, doy, timestamps10sFixed, densityIndex, aeIntegral)
 %
 
 fprintf('%s\n', 'Computing fourier fits.')
@@ -639,16 +638,18 @@ p = TimedProgressBar( targetCount, barWidth, ...
                     'Running Parametrizations, ETA ', ...
                     '. Now at ', ...
                     'Completed in ' );
+%aeLimit = aeIntegral < quantile(aeIntegral, 0.99);
 
-fitCoeffs(18) = 2 * pi / 365;
+fitCoeffs(4) = 2 * pi / 365;
+binWidth = 10;
 parfor i = 1:length(morningBins)
     timeThisLat = morningGrid{i};
     thisLatIndices = ismember(timestamps10sFixed, timeThisLat);
-    densityThisLat = densityIndex(thisLatIndices);
-    doyThisLat = ceil(doy(thisLatIndices));
+    densityThisLat = densityIndex(thisLatIndices);% ./ aeIntegral(thisLatIndices);
+    doyThisLat = round(doy(thisLatIndices) / binWidth) * binWidth;
     
-    doy1day = (1:365)';
-    fourierDoyDens = zeros(365,1);
+    doy1day = unique(doyThisLat);
+    fourierDoyDens = zeros(length(doy1day),1);
     for k = 1:length(doy1day)
         indices = doyThisLat == doy1day(k);
         fourierDoyDens(k,:) = mean(densityThisLat(indices));
@@ -656,9 +657,10 @@ parfor i = 1:length(morningBins)
     
     x = [doy1day - 365; doy1day; doy1day + 365];
     y = repmat(fourierDoyDens, 3, 1);
-    fourierFit = fit(x, y, 'fourier8', 'StartPoint', fitCoeffs);
+    fourierFit = fit(x, y, 'fourier1', 'StartPoint', fitCoeffs);
   
     morningFourierGrid{i} = fourierFit;
+    morningPlot(:,i) = fourierFit((1:365)');
     
     p.progress;
 end
@@ -666,23 +668,41 @@ end
 parfor i = 1:length(eveningBins)
     timeThisLat = eveningGrid{i};
     thisLatIndices = ismember(timestamps10sFixed, timeThisLat);
-    densityThisLat = densityIndex(thisLatIndices);
-    doyThisLat = ceil(doy(thisLatIndices));
+    densityThisLat = densityIndex(thisLatIndices);% ./ aeIntegral(thisLatIndices);
+    doyThisLat = round(doy(thisLatIndices) / binWidth) * binWidth;
     
-    doy1day = (1:365)';
-    fourierDoyDens = zeros(365,1);
+    doy1day = unique(doyThisLat);
+    fourierDoyDens = zeros(length(doy1day),1);
     for k = 1:length(doy1day)
-        fourierDoyDens(k,:) = mean(densityThisLat(doyThisLat == doy1day(k)));
+        indices = doyThisLat == doy1day(k);
+        fourierDoyDens(k,:) = mean(densityThisLat(indices));
     end
     x = [doy1day - 365; doy1day; doy1day + 365];
     y = repmat(fourierDoyDens, 3, 1);
-    fourierFit = fit(x, y, 'fourier8', 'StartPoint', fitCoeffs);
+    fourierFit = fit(x, y, 'fourier1', 'StartPoint', fitCoeffs);
     
     eveningFourierGrid{i} = fourierFit;
+    eveningPlot(:,i) = fourierFit((1:365)');
     
     p.progress;
 end
 p.stop;
+
+[morningDoyGrid, morningLatGrid] = meshgrid(1:365, morningBins);
+[eveningDoyGrid, eveningLatGrid] = meshgrid(1:365, eveningBins);
+morningPlot = morningPlot';
+eveningPlot = eveningPlot';
+figure;
+subplot(2,1,1)
+surf(morningDoyGrid, morningLatGrid, morningPlot)
+title('Morning Fourier Grid')
+view(2);
+shading flat
+subplot(2,1,2)
+surf(eveningDoyGrid, eveningLatGrid, eveningPlot)
+title('Evening Fourier Grid')
+view(2);
+shading flat
 
 end
 

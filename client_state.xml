@@ -1,0 +1,99 @@
+<client_state>
+<host_info>
+    <timezone>10800</timezone>
+    <domain_name>big</domain_name>
+    <ip_addr>127.0.1.1</ip_addr>
+    <host_cpid>b1028c2c78db0df6d932f99152c6a84e</host_cpid>
+    <p_ncpus>48</p_ncpus>
+    <p_vendor>AuthenticAMD</p_vendor>
+    <p_model>AMD Opteron(tm) Processor 6344 [Family 21 Model 2 Stepping 0]</p_model>
+    <p_features>fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc extd_apicid amd_dcm aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 popcnt aes xsave avx f16c lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs xop skinit wdt lwp fma4 nodeid_msr tbm topoext perfctr_core arat cpb hw_pstate npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold</p_features>
+    <p_fpops>1000000000.000000</p_fpops>
+    <p_iops>1000000000.000000</p_iops>
+    <p_membw>1000000000.000000</p_membw>
+    <p_calculated>0.000000</p_calculated>
+    <p_vm_extensions_disabled>0</p_vm_extensions_disabled>
+    <m_nbytes>135473418240.000000</m_nbytes>
+    <m_cache>2097152.000000</m_cache>
+    <m_swap>20747120640.000000</m_swap>
+    <d_total>483649691648.000000</d_total>
+    <d_free>385475260416.000000</d_free>
+    <os_name>Linux</os_name>
+    <os_version>3.2.0-4-amd64</os_version>
+    <coprocs>
+<coproc_cuda>
+   <count>1</count>
+   <name>GeForce GTX 680</name>
+   <available_ram>4171501568.000000</available_ram>
+   <have_cuda>1</have_cuda>
+   <have_opencl>1</have_opencl>
+   <peak_flops>3251712000000.000000</peak_flops>
+   <cudaVersion>6000</cudaVersion>
+   <drvVersion>0</drvVersion>
+   <totalGlobalMem>140634408419328.000000</totalGlobalMem>
+   <sharedMemPerBlock>49152</sharedMemPerBlock>
+   <regsPerBlock>65536</regsPerBlock>
+   <warpSize>32</warpSize>
+   <memPitch>2147483647</memPitch>
+   <maxThreadsPerBlock>1024</maxThreadsPerBlock>
+   <maxThreadsDim>1024 1024 64</maxThreadsDim>
+   <maxGridSize>2147483647 65535 65535</maxGridSize>
+   <clockRate>1058500</clockRate>
+   <totalConstMem>65536</totalConstMem>
+   <major>3</major>
+   <minor>0</minor>
+   <textureAlignment>512</textureAlignment>
+   <deviceOverlap>1</deviceOverlap>
+   <multiProcessorCount>8</multiProcessorCount>
+   <coproc_opencl>
+      <name>GeForce GTX 680</name>
+      <vendor>NVIDIA Corporation</vendor>
+      <vendor_id>4318</vendor_id>
+      <available>1</available>
+      <half_fp_config>0</half_fp_config>
+      <single_fp_config>63</single_fp_config>
+      <double_fp_config>63</double_fp_config>
+      <endian_little>1</endian_little>
+      <execution_capabilities>1</execution_capabilities>
+      <extensions>cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll  cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 </extensions>
+      <global_mem_size>4294246400</global_mem_size>
+      <local_mem_size>49152</local_mem_size>
+      <max_clock_frequency>4761239936475071522</max_clock_frequency>
+      <max_compute_units>8</max_compute_units>
+      <opencl_platform_version>OpenCL 1.1 CUDA 6.0.1</opencl_platform_version>
+      <opencl_device_version>OpenCL 1.1 CUDA</opencl_device_version>
+      <opencl_driver_version>331.67</opencl_driver_version>
+   </coproc_opencl>
+</coproc_cuda>
+    </coprocs>
+</host_info>
+<time_stats>
+    <on_frac>1.000000</on_frac>
+    <connected_frac>1.000000</connected_frac>
+    <active_frac>1.000000</active_frac>
+    <gpu_active_frac>1.000000</gpu_active_frac>
+    <last_update>0.000000</last_update>
+</time_stats>
+<net_stats>
+    <bwup>0.000000</bwup>
+    <avg_up>0.000000</avg_up>
+    <avg_time_up>0.000000</avg_time_up>
+    <bwdown>0.000000</bwdown>
+    <avg_down>0.000000</avg_down>
+    <avg_time_down>0.000000</avg_time_down>
+</net_stats>
+<active_task_set>
+</active_task_set>
+<platform_name>x86_64-pc-linux-gnu</platform_name>
+<core_client_major_version>7</core_client_major_version>
+<core_client_minor_version>0</core_client_minor_version>
+<core_client_release>27</core_client_release>
+<user_run_request>2</user_run_request>
+<user_run_prev_request>2</user_run_prev_request>
+<user_gpu_request>2</user_gpu_request>
+<user_gpu_prev_request>2</user_gpu_prev_request>
+<user_network_request>2</user_network_request>
+<new_version_check_time>0.000000</new_version_check_time>
+<all_projects_list_check_time>0.000000</all_projects_list_check_time>
+<alt_platform>i686-pc-linux-gnu</alt_platform>
+</client_state>

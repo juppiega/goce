@@ -8,7 +8,7 @@ results = initialize();
 
 [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
- timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude,...
+ timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum,  morningMagneticLatitude,...
  eveningMagneticLatitude, cellArrayLength, firstDatenum] ...
  = compareToMsisAndGiveVariables(threshold, results);
 
@@ -22,7 +22,8 @@ for i = 1:cellArrayLength
     
     if plotFigures ~= 0
         timeseriesFigHandle = plotTimeseries(firstDatenum, timestamps1min{i}, timestamps1minFixed{i}, timestampsAbsB{i},...
-            timestamps3h{i}, timestamps3hFixed{i}, ae{i}, ap{i}, absB{i},averagedDensityNoBg{i}, density3h{i});
+            timestamps3h{i}, timestamps3hFixed{i}, ae{i}, ap{i}, absB{i},averagedDensityNoBg{i}, density3h{i}, morningAeProxy{i}, eveningAeProxy{i}, ...
+            morningMsisDensity{i}, eveningMsisDensity{i}, morningTimestamps10s{i}, eveningTimestamps10s{i});
     else
         timeseriesFigHandle = nan(1);
     end
@@ -38,6 +39,10 @@ for i = 1:cellArrayLength
 %     results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, timestamps1minFixed{i}, vBz{i}, ...
 %         averagedDensityNoBg{i}, '|V| * Bz', plotFigures, results, timeseriesFigHandle);
 %     
+
+    results = writeCorrelationsToResults(morningMsisDensity{i}, eveningMsisDensity{i}, morningAeProxy{i}, eveningAeProxy{i}, morningTimestamps10s{i}, eveningTimestamps10s{i},...
+        morningDensityNoBg{i}, eveningDensityNoBg{i}, results);
+    
     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
         morningDensityNoBg{i}, morningMsisDensity{i}, morningAeProxy{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
@@ -168,6 +173,48 @@ fprintf('%s %d\n\n', 'Winter: ', length(winterStorms));
 %results = computeResultMeanAndStd(results);
 
 cell2csv('goceResults.csv', results);
+
+end
+
+function results = writeCorrelationsToResults(morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s,...
+        morningDensityNoBg, eveningDensityNoBg, results)
+%
+
+[timestamps10s, order] = unique([morningTimestamps10s; eveningTimestamps10s]);
+aePredictedDensity = [morningAeProxy; eveningAeProxy];
+msisDensity = [morningMsisDensity; eveningMsisDensity];
+goceDensity = [morningDensityNoBg; eveningDensityNoBg];
+aePredictedDensity = aePredictedDensity(order);
+msisDensity = msisDensity(order);
+goceDensity = goceDensity(order);
+
+aeModelCorr = corr(aePredictedDensity, goceDensity);
+msisCorr = corr(msisDensity, goceDensity);
+aeGoceRatio = aePredictedDensity ./ goceDensity;
+msisGoceRatio = msisDensity ./ goceDensity;
+aeModelMeanRatio = mean(aeGoceRatio);
+msisMeanRatio = mean(msisGoceRatio);
+aeModelStdRatio = std(aeGoceRatio);
+msisStdRatio = std(msisGoceRatio);
+
+[rowNum, ~] = size(results);
+emptyCells = cellfun(@isempty,results);
+[~, emptyColPositions] = find(emptyCells);
+colNum = min(emptyColPositions);
+
+results{1, colNum} = 'Msis corr.';
+results{1, colNum + 1} = 'AE Int. model corr.';
+results{1, colNum + 2} = 'Msis O/M.';
+results{1, colNum + 3} = 'AE Int. model O/M.';
+results{1, colNum + 4} = 'Msis std O/M.';
+results{1, colNum + 5} = 'AE Int. model std O/M.';
+
+results{rowNum, colNum} = msisCorr;
+results{rowNum, colNum + 1} = aeModelCorr;
+results{rowNum, colNum + 2} = msisMeanRatio;
+results{rowNum, colNum + 3} = aeModelMeanRatio;
+results{rowNum, colNum + 4} = msisStdRatio;
+results{rowNum, colNum + 5} = aeModelStdRatio;
 
 end
 
