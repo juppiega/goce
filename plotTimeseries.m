@@ -21,12 +21,22 @@ averagedPrediction = removePeriodicBackground(predictedDensity, 125, 1, 0);
 averagedMsis = normalize(averagedMsis, msisDensity);
 averagedPrediction = normalize(averagedPrediction, predictedDensity);
 
+figure;
+secondsInDay = 60 * 60 * 24;
+timestampsInDays1minFixed = timestamps1minFixed / secondsInDay + firstDatenum;
+plot(timestampsInDays1minFixed, averagedDensityNoBg * 1.22);
+hold all;
+plot(timestampsInDays1minFixed, averagedMsis);
+plot(timestampsInDays1minFixed, averagedPrediction);
+hold off;
+datetick('x', 'dd')
+title('Model low pass filtered density comparison')
+xlabel(['Date on ', datestr(timestampsInDays1minFixed(1), 'mmm yyyy')])
+ylabel('Density [10^{-12} kg/m^3]')
 
 timeseriesFigHandle = figure('units','normalized','outerposition',[0 0 1 1]);
 subplot(2,2,1)
-secondsInDay = 60 * 60 * 24;
 timestampsInDays1min = timestamps1min / secondsInDay + firstDatenum;
-timestampsInDays1minFixed = timestamps1minFixed / secondsInDay + firstDatenum;
 timestampsInDaysAbsB = timestampsAbsB / secondsInDay + firstDatenum;
 %[hAx,~,~] = plotyy(timestampsInDaysAbsB, absB, timestampsInDays1minFixed, averagedDensityNoBg);
 [hAx,~,~] = plotyy(timestampsInDays1minFixed, averagedDensityNoBg, timestampsInDaysAbsB, absB);

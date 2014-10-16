@@ -201,6 +201,10 @@ msisStdRatio = std(msisGoceRatio);
 emptyCells = cellfun(@isempty,results);
 [~, emptyColPositions] = find(emptyCells);
 colNum = min(emptyColPositions);
+if isempty(colNum)
+    [~, colNum] = size(results);
+    colNum = colNum + 1;
+end
 
 results{1, colNum} = 'Msis corr.';
 results{1, colNum + 1} = 'AE Int. model corr.';
