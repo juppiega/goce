@@ -614,7 +614,7 @@ end
 timeByLatitude = cell(length(latitudeBins), 1);
 indicesToRemove = false(length(latitudeBins),1);
 parfor i = 1:length(latitudeBins)
-    indices = (latitudeBins(i) - 1 < latitude & latitude <= latitudeBins(i) + 1);
+    indices = (latitudeBins(i) - 1.5 < latitude & latitude <= latitudeBins(i) + 1.5);
     if isempty(find(indices, 1))
         indicesToRemove(i) = 1;
         continue;
