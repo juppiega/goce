@@ -12,7 +12,7 @@ else
     load('goceVariables.mat')
 end
 
-compareGoceDensityToModel(densityNoBg, msisDensity270km, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'NRLMSISE00', firstDatenum);
+%compareGoceDensityToModel(densityNoBg, msisDensity270km, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'NRLMSISE00', firstDatenum);
 
 intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
 
@@ -22,9 +22,9 @@ intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestam
 morningTimestamps10sAll = morningTimestamps10s;
 eveningTimestamps10sAll = eveningTimestamps10s;
 % 
-% if exist('predictedStormDensity', 'var')
-%     plotParametrizationResults(morningFourierGrid, eveningFourierGrid, morningFits, eveningFits, morningBins, eveningBins, mean(aeIntegrals(:)));
-% end
+if exist('predictedStormDensity', 'var')
+    plotParametrizationResults(morningFourierGrid, eveningFourierGrid, morningFits, eveningFits, morningBins, eveningBins, mean(aeIntegrals(:)));
+end
 
 aeAll = ae;
 [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
@@ -34,7 +34,7 @@ aeAll = ae;
  morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
  morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, intervalsOfInterest);
 
-if ~exist('predictedStormDensity', 'var')
+%if ~exist('predictedStormDensity', 'var')
     
     [morningGrid, morningBins] = computeTimeCells(timestamps10sFixed, morningTimestamps10s, latitude, firstDatenum);
     [eveningGrid, eveningBins] = computeTimeCells(timestamps10sFixed, eveningTimestamps10s, latitude, firstDatenum);
@@ -55,9 +55,9 @@ if ~exist('predictedStormDensity', 'var')
     clear;
     load('goceVariables.mat')
     
-end
+%end
 
-compareGoceDensityToModel(densityNoBg, predictedStormDensity, aeAll, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'AE proxy model', firstDatenum);
+%compareGoceDensityToModel(densityNoBg, predictedStormDensity, aeAll, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'AE proxy model', firstDatenum);
 [morningAeProxy, eveningAeProxy] = splitPredictedDensity(timestamps10sFixed, morningTimestamps10s, eveningTimestamps10s, predictedStormDensity);
 
 
@@ -286,20 +286,24 @@ parfor i = 1:length(morningBins)
     fourierFit = morningFourier{i};
     
     fullMatrix = [fourierFit(doy) aeIntFixed];
+    
     x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
     x7square = fullMatrix(:,7) .^2;
-    x6square = fullMatrix(:,6) .^2;
-    x5x8 = fullMatrix(:,5) .* fullMatrix(:,8);
-    fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x5x8 x9x10 x7square x6square];
+    x4x6 = fullMatrix(:,4) .* fullMatrix(:,6);
+    x5x7 = fullMatrix(:,5) .* fullMatrix(:,7);
+    fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x5x7 x4x6 x9x10 x7square];
     
     proxyMatrix = fullMatrix(thisLatIndices,:);
     linearModel = fitlm(proxyMatrix, densityThisLat);
+
+%     proxyMatrix = fullMatrix(thisLatIndices,:);
+%     linearModel = fitlm(proxyMatrix, densityThisLat, 'quadratic');
     
     finalProxyDensity = feval(linearModel, fullMatrix);
     morningFits{i} = linearModel;
     
     resultArray = table2array(anova(linearModel, 'component'));
-    morningFtest(:,i) = resultArray(:,4);     
+    morningFtest(:,i) = resultArray(:,4);
     
     morningProxy(:,i) = finalProxyDensity; 
     
@@ -317,12 +321,17 @@ parfor i = 1:length(eveningBins)
     fullMatrix = [fourierFit(doy) aeIntFixed];
     x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
     x7square = fullMatrix(:,7) .^2;
-    x6square = fullMatrix(:,6) .^2;
-    x5x8 = fullMatrix(:,5) .* fullMatrix(:,8);
-    fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x5x8 x9x10 x7square x6square];
+    x4x6 = fullMatrix(:,4) .* fullMatrix(:,6);
+    x5x7 = fullMatrix(:,5) .* fullMatrix(:,7);
+    fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x5x7 x4x6 x9x10 x7square];
     
     proxyMatrix = fullMatrix(thisLatIndices,:);
     linearModel = fitlm(proxyMatrix, densityThisLat);
+    
+%     fullMatrix = [fourierFit(doy) aeIntFixed];
+%     
+%     proxyMatrix = fullMatrix(thisLatIndices,:);
+%     linearModel = fitlm(proxyMatrix, densityThisLat, 'quadratic');
     
     finalProxyDensity = feval(linearModel, fullMatrix);
     eveningFits{i} = linearModel;
@@ -344,41 +353,41 @@ morningProxy = morningProxy';
 [eveningTimestampsGrid, eveningLatitudeGrid] = meshgrid(timestamps10sFixed, eveningBins);
 eveningProxy = eveningProxy';
 
-morningDensity = [];
-eveningDensity = [];
-morningTimes = [];
-eveningTimes = [];
-intervals = 3;
-intervalLength = floor(length(timestamps10sFixed) / intervals);
-for i = 1:intervals
-    if i < intervals
-        k = (i - 1) * intervalLength + 1 : i * intervalLength;
-    else
-        k = (i - 1) * intervalLength + 1 : length(timestamps10sFixed);
-    end
-    
-    beginTime = timestamps10sFixed(k(1));
-    endTime = timestamps10sFixed(k(end));
-    
-    morningInterp = interp2(morningTimestampsGrid(:,k), morningLatitudeGrid(:,k), morningProxy(:,k), morningTimestamps10s, morningLatitude, 'spline');
-    eveningInterp = interp2(eveningTimestampsGrid(:,k), eveningLatitudeGrid(:,k), eveningProxy(:,k), eveningTimestamps10s, eveningLatitude, 'spline');
-    
-    morningIndices = morningTimestamps10s >= beginTime & morningTimestamps10s <= endTime;
-    eveningIndices = eveningTimestamps10s >= beginTime & eveningTimestamps10s <= endTime;
-    morningInterp(~morningIndices) = [];
-    eveningInterp(~eveningIndices) = [];
-    morningTimes = [morningTimes; morningTimestamps10s(morningIndices)];
-    eveningTimes = [eveningTimes; eveningTimestamps10s(eveningIndices)];
-    
-    morningDensity = [morningDensity; morningInterp];
-    eveningDensity = [eveningDensity; eveningInterp];
-end
+% morningDensity = [];
+% eveningDensity = [];
+% morningTimes = [];
+% eveningTimes = [];
+% intervals = 3;
+% intervalLength = floor(length(timestamps10sFixed) / intervals);
+% for i = 1:intervals
+%     if i < intervals
+%         k = (i - 1) * intervalLength + 1 : i * intervalLength;
+%     else
+%         k = (i - 1) * intervalLength + 1 : length(timestamps10sFixed);
+%     end
+%     
+%     beginTime = timestamps10sFixed(k(1));
+%     endTime = timestamps10sFixed(k(end));
+%     
+%     morningInterp = interp2(morningTimestampsGrid(:,k), morningLatitudeGrid(:,k), morningProxy(:,k), morningTimestamps10s, morningLatitude, 'spline');
+%     eveningInterp = interp2(eveningTimestampsGrid(:,k), eveningLatitudeGrid(:,k), eveningProxy(:,k), eveningTimestamps10s, eveningLatitude, 'spline');
+%     
+%     morningIndices = morningTimestamps10s >= beginTime & morningTimestamps10s <= endTime;
+%     eveningIndices = eveningTimestamps10s >= beginTime & eveningTimestamps10s <= endTime;
+%     morningInterp(~morningIndices) = [];
+%     eveningInterp(~eveningIndices) = [];
+%     morningTimes = [morningTimes; morningTimestamps10s(morningIndices)];
+%     eveningTimes = [eveningTimes; eveningTimestamps10s(eveningIndices)];
+%     
+%     morningDensity = [morningDensity; morningInterp];
+%     eveningDensity = [eveningDensity; eveningInterp];
+% end
+% 
+% t = [morningTimes; eveningTimes];
 
-t = [morningTimes; eveningTimes];
-
-% morningDensity = interp2(morningTimestampsGrid, morningLatitudeGrid, morningProxy, morningTimestamps10s, morningLatitude, 'linear');
-% eveningDensity = interp2(eveningTimestampsGrid, eveningLatitudeGrid, eveningProxy, eveningTimestamps10s, eveningLatitude, 'linear');
-% t = [morningTimestamps10s; eveningTimestamps10s];
+morningDensity = interp2(morningTimestampsGrid, morningLatitudeGrid, morningProxy, morningTimestamps10s, morningLatitude, 'linear');
+eveningDensity = interp2(eveningTimestampsGrid, eveningLatitudeGrid, eveningProxy, eveningTimestamps10s, eveningLatitude, 'linear');
+t = [morningTimestamps10s; eveningTimestamps10s];
 proxy = [morningDensity; eveningDensity];
 [t, order, ~] = unique(t);
 proxy = proxy(order);
@@ -401,17 +410,22 @@ morningFourierGrid = zeros(length(morningBins), 365);
 eveningFourierGrid = zeros(length(eveningBins), 365);
 
 for i = 1:length(morningBins)
-    thisLatitudeFit = morningFourierFits{i};
-    morningFourierGrid(i,:) = thisLatitudeFit(1:365);
+    coefVals = morningFits{i}.Coefficients;
+    fourierCoeff = table2array(coefVals(2,1));
+    thisLatitudeFourier = morningFourierFits{i};
+    morningFourierGrid(i,:) = thisLatitudeFourier(1:365) * fourierCoeff * 1e-12;
 end
 
 for i = 1:length(eveningBins)
-    thisLatitudeFit = eveningFourierFits{i};
-    eveningFourierGrid(i,:) = thisLatitudeFit(1:365);
+    coefVals = eveningFits{i}.Coefficients;
+    fourierCoeff = table2array(coefVals(2,1));
+    thisLatitudeFourier = eveningFourierFits{i};
+    eveningFourierGrid(i,:) = thisLatitudeFourier(1:365) * fourierCoeff * 1e-12;
 end
 
 [morningDoyGrid, morningLatGrid] = meshgrid(1:365, morningBins);
 [eveningDoyGrid, eveningLatGrid] = meshgrid(1:365, eveningBins);
+
 figure;
 subplot(2,1,1)
 surf(morningDoyGrid, morningLatGrid, morningFourierGrid)
@@ -422,6 +436,8 @@ view(2);
 xlim([1 365]);
 ylim([min(morningBins) max(morningBins)]);
 shading flat
+colorbar
+
 subplot(2,1,2)
 surf(eveningDoyGrid, eveningLatGrid, eveningFourierGrid)
 title('Evening Fourier Grid')
@@ -431,6 +447,7 @@ view(2);
 xlim([1 365]);
 ylim([min(eveningBins) max(eveningBins)]);
 shading flat
+colorbar
 
 morningCoeffs = nan(length(morningBins), morningFits{1}.NumCoefficients);
 morningLowerCI = nan(length(morningBins), morningFits{1}.NumCoefficients);
@@ -480,13 +497,13 @@ eveningUpperCI = eveningUpperCI .* 1e-12 - eveningCoeffs;
 
 figure;
 subplot(2,4,1);
-x = repmat(morningBins', 1, 2);
-y = morningCoeffs(:,1:2);
-l = morningLowerCI(:,1:2);
-u = morningUpperCI(:,1:2);
+x = repmat(morningBins', 1, 1);
+y = morningCoeffs(:,1);
+l = morningLowerCI(:,1);
+u = morningUpperCI(:,1);
 errorbar(x,y,l,u);
-title('Morning Fourier and constant')
-legend('a0', 'Fourier fit')
+title('Morning constant')
+legend('a0')
 xlabel('Geogr. lat.')
 xlim([min(morningBins) max(morningBins)])
 
@@ -519,18 +536,18 @@ l = morningLowerCI(:,8:end);
 u = morningUpperCI(:,8:end);
 errorbar(x,y,l,u);
 title('Morning 2^{nd} order terms')
-legend('AE(16h)*AE(40h)', 'AE(50h)*AE(60h)', 'AE(30h)^{2}', 'AE(21h)^{2}');
+legend('AE(16h)*AE(40h)', 'AE(16h)*AE(50h)', 'AE(50h)*AE(60h)', 'AE(21h)^{2}','Location','southwest');
 xlabel('Geogr. lat.')
 xlim([min(morningBins) max(morningBins)])
 
 subplot(2,4,5);
-x = repmat(eveningBins', 1, 2);
-y = eveningCoeffs(:,1:2);
-l = eveningLowerCI(:,1:2);
-u = eveningUpperCI(:,1:2);
+x = repmat(eveningBins', 1, 1);
+y = eveningCoeffs(:,1);
+l = eveningLowerCI(:,1);
+u = eveningUpperCI(:,1);
 errorbar(x,y,l,u);
-title('Evening Fourier and constant')
-legend('a0', 'Fourier fit')
+title('Evening constant')
+legend('a0')
 xlabel('Geogr. lat.')
 xlim([min(eveningBins) max(eveningBins)])
 
@@ -563,7 +580,7 @@ l = eveningLowerCI(:,8:end);
 u = eveningUpperCI(:,8:end);
 errorbar(x,y,l,u);
 title('Evening 2^{nd} order terms')
-legend('AE(16h)*AE(40h)', 'AE(50h)*AE(60h)', 'AE(30h)^{2}', 'AE(21h)^{2}');
+legend('AE(16h)*AE(40h)', 'AE(50h)*AE(60h)', 'AE(30h)^{2}', 'AE(21h)^{2}','Location','southwest');
 xlabel('Geogr. lat.')
 xlim([min(eveningBins) max(eveningBins)])
 

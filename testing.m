@@ -16,3 +16,8 @@ coefVals = morningFits{1}.Coefficients;
 coefIntervals = morningFits{1}.coefCI;
 morningFits{1}.NumCoefficients
 coefVals = coefVals(:,1);
+
+%%
+coefficNames = morningFits{1}.CoefficientNames;
+coefVals = morningFits{1}.Coefficients;
+coefVals = table2array(coefVals(2,1));
