@@ -691,13 +691,13 @@ eveningMsisNoAp = zeros(length(seconds), 1);
 
 F107A = 100;
 F107 = 100;
-ApDaily = 39;
-apNow = 56;
-ap3h = 94;
-ap6h = 80;
-ap9h = 39;
-apAver12To33h = 6;
-apAver36To57h = 6;
+ApDaily = 27;
+apNow = 80;
+ap3h = 207;
+ap6h = 48;
+ap9h = 15;
+apAver12To33h = 7;
+apAver36To57h = 7;
 for i = 1:length(latitude)
     for j = 1:length(doy1day)
         for k = 1:length(seconds)
@@ -731,10 +731,10 @@ end
 
 p.stop;
 
-% morningDensities = bsxfun(@minus, morningDensities, mean(morningDensities));
-% eveningDensities = bsxfun(@minus, eveningDensities, mean(eveningDensities));
-morningDensities = morningDensities - mean(morningDensities(:));
-eveningDensities = eveningDensities - mean(eveningDensities(:));
+morningDensities = bsxfun(@minus, morningDensities, mean(morningDensities));
+eveningDensities = bsxfun(@minus, eveningDensities, mean(eveningDensities));
+% morningDensities = morningDensities - mean(morningDensities(:));
+% eveningDensities = eveningDensities - mean(eveningDensities(:));
 morningDensities = morningDensities';
 eveningDensities = eveningDensities';
 

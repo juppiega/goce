@@ -20,4 +20,4 @@ coefVals = coefVals(:,1);
 %%
 coefficNames = morningFits{1}.CoefficientNames;
 coefVals = morningFits{1}.Coefficients;
-coefVals = table2array(coefVals(2,1));
+coefVals = table2array(coefVals(1,1));

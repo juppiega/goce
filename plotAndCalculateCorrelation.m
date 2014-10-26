@@ -50,10 +50,18 @@ end
 bestIntegral = bestIntegral(ismember(timestamps(timelag + 1:end), timestampsFixed));
 results = plotCorrelation(bestIntegral, density(densityBestIntIndices), [indexName, ' Best Integral'], 'Density', plotFigures, results);
 
-densityAverageIntIndices = ismember(timestampsFixed, timestamps(averageGoodLag + 1:end));
+averageIntIndices = ismember(timestampsFixed, timestamps(averageGoodLag + 1:end));
+densityAverageInt = density(averageIntIndices);
 timestampsAverInt = timestamps(averageGoodLag + 1:end);
 averageIntegralFixed = averageIntegral(ismember(timestampsAverInt, timestampsFixed));
-results = plotCorrelation(averageIntegralFixed, density(densityAverageIntIndices), [indexName, ' Average Integral'], 'Density', plotFigures, results);
+results = plotCorrelation(averageIntegralFixed, densityAverageInt, [indexName, ' Average Integral'], 'Density', plotFigures, results);
+
+shortenedIndicesContinuous = ismember(timestamps, timestampsAverInt);
+geomIndex = geomIndex(shortenedIndicesContinuous);
+timestamps = timestamps(shortenedIndicesContinuous);
+shortenedIndicesGaps = ismember(timestampsFixed, timestamps);
+timestampsFixed = timestampsFixed(shortenedIndicesGaps);
+density = density(shortenedIndicesGaps);
 
 geomIndexFixed = geomIndex(ismember(timestamps, timestampsFixed));
 densityFixed = density(ismember(timestampsFixed, timestamps));
@@ -63,13 +71,18 @@ if strcmpi(indexName, 'ae')
     results = plotCorrelation(geomIndexNoBg, densityFixed, indexName, 'Density at 270 km', plotFigures, results);
 elseif strcmpi(indexName, 'Akasofu Epsilon') || ~isempty(strfind(upper(indexName), '|B|')) ...
         || ~isempty(strfind(upper(indexName), '|V|'))
-    timestamps6hAgo = timestamps(ismember(timestamps, timestamps - 6 * 60 * 60));
-    timestampsShorter = timestamps6hAgo + 6 * 60 * 60;
-    geomIndex6hAgo = geomIndex(ismember(timestamps, timestamps6hAgo));
-    geomIndex6hAgo = geomIndex6hAgo(ismember(timestampsShorter, timestampsFixed));
-    densityShorter = density(ismember(timestampsFixed, timestampsShorter));
+    % Solar indices are lagged by 6h
+    % Cut 6h from the end of timestamps
+    timestampsLimitedFromEnd = timestamps(ismember(timestamps, timestamps - 6 * 60 * 60));
+    % Lag these limited timestamps by 6h
+    timestampsLagged = timestampsLimitedFromEnd + 6 * 60 * 60;
+    % Pick geomIndex as geomIndex([tFixed(1), tfixed(2), ...])
+    geomIndex6hAgo = geomIndex(ismember(timestamps, timestampsLimitedFromEnd));
+    geomIndex6hAgo = geomIndex6hAgo(ismember(timestampsLagged, timestampsFixed));
+    % Pick density values as density([tFixed(1)+6h, tFixed(2)+6h, ...])
+    densityShorter = density(ismember(timestampsFixed, timestampsLagged));
     results = plotCorrelation(geomIndex6hAgo, densityShorter, indexName, 'Density at 270 km', plotFigures, results);
-else
+else % ap
     results = plotCorrelation(geomIndexFixed, densityFixed, indexName, 'Density at 270 km', plotFigures, results);
 end
 
