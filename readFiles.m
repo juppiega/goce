@@ -14,7 +14,7 @@ tic;
 [absB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilonDatenum, vBz] ...
     = readSolarParameterFiles(timestampsAeDatenum);
 
-[density, longitude, latitude, altitude, solarTime, magneticLatitude, crwindEast, crwindNorth, crwindUp, ...
+[density, longitude, latitude, altitude, solarTime, magneticLatitude, magneticLongitude, magneticLocalTime, crwindEast, crwindNorth, crwindUp, ...
  timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, doy, timestampsAbsB, timestampsEpsilon, firstDatenum, absDensityError, ...
  absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = readDensityFile(timestampsAeDatenum, timestampsAbsBDatenum, timestampsEpsilonDatenum);
 
@@ -38,7 +38,7 @@ measuredDensity = density;
 [eveningGrid, eveningBins] = computeTimeCells(eveningTimestamps10s, firstDatenum, eveningLatitude);
 
 msisSimulatedResidue = msisDensity270km - msisDensity270kmNoAp;
-[morningFourierGrid, eveningFourierGrid] = computeFourierGrids(morningGrid, morningBins, eveningGrid, eveningBins, doy, timestamps10sFixed, msisSimulatedResidue, aeIntegrals(:,9));
+[morningFourierGrid, eveningFourierGrid] = computeFourierGrids(morningGrid, morningBins, eveningGrid, eveningBins, doy, timestamps10sFixed, msisSimulatedResidue, aeIntegrals(:,9), median(F107Yesterday));
 
 if fclose('all') ~= 0
     display('File close unsuccesful - check if some of the files are reserved by another editor.')
@@ -67,6 +67,8 @@ save('goceVariables.mat', 'crwindEast', '-append')
 save('goceVariables.mat', 'crwindNorth', '-append')
 save('goceVariables.mat', 'crwindUp', '-append')
 save('goceVariables.mat', 'magneticLatitude', '-append')
+save('goceVariables.mat', 'magneticLongitude', '-append')
+save('goceVariables.mat', 'magneticLocalTime', '-append')
 save('goceVariables.mat', 'densityNoBg', '-append')
 save('goceVariables.mat', 'msisDensityVariableAlt', '-append')
 save('goceVariables.mat', 'msisDensity270km', '-append')
@@ -283,7 +285,7 @@ timestampsEpsilonDatenum = tVToInterpolate;
 
 end
 
-function [density, longitude, latitude, altitude, solarTime, magneticLatitude, crwindEast, crwindNorth, crwindUp,...
+function [density, longitude, latitude, altitude, solarTime, magneticLatitude, magneticLongitude, magneticLocalTime, crwindEast, crwindNorth, crwindUp,...
     timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, doy, timestampsAbsB, timestampsEpsilon, firstDatenum,...
     absDensityError, absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = ...
     readDensityFile(timestampsAeDatenum, timestampsAbsBDatenum, timestampsEpsilonDatenum)
@@ -365,7 +367,7 @@ eclipseAffected = logical(round(eclipseAffected(indicesToConserve)));
 isMorningPass = logical(round(isMorningPass(indicesToConserve)));
 ionThrusterActive = ~logical(round(ionThrusterActive(indicesToConserve)));
 
-magneticLatitude = convertToMagneticCoordinates(latitude, longitude, altitude);
+[magneticLatitude, magneticLongitude] = convertToMagneticCoordinates(latitude, longitude, altitude);
 
 timestamps10sFixed = timestampsDensityDatenum * secondsInDay;
 timestamps1minFixed = timestamps10sFixed(ismember(timestampsDensityDatenum, timestampsAeDatenum));
@@ -378,6 +380,8 @@ timestamps1min = round((timestampsAeDatenum - firstDatenum) * secondsInDay);
 
 timestampsAbsB = round((timestampsAbsBDatenum - firstDatenum) * secondsInDay);
 timestampsEpsilon = round((timestampsEpsilonDatenum - firstDatenum) * secondsInDay);
+
+[magneticLocalTime] = computeMagneticTime(magneticLongitude, doy, timestampsDensityDatenum);
 
 end
 
@@ -626,7 +630,7 @@ timeByLatitude = timeByLatitude(~indicesToRemove);
 
 end
 
-function [morningFourierGrid, eveningFourierGrid] = computeFourierGrids(morningGrid, morningBins, eveningGrid, eveningBins, doy, timestamps10sFixed, densityIndex, aeIntegral)
+function [morningFourierGrid, eveningFourierGrid] = computeFourierGrids(morningGrid, morningBins, eveningGrid, eveningBins, doy, timestamps10sFixed, densityIndex, aeIntegral, F107median)
 %
 
 fprintf('%s\n', 'Computing fourier fits.')
@@ -689,8 +693,8 @@ morningMsisNoAp = zeros(length(seconds), 1);
 eveningMsis270km = zeros(length(seconds), 1);
 eveningMsisNoAp = zeros(length(seconds), 1);
 
-F107A = 100;
-F107 = 100;
+F107A = F107median; % = 107
+F107 = F107median;
 ApDaily = 27;
 apNow = 80;
 ap3h = 207;
@@ -787,7 +791,26 @@ colorbar;
 
 end
 
-function [magneticLatitude] = convertToMagneticCoordinates(latitude, longitude, altitude)
+function [magneticLocalTime] = computeMagneticTime(magneticLongitude, doy, timestampsDatenum)
+%
+
+hours = (timestampsDatenum - floor(timestampsDatenum)) * 24;
+
+subSolarLat = 23.5 * sin(0.0172 * doy - 1.405);
+subSolarLon = 15 * (12 - hours);
+
+altitude = ones(size(doy)) * 270e3;
+[~, magneticSubSolarLon] = convertToMagneticCoordinates(subSolarLat, subSolarLon, altitude);
+
+magneticLocalTime = 12 + (magneticLongitude - magneticSubSolarLon) / 15;
+tooBigTimes = magneticLocalTime >= 24;
+tooSmallTimes = magneticLocalTime < 0;
+magneticLocalTime(tooBigTimes) = magneticLocalTime(tooBigTimes) - 24;
+magneticLocalTime(tooSmallTimes) = magneticLocalTime(tooSmallTimes) + 24;
+
+end
+
+function [magneticLatitude, magneticLongitude] = convertToMagneticCoordinates(latitude, longitude, altitude)
 % [magneticLatitude] = convertToMagneticCoordinates(latitude, longitude, altitude)
 
 ecefXYZ = geod2ecef(latitude, longitude, altitude)';
@@ -798,6 +821,8 @@ magXYZ = ecefToMagTransform * ecefXYZ;
 r = sqrt(magXYZ(1,:).^2 + magXYZ(2,:).^2 + magXYZ(3,:).^2);
 magneticLatitude = pi/2 - acos(magXYZ(3,:) ./ r);
 magneticLatitude = magneticLatitude' * 180 / pi;
+
+magneticLongitude = 180 * atan2(magXYZ(2,:), magXYZ(1,:))' / pi;
 
 end
 
