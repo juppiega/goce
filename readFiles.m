@@ -549,7 +549,7 @@ parfor i = modelingIndices
           ApDaily(i),apNow(i),ap3h(i),ap6h(i),ap9h(i),apAver12To33h(i),apAver36To57h(i));
       
       [~,~,~,~,~,msisDensity270kmNoAp(i),~,~,~,~,~]...
-          =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longtitude(i),solarTime(i),F107A(i),F107(i),3,3,3,3,3,3,3);
+          =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longtitude(i),solarTime(i),F107A(i),F107(i),3);
       
       if mod(i, 10000) == 0
          p.progress;
@@ -715,14 +715,14 @@ for i = 1:length(latitude)
             ApDaily,apNow,ap3h,ap6h,ap9h,apAver12To33h,apAver36To57h);
 
             [~,~,~,~,~,morningMsisNoAp(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),morningLongitude,morningSolarTime,F107A,F107,3,3,3,3,3,3,3);
+            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),morningLongitude,morningSolarTime,F107A,F107,3);
         
             [~,~,~,~,~,eveningMsis270km(k),~,~,~,~,~]...
             =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),eveningLongitude,eveningSolarTime,F107A,F107,...
             ApDaily,apNow,ap3h,ap6h,ap9h,apAver12To33h,apAver36To57h);
 
             [~,~,~,~,~,eveningMsisNoAp(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),eveningLongitude,eveningSolarTime,F107A,F107,3,3,3,3,3,3,3);            
+            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),eveningLongitude,eveningSolarTime,F107A,F107,3);            
         end
         
         morningResidue = mean(morningMsis270km - morningMsisNoAp);

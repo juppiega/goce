@@ -1,23 +1,23 @@
 %%
 
+% Selects predictors using an F-test. Terms with signifigance at the 95%
+% level for over 95% of the latitude bins are approved for the model.
+
 format compact
 
 ftests = vertcat(morningFtest, eveningFtest);
-fnums = median(ftests);
+
+% Minimum value of F-tests if 95% of the lat. bins are taken into account
+fnums = quantile(ftests,0.05);
+% Sort for easy manual lookup using the variable explorer
 [fnums, order] = sort(fnums);
-t = 1:length(fnums);
-t = t(order);
-goodPredictors = t(end-10:end);
+predictorIndices = 1:length(fnums);
+predictorIndices = predictorIndices(order);
+
+% Critical value for 95 % confidence is 3.84 for F(1,~10^5);
+goodPredictors = predictorIndices(fnums > 3.84); 
 coefnames = morningFits{1}.CoefficientNames;
+% Print out significant predictors
 coefnames(goodPredictors)
 
 %%
-coefVals = morningFits{1}.Coefficients;
-coefIntervals = morningFits{1}.coefCI;
-morningFits{1}.NumCoefficients
-coefVals = coefVals(:,1);
-
-%%
-coefficNames = morningFits{1}.CoefficientNames;
-coefVals = morningFits{1}.Coefficients;
-coefVals = table2array(coefVals(1,1));

@@ -287,12 +287,17 @@ parfor i = 1:length(morningBins)
     
     fullMatrix = [fourierFit(doy) aeIntFixed];
     
+%     x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
+%     x7square = fullMatrix(:,7) .^2;
+%     x4x6 = fullMatrix(:,4) .* fullMatrix(:,6);
+%     x5x7 = fullMatrix(:,5) .* fullMatrix(:,7);
+%     fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x5x7 x4x6 x9x10 x7square];
+
     x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
-    x7square = fullMatrix(:,7) .^2;
-    x4x6 = fullMatrix(:,4) .* fullMatrix(:,6);
+    x5x8 = fullMatrix(:,5) .* fullMatrix(:,8);
     x5x7 = fullMatrix(:,5) .* fullMatrix(:,7);
-    fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x5x7 x4x6 x9x10 x7square];
-    
+    fullMatrix = [fullMatrix(:,[1 2 4 9]) x5x7 x5x8 x9x10];
+
     proxyMatrix = fullMatrix(thisLatIndices,:);
     linearModel = fitlm(proxyMatrix, densityThisLat);
 
@@ -320,11 +325,16 @@ parfor i = 1:length(eveningBins)
     
     fullMatrix = [fourierFit(doy) aeIntFixed];
     
+%     x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
+%     x7square = fullMatrix(:,7) .^2;
+%     x4x6 = fullMatrix(:,4) .* fullMatrix(:,6);
+%     x5x7 = fullMatrix(:,5) .* fullMatrix(:,7);
+%     fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x5x7 x4x6 x9x10 x7square];
+  
     x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
-    x7square = fullMatrix(:,7) .^2;
-    x4x6 = fullMatrix(:,4) .* fullMatrix(:,6);
+    x5x8 = fullMatrix(:,5) .* fullMatrix(:,8);
     x5x7 = fullMatrix(:,5) .* fullMatrix(:,7);
-    fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x5x7 x4x6 x9x10 x7square];
+    fullMatrix = [fullMatrix(:,[1 2 4 9]) x5x7 x5x8 x9x10];
     
     proxyMatrix = fullMatrix(thisLatIndices,:);
     linearModel = fitlm(proxyMatrix, densityThisLat);
@@ -457,137 +467,62 @@ colorbar
 colormap(jet(500))
 
 morningCoeffs = nan(length(morningBins), morningFits{1}.NumCoefficients);
-morningLowerCI = nan(length(morningBins), morningFits{1}.NumCoefficients);
-morningUpperCI = nan(length(morningBins), morningFits{1}.NumCoefficients);
 for i = 1:length(morningBins)
     coeffValues = table2array(morningFits{i}.Coefficients);
-    coeffIntervals = morningFits{i}.coefCI;
     morningCoeffs(i,:) = coeffValues(:,1)';
-    morningLowerCI(i,:) = coeffIntervals(:,1)';
-    morningUpperCI(i,:) = coeffIntervals(:,2)';
 end
 
 eveningCoeffs = nan(length(eveningBins), eveningFits{1}.NumCoefficients);
-eveningLowerCI = nan(length(eveningBins), eveningFits{1}.NumCoefficients);
-eveningUpperCI = nan(length(eveningBins), eveningFits{1}.NumCoefficients);
 for i = 1:length(eveningBins)
-    coeffValues = table2array(eveningFits{i}.Coefficients);
-    coeffIntervals = eveningFits{i}.coefCI;  
+    coeffValues = table2array(eveningFits{i}.Coefficients); 
     eveningCoeffs(i,:) = coeffValues(:,1)';
-    eveningLowerCI(i,:) = coeffIntervals(:,1)';
-    eveningUpperCI(i,:) = coeffIntervals(:,2)';
 end
 
-morningCoeffs(:,3:7) = morningCoeffs(:,3:7) ./ meanMultiplier;
-morningLowerCI(:,3:7) = morningLowerCI(:,3:7) ./ meanMultiplier;
-morningUpperCI(:,3:7) = morningUpperCI(:,3:7) ./ meanMultiplier;
-
-eveningCoeffs(:,3:7) = eveningCoeffs(:,3:7) ./ meanMultiplier;
-eveningLowerCI(:,3:7) = eveningLowerCI(:,3:7) ./ meanMultiplier;
-eveningUpperCI(:,3:7) = eveningUpperCI(:,3:7) ./ meanMultiplier;
-
-morningCoeffs(:,8:end) = morningCoeffs(:,8:end) ./ meanMultiplier.^2;
-morningLowerCI(:,8:end) = morningLowerCI(:,8:end) ./ meanMultiplier.^2;
-morningUpperCI(:,8:end) = morningUpperCI(:,8:end) ./ meanMultiplier.^2;
-
-eveningCoeffs(:,8:end) = eveningCoeffs(:,8:end) ./ meanMultiplier.^2;
-eveningLowerCI(:,8:end) = eveningLowerCI(:,8:end) ./ meanMultiplier.^2;
-eveningUpperCI(:,8:end) = eveningUpperCI(:,8:end) ./ meanMultiplier.^2;
+morningCoeffs(:,3:5) = morningCoeffs(:,3:5) ./ meanMultiplier;
+eveningCoeffs(:,3:5) = eveningCoeffs(:,3:5) ./ meanMultiplier;
+morningCoeffs(:,6:8) = morningCoeffs(:,6:8) ./ meanMultiplier.^2;
+eveningCoeffs(:,6:8) = eveningCoeffs(:,6:8) ./ meanMultiplier.^2;
 
 morningCoeffs = morningCoeffs .* 1e-12;
 eveningCoeffs = eveningCoeffs .* 1e-12;
-morningLowerCI = morningCoeffs - morningLowerCI .* 1e-12;
-morningUpperCI = morningUpperCI .* 1e-12 - morningCoeffs;
-eveningLowerCI = eveningCoeffs - eveningLowerCI .* 1e-12;
-eveningUpperCI = eveningUpperCI .* 1e-12 - eveningCoeffs;
 
 
 figure;
-% subplot(2,4,1);
-% x = repmat(morningBins', 1, 2);
-% y = morningCoeffs(:,1:2);
-% l = morningLowerCI(:,1:2);
-% u = morningUpperCI(:,1:2);
-% errorbar(x,y,l,u);
-% title('Morning constant')
-% legend('a0', 'fourier')
-% xlabel('Geogr. lat.')
-% xlim([min(morningBins) max(morningBins)])
 
-subplot(2,3,1);
+subplot(2,2,1);
 x = repmat(morningBins', 1, 3);
 y = morningCoeffs(:,3:5);
-l = morningLowerCI(:,3:5);
-u = morningUpperCI(:,3:5);
-errorbar(x,y,l,u);
-title('Morning AE 2,4,8 h')
-legend('2h', '4h', '8h');
+plot(x,y);
+title('Morning AE 2,8,50 h')
+legend('2h', '8h', '50h');
 xlabel('Geogr. lat.')
 xlim([min(morningBins) max(morningBins)])
 
-subplot(2,3,2);
-x = repmat(morningBins', 1, 2);
-y = morningCoeffs(:,6:7);
-l = morningLowerCI(:,6:7);
-u = morningUpperCI(:,6:7);
-errorbar(x,y,l,u);
-title('Morning AE 16,50 h')
-legend('16h', '50h');
-xlabel('Geogr. lat.')
-xlim([min(morningBins) max(morningBins)])
-
-subplot(2,3,3);
-x = repmat(morningBins', 1, 4);
-y = morningCoeffs(:,8:end);
-l = morningLowerCI(:,8:end);
-u = morningUpperCI(:,8:end);
-errorbar(x,y,l,u);
+subplot(2,2,2);
+x = repmat(morningBins', 1, 3);
+y = morningCoeffs(:,6:8);
+plot(x,y);
 title('Morning 2^{nd} order terms')
-legend('AE(16h)*AE(30h)', 'AE(8h)*AE(21h)', 'AE(50h)*AE(60h)', 'AE(30h)^{2}','Location','southwest');
+legend('AE(16h)*AE(30h)', 'AE(16h)*AE(40h)', 'AE(50h)*AE(60h)');
 xlabel('Geogr. lat.')
 xlim([min(morningBins) max(morningBins)])
 
-% subplot(2,4,5);
-% x = repmat(eveningBins', 1, 1);
-% y = eveningCoeffs(:,1);
-% l = eveningLowerCI(:,1);
-% u = eveningUpperCI(:,1);
-% errorbar(x,y,l,u);
-% title('Evening constant')
-% legend('a0')
-% xlabel('Geogr. lat.')
-% xlim([min(eveningBins) max(eveningBins)])
 
-subplot(2,3,4);
+subplot(2,2,3);
 x = repmat(eveningBins', 1, 3);
 y = eveningCoeffs(:,3:5);
-l = eveningLowerCI(:,3:5);
-u = eveningUpperCI(:,3:5);
-errorbar(x,y,l,u);
-title('Evening AE 2,4,8 h')
-legend('2h', '4h', '8h');
+plot(x,y)
+title('Evening AE 2,8,50 h')
+legend('2h', '8h', '50h');
 xlabel('Geogr. lat.')
 xlim([min(eveningBins) max(eveningBins)])
 
-subplot(2,3,5);
-x = repmat(eveningBins', 1, 2);
-y = eveningCoeffs(:,6:7);
-l = eveningLowerCI(:,6:7);
-u = eveningUpperCI(:,6:7);
-errorbar(x,y,l,u);
-title('Evening AE 16,50 h')
-legend('16h', '50h');
-xlabel('Geogr. lat.')
-xlim([min(eveningBins) max(eveningBins)])
-
-subplot(2,3,6);
-x = repmat(eveningBins', 1, 4);
-y = eveningCoeffs(:,8:end);
-l = eveningLowerCI(:,8:end);
-u = eveningUpperCI(:,8:end);
-errorbar(x,y,l,u);
+subplot(2,2,4);
+x = repmat(eveningBins', 1, 3);
+y = eveningCoeffs(:,6:8);
+plot(x,y)
 title('Evening 2^{nd} order terms')
-legend('AE(16h)*AE(30h)', 'AE(8h)*AE(21h)', 'AE(50h)*AE(60h)', 'AE(30h)^{2}','Location','southwest');
+legend('AE(16h)*AE(30h)', 'AE(16h)*AE(40h)', 'AE(50h)*AE(60h)');
 xlabel('Geogr. lat.')
 xlim([min(eveningBins) max(eveningBins)])
 
