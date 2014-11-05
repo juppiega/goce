@@ -8,7 +8,7 @@ format compact
 ftests = vertcat(morningFtest, eveningFtest);
 
 % Minimum value of F-tests if 95% of the lat. bins are taken into account
-fnums = quantile(ftests,0.05);
+fnums = quantile(ftests,0.3);
 % Sort for easy manual lookup using the variable explorer
 [fnums, order] = sort(fnums);
 predictorIndices = 1:length(fnums);

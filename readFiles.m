@@ -232,7 +232,6 @@ thetaInterpolated = interp1(tBNoNans, thetaNoNans, tThetaToInterpolate, 'linear'
 
 secondsInDay = 24 * 60 * 60;
 absB = sqrt(B2Interpolated);
-timestampsAbsB = round((tBToInterpolate-tBToInterpolate(1))*secondsInDay + find(timestampsAeDatenum<tBToInterpolate(1), 1, 'last') * 60);
 timestampsAbsBDatenum = tBToInterpolate;
 
 solarWindFiles = dir('ac_h0s_swe*');
@@ -282,6 +281,27 @@ vBz = VInterpolated .* BzInterpolated;
 
 tVToInterpolate = tVToInterpolate(ismember(tVToInterpolate, tBToInterpolate));
 timestampsEpsilonDatenum = tVToInterpolate;
+
+timestamps = round((timestampsAbsBDatenum - timestampsAbsBDatenum(1)) * 86400);
+
+% Solar indices are lagged by 6h
+% Cut 6h from the end of timestamps
+timestampsLimitedFromEnd = timestamps(ismember(timestamps, timestamps - 6 * 60 * 60));
+% Lag these limited timestamps by 6h
+timestampsLagged = timestampsLimitedFromEnd + 6 * 60 * 60;
+% Pick geomIndex as geomIndex(tstamps(1), tstamps(2), ...)
+absB = absB(ismember(timestamps, timestampsLimitedFromEnd));
+% Pick timestamps as timestamps(tstamps(1)+6h, tstamps(2)+6h, ...)
+timestampsAbsBDatenum = timestampsAbsBDatenum(ismember(timestamps, timestampsLagged));
+
+timestamps = round((timestampsEpsilonDatenum - timestampsEpsilonDatenum(1)) * 86400);
+timestampsLimitedFromEnd = timestamps(ismember(timestamps, timestamps - 6 * 60 * 60));
+timestampsLagged = timestampsLimitedFromEnd + 6 * 60 * 60;
+akasofuEpsilon = akasofuEpsilon(ismember(timestamps, timestampsLimitedFromEnd));
+vBz = vBz(ismember(timestamps, timestampsLimitedFromEnd));
+epsilonQualityFlag = epsilonQualityFlag(ismember(timestamps, timestampsLimitedFromEnd));
+timestampsEpsilonDatenum = timestampsEpsilonDatenum(ismember(timestamps, timestampsLagged));
+
 
 end
 

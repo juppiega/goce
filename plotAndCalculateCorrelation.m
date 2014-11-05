@@ -65,25 +65,12 @@ density = density(shortenedIndicesGaps);
 
 geomIndexFixed = geomIndex(ismember(timestamps, timestampsFixed));
 densityFixed = density(ismember(timestampsFixed, timestamps));
-if strcmpi(indexName, 'ae')
+if strcmpi(indexName, 'ap')
+    results = plotCorrelation(geomIndexFixed, densityFixed, indexName, 'Density at 270 km', plotFigures, results);
+else
     geomIndexNoBg = removePeriodicBackground(geomIndexFixed, 125, 1, 0);
     geomIndexNoBg = normalize(geomIndexNoBg, geomIndexFixed);
     results = plotCorrelation(geomIndexNoBg, densityFixed, indexName, 'Density at 270 km', plotFigures, results);
-elseif strcmpi(indexName, 'Akasofu Epsilon') || ~isempty(strfind(upper(indexName), '|B|')) ...
-        || ~isempty(strfind(upper(indexName), '|V|'))
-    % Solar indices are lagged by 6h
-    % Cut 6h from the end of timestamps
-    timestampsLimitedFromEnd = timestamps(ismember(timestamps, timestamps - 6 * 60 * 60));
-    % Lag these limited timestamps by 6h
-    timestampsLagged = timestampsLimitedFromEnd + 6 * 60 * 60;
-    % Pick geomIndex as geomIndex([tFixed(1), tfixed(2), ...])
-    geomIndex6hAgo = geomIndex(ismember(timestamps, timestampsLimitedFromEnd));
-    geomIndex6hAgo = geomIndex6hAgo(ismember(timestampsLagged, timestampsFixed));
-    % Pick density values as density([tFixed(1)+6h, tFixed(2)+6h, ...])
-    densityShorter = density(ismember(timestampsFixed, timestampsLagged));
-    results = plotCorrelation(geomIndex6hAgo, densityShorter, indexName, 'Density at 270 km', plotFigures, results);
-else % ap
-    results = plotCorrelation(geomIndexFixed, densityFixed, indexName, 'Density at 270 km', plotFigures, results);
 end
 
 end
@@ -97,13 +84,13 @@ else maxLag = maxDays * 24 * 60; end
 
 indicesInHour = 60;
 if strcmpi(indexName, 'ae')
-    averageGoodLag = 22 * indicesInHour;
+    averageGoodLag = 21 * indicesInHour;
 elseif strcmpi(indexName, 'Akasofu Epsilon')
-    averageGoodLag = 38 * indicesInHour;
+    averageGoodLag = 28 * indicesInHour;
 elseif ~isempty(strfind(upper(indexName), '|B|'))
-    averageGoodLag = 34 * indicesInHour;
+    averageGoodLag = 27 * indicesInHour;
 elseif ~isempty(strfind(upper(indexName), '|V|'))
-    averageGoodLag = 34 * indicesInHour;
+    averageGoodLag = 45 * indicesInHour;
 else
     averageGoodLag = 8;
 end
