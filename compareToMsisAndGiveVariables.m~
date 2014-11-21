@@ -271,6 +271,7 @@ function [predictedDensity, morningFtest, eveningFtest, morningFits, eveningFits
 fprintf('%s\n', 'Computing parametrizations. This may take up to two to three hours.')
 
 aeIntFixed = aeIntegrals ./ mean(aeIntegrals(:));
+%aeIntFixed = aeIntFixed(:,1:8);
 
 targetCount = length(morningBins) + length(eveningBins);
 barWidth = 50;

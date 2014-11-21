@@ -7,9 +7,9 @@ results = initialize();
 [threshold, plotDates] = processInputArguments(varargin, nargin);
 
 [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
- morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
+ morningMsisDensity, morningJbDensity, eveningMsisDensity, eveningJbDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum,  morningMagneticLatitude,...
- eveningMagneticLatitude, cellArrayLength, firstDatenum] ...
+ eveningMagneticLatitude, latitude, timestamps10sFixed, cellArrayLength, firstDatenum] ...
  = compareToMsisAndGiveVariables(threshold, results);
 
 plotFigures = 0;
@@ -23,31 +23,31 @@ for i = 1:cellArrayLength
     if plotFigures ~= 0
         timeseriesFigHandle = plotTimeseries(firstDatenum, timestamps1min{i}, timestamps1minFixed{i}, timestampsAbsB{i},...
             timestamps3h{i}, timestamps3hFixed{i}, ae{i}, ap{i}, absB{i},averagedDensityNoBg{i}, density3h{i}, morningAeProxy{i}, eveningAeProxy{i}, ...
-            morningMsisDensity{i}, eveningMsisDensity{i}, morningTimestamps10s{i}, eveningTimestamps10s{i});
+            morningMsisDensity{i}, morningJbDensity{i}, eveningMsisDensity{i}, eveningJbDensity{i}, morningTimestamps10s{i}, eveningTimestamps10s{i});
     else
         timeseriesFigHandle = nan(1);
     end
 
-    [results, aeIntegral, timestampsAeInt] = plotAndCalculateCorrelation(firstDatenum, timestamps1min{i}, timestamps1minFixed{i}, ...
-        ae{i}, averagedDensityNoBg{i}, 'AE', plotFigures, results, timeseriesFigHandle); 
-    results = plotAndCalculateCorrelation(firstDatenum, timestamps3h{i}, timestamps3hFixed{i}, ap{i}, density3h{i}, 'ap',...
+    [results, aeIntegral, timestampsAeInt] = plotAndCalculateCorrelation(firstDatenum, timestamps1min{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, ...
+        ae{i}, morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, 'AE', plotFigures, results, timeseriesFigHandle); 
+    results = plotAndCalculateCorrelation(firstDatenum, timestamps3h{i}, timestamps3hFixed{i}, timestamps3hFixed{i}, ap{i}, density3h{i}, density3h{i}, latitude, timestamps10sFixed, 'ap',...
         plotFigures, results, timeseriesFigHandle); 
-    results = plotAndCalculateCorrelation(firstDatenum, timestampsAbsB{i}, timestamps1minFixed{i}, absB{i}, averagedDensityNoBg{i},...
-        'IMF |B|', plotFigures, results, timeseriesFigHandle); 
-    results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, timestamps1minFixed{i}, akasofuEpsilon{i}, ...
-        averagedDensityNoBg{i}, 'Akasofu Epsilon', plotFigures, results, timeseriesFigHandle);
-    results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, timestamps1minFixed{i}, vBz{i}, ...
-        averagedDensityNoBg{i}, '|V| * Bz', plotFigures, results, timeseriesFigHandle);
+    results = plotAndCalculateCorrelation(firstDatenum, timestampsAbsB{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, absB{i}, morningDensityNoBg{i}, eveningDensityNoBg{i},...
+        latitude, timestamps10sFixed, 'IMF |B|', plotFigures, results, timeseriesFigHandle); 
+    results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, akasofuEpsilon{i}, ...
+         morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, 'Akasofu Epsilon', plotFigures, results, timeseriesFigHandle);
+    results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, vBz{i}, ...
+        morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, '|V| * Bz', plotFigures, results, timeseriesFigHandle);
 %     
 
-%     results = writeCorrelationsToResults(morningMsisDensity{i}, eveningMsisDensity{i}, morningAeProxy{i}, eveningAeProxy{i}, morningTimestamps10s{i}, eveningTimestamps10s{i},...
-%         morningDensityNoBg{i}, eveningDensityNoBg{i}, results);
-%     
-%     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
-%         morningDensityNoBg{i}, morningMsisDensity{i}, morningAeProxy{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
-%     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
-%         eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningAeProxy{i}, eveningTimestamps10s{i}, eveningMagneticLatitude{i}, 'Evening', plotFigures, results);
-%     
+    results = writeCorrelationsToResults(morningMsisDensity{i}, eveningMsisDensity{i}, morningJbDensity{i}, eveningJbDensity{i}, morningAeProxy{i}, eveningAeProxy{i}, morningTimestamps10s{i}, eveningTimestamps10s{i},...
+        morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, results);
+    
+    results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
+        morningDensityNoBg{i}, morningMsisDensity{i}, morningJbDensity{i}, morningAeProxy{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
+    results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
+        eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningJbDensity{i}, eveningAeProxy{i}, eveningTimestamps10s{i}, eveningMagneticLatitude{i}, 'Evening', plotFigures, results);
+    
 %     results = plotAndAnalyzeChangesByOrbit(firstDatenum, morningDensityNoBg{i}, morningMagneticLatitude{i}, averagedDensityNoBg{i},...
 %         timestamps1minFixed{i}, morningTimestamps10s{i}, 'Morning', plotFigures, results);
 %     results = plotAndAnalyzeChangesByOrbit(firstDatenum, eveningDensityNoBg{i}, eveningMagneticLatitude{i}, averagedDensityNoBg{i},...
@@ -176,26 +176,36 @@ cell2csv('goceResults.csv', results);
 
 end
 
-function results = writeCorrelationsToResults(morningMsisDensity, eveningMsisDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s,...
-        morningDensityNoBg, eveningDensityNoBg, results)
+function results = writeCorrelationsToResults(morningMsisDensity, eveningMsisDensity, morningJbDensity, eveningJbDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s,...
+        morningDensityNoBg, eveningDensityNoBg, latitude, timestamps10sFixed, results)
 %
 
 [timestamps10s, order] = unique([morningTimestamps10s; eveningTimestamps10s]);
+latitude = latitude(ismember(timestamps10sFixed, timestamps10s));
 aePredictedDensity = [morningAeProxy; eveningAeProxy];
 msisDensity = [morningMsisDensity; eveningMsisDensity];
+jbDensity = [morningJbDensity; eveningJbDensity];
 goceDensity = [morningDensityNoBg; eveningDensityNoBg];
-aePredictedDensity = aePredictedDensity(order);
-msisDensity = msisDensity(order);
+
+% aePredictedDensity = 0.802 * aePredictedDensity(order);
+% msisDensity = 0.827 * msisDensity(order);
+% jbDensity = 0.807 * jbDensity(order);
 goceDensity = goceDensity(order);
 
 aeModelCorr = corr(aePredictedDensity, goceDensity);
 msisCorr = corr(msisDensity, goceDensity);
-aeGoceRatio = aePredictedDensity ./ goceDensity;
-msisGoceRatio = msisDensity ./ goceDensity;
-aeModelMeanRatio = mean(aeGoceRatio);
-msisMeanRatio = mean(msisGoceRatio);
-aeModelStdRatio = std(aeGoceRatio);
-msisStdRatio = std(msisGoceRatio);
+jbCorr = corr(jbDensity, goceDensity);
+goceAeRatio = goceDensity ./ aePredictedDensity;
+goceMsisRatio = goceDensity ./ msisDensity;
+goceJbRatio = goceDensity ./ jbDensity;
+
+aeModelMeanRatio = mean(goceAeRatio);
+msisMeanRatio = mean(goceMsisRatio);
+jbMeanRatio = mean(goceJbRatio);
+
+aeModelStdRatio = std(goceAeRatio);
+msisStdRatio = std(goceMsisRatio);
+jbStdRatio = std(goceJbRatio);
 
 [rowNum, ~] = size(results);
 emptyCells = cellfun(@isempty,results);
@@ -208,17 +218,27 @@ end
 
 results{1, colNum} = 'Msis corr.';
 results{1, colNum + 1} = 'AE Int. model corr.';
-results{1, colNum + 2} = 'Msis O/M.';
-results{1, colNum + 3} = 'AE Int. model O/M.';
-results{1, colNum + 4} = 'Msis std O/M.';
-results{1, colNum + 5} = 'AE Int. model std O/M.';
+results{1, colNum + 2} = 'JB2008 corr.';
+
+results{1, colNum + 3} = 'Msis O/M.';
+results{1, colNum + 4} = 'AE Int. model O/M.';
+results{1, colNum + 5} = 'JB2008 O/M.';
+
+results{1, colNum + 6} = 'Msis std O/M.';
+results{1, colNum + 7} = 'AE Int. model std O/M.';
+results{1, colNum + 8} = 'JB2008 std O/M.';
 
 results{rowNum, colNum} = msisCorr;
 results{rowNum, colNum + 1} = aeModelCorr;
-results{rowNum, colNum + 2} = msisMeanRatio;
-results{rowNum, colNum + 3} = aeModelMeanRatio;
-results{rowNum, colNum + 4} = msisStdRatio;
-results{rowNum, colNum + 5} = aeModelStdRatio;
+results{rowNum, colNum + 2} = jbCorr;
+
+results{rowNum, colNum + 3} = msisMeanRatio;
+results{rowNum, colNum + 4} = aeModelMeanRatio;
+results{rowNum, colNum + 5} = jbMeanRatio;
+
+results{rowNum, colNum + 6} = msisStdRatio;
+results{rowNum, colNum + 7} = aeModelStdRatio;
+results{rowNum, colNum + 8} = jbStdRatio;
 
 end
 

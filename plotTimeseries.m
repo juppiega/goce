@@ -1,24 +1,28 @@
 function timeseriesFigHandle = plotTimeseries(firstDatenum, timestamps1min, timestamps1minFixed, timestampsAbsB, timestamps3h, timestamps3hFixed, ae, ap, absB, ...
-    averagedDensityNoBg, density3h, morningAeProxy, eveningAeProxy, morningMsisDensity, eveningMsisDensity, morningTimestamps10s, eveningTimestamps10s)
+    averagedDensityNoBg, density3h, morningAeProxy, eveningAeProxy, morningMsisDensity, morningJbDensity, eveningMsisDensity, eveningJbDensity, morningTimestamps10s, eveningTimestamps10s)
 % plotTimeseries(timestamps, ae, averagedDensity)
 
 [timestamps10s, order] = unique([morningTimestamps10s; eveningTimestamps10s]);
 msisDensity = [morningMsisDensity; eveningMsisDensity];
+jb2008Density = [morningJbDensity; eveningJbDensity];
 predictedDensity = [morningAeProxy; eveningAeProxy];
 msisDensity = msisDensity(order);
+jb2008Density = jb2008Density(order);
 predictedDensity = predictedDensity(order);
-mean(msisDensity)
-mean(predictedDensity)
 
 msisDensity = smooth(msisDensity, 7);
 msisDensity = msisDensity(ismember(timestamps10s, timestamps1minFixed));
+jb2008Density = smooth(jb2008Density, 7);
+jb2008Density = jb2008Density(ismember(timestamps10s, timestamps1minFixed));
 predictedDensity = smooth(predictedDensity, 7);
 predictedDensity = predictedDensity(ismember(timestamps10s, timestamps1minFixed));
 
 averagedMsis = removePeriodicBackground(msisDensity, 125, 1, 0);
+averagedJb = removePeriodicBackground(jb2008Density, 125, 1, 0);
 averagedPrediction = removePeriodicBackground(predictedDensity, 125, 1, 0);
 
 averagedMsis = normalize(averagedMsis, msisDensity);
+averagedJb = normalize(averagedJb, jb2008Density);
 averagedPrediction = normalize(averagedPrediction, predictedDensity);
 
 figure;
@@ -27,8 +31,10 @@ timestampsInDays1minFixed = timestamps1minFixed / secondsInDay + firstDatenum;
 plot(timestampsInDays1minFixed, averagedDensityNoBg * 1.22);
 hold all;
 plot(timestampsInDays1minFixed, averagedMsis);
+plot(timestampsInDays1minFixed, averagedJb);
 plot(timestampsInDays1minFixed, averagedPrediction);
 hold off;
+legend('GOCE', 'MSIS', 'JB2008', 'AE Model')
 datetick('x', 'dd')
 title('Model low pass filtered density comparison')
 xlabel(['Date on ', datestr(timestampsInDays1minFixed(1), 'mmm yyyy')])

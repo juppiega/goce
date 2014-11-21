@@ -1,11 +1,23 @@
-function [results, averageIntegral, timestampsAverInt] = plotAndCalculateCorrelation(firstDatenum, timestamps, timestampsFixed, geomIndex, density, indexName, plotFigures, results, timeseriesHandle)
+function [results, averageIntegral, timestampsAverInt] = plotAndCalculateCorrelation(firstDatenum, timestampsGeom, timestampsMorning, timestampsEvening, geomIndex, morningDensity, eveningDensity, latitude, latitudeTimestamps, indexName, plotFigures, results, timeseriesHandle)
 % [r, r2] = plotAndCalculateCorrelation(ae, averagedDensity, timelag)
 
+density = [morningDensity; eveningDensity];
+timestampsFixed = [timestampsMorning; timestampsEvening];
+[timestampsFixed, order] = unique(timestampsFixed);
+density = density(order);
 
-[timelag, timelagInHours, bestIntegral, averageGoodLag, averageIntegral] = compareDensityToGeomIndexIntegral(density, geomIndex, timestamps, timestampsFixed, indexName, plotFigures);
+if round(mean(diff(timestampsGeom)) / 3600) <= 2
+    density = smooth(density, 541);
+    latitude = latitude(ismember(latitudeTimestamps, timestampsFixed));
+    timestampsNorth = timestampsFixed(latitude > 80);
+    times = timestampsNorth(find(diff(timestampsNorth) > 45 * 60) + 1);
+    ind = ismember(timestampsFixed, times);
+    density = density(ind);
+    timestampsFixed = timestampsFixed(ind);
+    timestampsFixed = 60 * round(timestampsFixed / 60);
+end
 
-%figure;
-%plotyy(timestamps, geomIndex, timestampsFixed, density);
+[timelag, timelagInHours, bestIntegral, averageGoodLag, averageIntegral] = compareDensityToGeomIndexIntegral(density, geomIndex, timestampsGeom, timestampsFixed, indexName, plotFigures);
 
 [rowNum, ~] = size(results);
 emptyCells = cellfun(@isempty,results);
@@ -28,14 +40,14 @@ else
     results{rowNum, colNum} = timelagInHours;
 end
 
-timestampsFixed = timestampsFixed(ismember(timestampsFixed, timestamps));
-densityBestIntIndices = ismember(timestampsFixed, timestamps(timelag + 1:end));
+timestampsFixed = timestampsFixed(ismember(timestampsFixed, timestampsGeom));
+densityBestIntIndices = ismember(timestampsFixed, timestampsGeom(timelag + 1:end));
     
 if strcmpi(indexName, 'ae') && plotFigures ~=0
     figure(timeseriesHandle);
     subplot(2,2,2)
     secondsInDay = 24 * 60 * 60;
-    timestampsInDays = timestamps(timelag + 1:end) / secondsInDay + firstDatenum;
+    timestampsInDays = timestampsGeom(timelag + 1:end) / secondsInDay + firstDatenum;
     timestampsInDaysFixed = timestampsFixed(densityBestIntIndices) / secondsInDay + firstDatenum;
     [hAx,~,~] = plotyy(timestampsInDays, bestIntegral, timestampsInDaysFixed, density(densityBestIntIndices));
     ylabel(hAx(1), 'AE Integral')
@@ -47,30 +59,43 @@ if strcmpi(indexName, 'ae') && plotFigures ~=0
     grid on;
 end
 
-bestIntegral = bestIntegral(ismember(timestamps(timelag + 1:end), timestampsFixed));
+bestIntegral = bestIntegral(ismember(timestampsGeom(timelag + 1:end), timestampsFixed));
 results = plotCorrelation(bestIntegral, density(densityBestIntIndices), [indexName, ' Best Integral'], 'Density', plotFigures, results);
 
-averageIntIndices = ismember(timestampsFixed, timestamps(averageGoodLag + 1:end));
+averageIntIndices = ismember(timestampsFixed, timestampsGeom(averageGoodLag + 1:end));
 densityAverageInt = density(averageIntIndices);
-timestampsAverInt = timestamps(averageGoodLag + 1:end);
+timestampsAverInt = timestampsGeom(averageGoodLag + 1:end);
 averageIntegralFixed = averageIntegral(ismember(timestampsAverInt, timestampsFixed));
 results = plotCorrelation(averageIntegralFixed, densityAverageInt, [indexName, ' Average Integral'], 'Density', plotFigures, results);
 
-shortenedIndicesContinuous = ismember(timestamps, timestampsAverInt);
+if round(mean(diff(timestampsGeom)) / 3600) <= 2
+    geomIndex = smooth(geomIndex, 90);
+end
+shortenedIndicesContinuous = ismember(timestampsGeom, timestampsAverInt);
 geomIndex = geomIndex(shortenedIndicesContinuous);
-timestamps = timestamps(shortenedIndicesContinuous);
-shortenedIndicesGaps = ismember(timestampsFixed, timestamps);
+timestampsGeom = timestampsGeom(shortenedIndicesContinuous);
+shortenedIndicesGaps = ismember(timestampsFixed, timestampsGeom);
 timestampsFixed = timestampsFixed(shortenedIndicesGaps);
 density = density(shortenedIndicesGaps);
 
-geomIndexFixed = geomIndex(ismember(timestamps, timestampsFixed));
-densityFixed = density(ismember(timestampsFixed, timestamps));
-if strcmpi(indexName, 'ap')
+geomIndexFixed = geomIndex(ismember(timestampsGeom, timestampsFixed));
+densityFixed = density(ismember(timestampsFixed, timestampsGeom));
+
+if strcmpi(indexName, 'Akasofu Epsilon') || ~isempty(strfind(upper(indexName), '|B|')) ...
+        || ~isempty(strfind(upper(indexName), '|V|'))
+    % Solar indices are lagged by 6h
+    % Cut 6h from the end of timestamps
+    timestampsLimitedFromEnd = timestampsGeom(ismember(timestampsGeom, timestampsGeom - 6 * 60 * 60));
+    % Lag these limited timestamps by 6h
+    timestampsLagged = timestampsLimitedFromEnd + 6 * 60 * 60;
+    % Pick geomIndex as geomIndex([tFixed(1), tfixed(2), ...])
+    geomIndex6hAgo = geomIndex(ismember(timestampsGeom, timestampsLimitedFromEnd));
+    geomIndex6hAgo = geomIndex6hAgo(ismember(timestampsLagged, timestampsFixed));
+    % Pick density values as density([tFixed(1)+6h, tFixed(2)+6h, ...])
+    densityShorter = density(ismember(timestampsFixed, timestampsLagged));
+    results = plotCorrelation(geomIndex6hAgo, densityShorter, indexName, 'Density at 270 km', plotFigures, results);
+else % ap || ae
     results = plotCorrelation(geomIndexFixed, densityFixed, indexName, 'Density at 270 km', plotFigures, results);
-else
-    geomIndexNoBg = removePeriodicBackground(geomIndexFixed, 125, 1, 0);
-    geomIndexNoBg = normalize(geomIndexNoBg, geomIndexFixed);
-    results = plotCorrelation(geomIndexNoBg, densityFixed, indexName, 'Density at 270 km', plotFigures, results);
 end
 
 end
