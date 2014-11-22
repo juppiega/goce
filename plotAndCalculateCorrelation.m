@@ -111,11 +111,11 @@ indicesInHour = 60;
 if strcmpi(indexName, 'ae')
     averageGoodLag = 21 * indicesInHour;
 elseif strcmpi(indexName, 'Akasofu Epsilon')
-    averageGoodLag = 28 * indicesInHour;
+    averageGoodLag = 34 * indicesInHour;
 elseif ~isempty(strfind(upper(indexName), '|B|'))
-    averageGoodLag = 27 * indicesInHour;
+    averageGoodLag = 37 * indicesInHour;
 elseif ~isempty(strfind(upper(indexName), '|V|'))
-    averageGoodLag = 45 * indicesInHour;
+    averageGoodLag = 30 * indicesInHour;
 else
     averageGoodLag = 8;
 end
@@ -154,10 +154,12 @@ if plotFigures ~= 0
     title([indexName, ' integral optimal window length'])
     ylabel([correlationType, ' correlation']);
     xlabel('lags / h')
-    integralWindowSize = lagsInHours(correlations == max(correlations));
+    correlationMaximum = max(correlations);
+    correlationMaximum = correlationMaximum(1);
+    integralWindowSize = lagsInHours(correlations == correlationMaximum);
     ylimits = get(gca, 'ylim');
-    line([integralWindowSize integralWindowSize], [ylimits(1) max(correlations)], 'LineStyle', '--');
-    textYLocation = mean([ylimits(1) max(correlations)]);
+    line([integralWindowSize integralWindowSize], [ylimits(1) correlationMaximum], 'LineStyle', '--');
+    textYLocation = mean([ylimits(1) correlationMaximum]);
     text(integralWindowSize, textYLocation, ['\leftarrow Lag = ', num2str(integralWindowSize), ' h'], 'FontSize', 14)
 end
 % if strcmpi(indexName, 'ae'); integralWindowSize = integralWindowSize * 60;

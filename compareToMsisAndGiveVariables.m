@@ -282,7 +282,7 @@ p = TimedProgressBar( targetCount, barWidth, ...
 morningProxy = zeros(length(timestamps10sFixed), length(morningBins));
 morningFits = cell(length(morningBins), 1);
 
-for i = 1:length(morningBins)
+parfor i = 1:length(morningBins)
     timeThisLat = morningGrid{i};
     thisLatIndices = ismember(timestamps10sFixed, timeThisLat);
     densityThisLat = densityIndex(thisLatIndices);
@@ -290,14 +290,14 @@ for i = 1:length(morningBins)
     
     fullMatrix = [fourierFit(doy) aeIntFixed];
 
-    x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
-%     x7x8  = fullMatrix(:,7) .* fullMatrix(:,8);
-%     x7x9  = fullMatrix(:,7) .* fullMatrix(:,9);
-%     x4Squared  = fullMatrix(:,4) .^2;
-% %     x5Squared  = fullMatrix(:,5) .^2;
-%     fullMatrix = [fullMatrix(:,[1 2 3 4 5 8 9]) x4Squared x7x8 x7x9 x9x10];
-    fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x9x10];
-    
+     x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
+% %     x7x8  = fullMatrix(:,7) .* fullMatrix(:,8);
+% %     x7x9  = fullMatrix(:,7) .* fullMatrix(:,9);
+     x4Squared  = fullMatrix(:,4) .^2;
+     %x5Squared  = fullMatrix(:,5) .^2;
+% %     fullMatrix = [fullMatrix(:,[1 2 3 4 5 8 9]) x4Squared x7x8 x7x9 x9x10];
+     fullMatrix = [fullMatrix(:,[1 2 3 4 5]) x4Squared x9x10];
+%     
     proxyMatrix = fullMatrix(thisLatIndices,:);
     linearModel = fitlm(proxyMatrix, densityThisLat);
 
@@ -324,15 +324,15 @@ parfor i = 1:length(eveningBins)
     fourierFit = eveningFourier{i};
     
     fullMatrix = [fourierFit(doy) aeIntFixed];
-
-    x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
-%     x7x8  = fullMatrix(:,7) .* fullMatrix(:,8);
-%     x7x9  = fullMatrix(:,7) .* fullMatrix(:,9);
-%     x4Squared  = fullMatrix(:,4) .^2;
-% %     x5Squared  = fullMatrix(:,5) .^2;
-%     fullMatrix = [fullMatrix(:,[1 2 3 4 5 8 9]) x4Squared x7x8 x7x9 x9x10];
-    fullMatrix = [fullMatrix(:,[1 2 3 4 5 9]) x9x10];
     
+    x9x10 = fullMatrix(:,9) .* fullMatrix(:,10);
+% %     x7x8  = fullMatrix(:,7) .* fullMatrix(:,8);
+% %     x7x9  = fullMatrix(:,7) .* fullMatrix(:,9);
+    x4Squared  = fullMatrix(:,4) .^2;
+    %x5Squared  = fullMatrix(:,5) .^2;
+% %     fullMatrix = [fullMatrix(:,[1 2 3 4 5 8 9]) x4Squared x7x8 x7x9 x9x10];
+    fullMatrix = [fullMatrix(:,[1 2 3 4 5]) x4Squared x9x10];
+     
     proxyMatrix = fullMatrix(thisLatIndices,:);
     linearModel = fitlm(proxyMatrix, densityThisLat);
 
@@ -359,41 +359,41 @@ morningProxy = morningProxy';
 [eveningTimestampsGrid, eveningLatitudeGrid] = meshgrid(timestamps10sFixed, eveningBins);
 eveningProxy = eveningProxy';
 
-morningDensity = [];
-eveningDensity = [];
-morningTimes = [];
-eveningTimes = [];
-intervals = 3;
-intervalLength = floor(length(timestamps10sFixed) / intervals);
-for i = 1:intervals
-    if i < intervals
-        k = (i - 1) * intervalLength + 1 : i * intervalLength;
-    else
-        k = (i - 1) * intervalLength + 1 : length(timestamps10sFixed);
-    end
-    
-    beginTime = timestamps10sFixed(k(1));
-    endTime = timestamps10sFixed(k(end));
-    
-    morningInterp = interp2(morningTimestampsGrid(:,k), morningLatitudeGrid(:,k), morningProxy(:,k), morningTimestamps10s, morningLatitude, 'spline');
-    eveningInterp = interp2(eveningTimestampsGrid(:,k), eveningLatitudeGrid(:,k), eveningProxy(:,k), eveningTimestamps10s, eveningLatitude, 'spline');
-    
-    morningIndices = morningTimestamps10s >= beginTime & morningTimestamps10s <= endTime;
-    eveningIndices = eveningTimestamps10s >= beginTime & eveningTimestamps10s <= endTime;
-    morningInterp(~morningIndices) = [];
-    eveningInterp(~eveningIndices) = [];
-    morningTimes = [morningTimes; morningTimestamps10s(morningIndices)];
-    eveningTimes = [eveningTimes; eveningTimestamps10s(eveningIndices)];
-    
-    morningDensity = [morningDensity; morningInterp];
-    eveningDensity = [eveningDensity; eveningInterp];
-end
+% morningDensity = [];
+% eveningDensity = [];
+% morningTimes = [];
+% eveningTimes = [];
+% intervals = 3;
+% intervalLength = floor(length(timestamps10sFixed) / intervals);
+% for i = 1:intervals
+%     if i < intervals
+%         k = (i - 1) * intervalLength + 1 : i * intervalLength;
+%     else
+%         k = (i - 1) * intervalLength + 1 : length(timestamps10sFixed);
+%     end
+%     
+%     beginTime = timestamps10sFixed(k(1));
+%     endTime = timestamps10sFixed(k(end));
+%     
+%     morningInterp = interp2(morningTimestampsGrid(:,k), morningLatitudeGrid(:,k), morningProxy(:,k), morningTimestamps10s, morningLatitude, 'spline');
+%     eveningInterp = interp2(eveningTimestampsGrid(:,k), eveningLatitudeGrid(:,k), eveningProxy(:,k), eveningTimestamps10s, eveningLatitude, 'spline');
+%     
+%     morningIndices = morningTimestamps10s >= beginTime & morningTimestamps10s <= endTime;
+%     eveningIndices = eveningTimestamps10s >= beginTime & eveningTimestamps10s <= endTime;
+%     morningInterp(~morningIndices) = [];
+%     eveningInterp(~eveningIndices) = [];
+%     morningTimes = [morningTimes; morningTimestamps10s(morningIndices)];
+%     eveningTimes = [eveningTimes; eveningTimestamps10s(eveningIndices)];
+%     
+%     morningDensity = [morningDensity; morningInterp];
+%     eveningDensity = [eveningDensity; eveningInterp];
+% end
+% 
+% t = [morningTimes; eveningTimes];
 
-t = [morningTimes; eveningTimes];
-
-% morningDensity = interp2(morningTimestampsGrid, morningLatitudeGrid, morningProxy, morningTimestamps10s, morningLatitude, 'linear');
-% eveningDensity = interp2(eveningTimestampsGrid, eveningLatitudeGrid, eveningProxy, eveningTimestamps10s, eveningLatitude, 'linear');
-% t = [morningTimestamps10s; eveningTimestamps10s];
+morningDensity = interp2(morningTimestampsGrid, morningLatitudeGrid, morningProxy, morningTimestamps10s, morningLatitude, 'linear');
+eveningDensity = interp2(eveningTimestampsGrid, eveningLatitudeGrid, eveningProxy, eveningTimestamps10s, eveningLatitude, 'linear');
+t = [morningTimestamps10s; eveningTimestamps10s];
 
 proxy = [morningDensity; eveningDensity];
 [t, order, ~] = unique(t);

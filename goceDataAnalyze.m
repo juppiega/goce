@@ -30,14 +30,14 @@ for i = 1:cellArrayLength
 
     [results, aeIntegral, timestampsAeInt] = plotAndCalculateCorrelation(firstDatenum, timestamps1min{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, ...
         ae{i}, morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, 'AE', plotFigures, results, timeseriesFigHandle); 
-    results = plotAndCalculateCorrelation(firstDatenum, timestamps3h{i}, timestamps3hFixed{i}, timestamps3hFixed{i}, ap{i}, density3h{i}, density3h{i}, latitude, timestamps10sFixed, 'ap',...
-        plotFigures, results, timeseriesFigHandle); 
-    results = plotAndCalculateCorrelation(firstDatenum, timestampsAbsB{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, absB{i}, morningDensityNoBg{i}, eveningDensityNoBg{i},...
-        latitude, timestamps10sFixed, 'IMF |B|', plotFigures, results, timeseriesFigHandle); 
-    results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, akasofuEpsilon{i}, ...
-         morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, 'Akasofu Epsilon', plotFigures, results, timeseriesFigHandle);
-    results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, vBz{i}, ...
-        morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, '|V| * Bz', plotFigures, results, timeseriesFigHandle);
+%     results = plotAndCalculateCorrelation(firstDatenum, timestamps3h{i}, timestamps3hFixed{i}, timestamps3hFixed{i}, ap{i}, density3h{i}, density3h{i}, latitude, timestamps10sFixed, 'ap',...
+%         plotFigures, results, timeseriesFigHandle); 
+%     results = plotAndCalculateCorrelation(firstDatenum, timestampsAbsB{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, absB{i}, morningDensityNoBg{i}, eveningDensityNoBg{i},...
+%         latitude, timestamps10sFixed, 'IMF |B|', plotFigures, results, timeseriesFigHandle); 
+%     results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, akasofuEpsilon{i}, ...
+%          morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, 'Akasofu Epsilon', plotFigures, results, timeseriesFigHandle);
+%     results = plotAndCalculateCorrelation(firstDatenum, timestampsEpsilon{i}, morningTimestamps10s{i}, eveningTimestamps10s{i}, vBz{i}, ...
+%         morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, '|V| * Bz', plotFigures, results, timeseriesFigHandle);
 %     
 
     results = writeCorrelationsToResults(morningMsisDensity{i}, eveningMsisDensity{i}, morningJbDensity{i}, eveningJbDensity{i}, morningAeProxy{i}, eveningAeProxy{i}, morningTimestamps10s{i}, eveningTimestamps10s{i},...
@@ -187,9 +187,9 @@ msisDensity = [morningMsisDensity; eveningMsisDensity];
 jbDensity = [morningJbDensity; eveningJbDensity];
 goceDensity = [morningDensityNoBg; eveningDensityNoBg];
 
-% aePredictedDensity = 0.802 * aePredictedDensity(order);
-% msisDensity = 0.827 * msisDensity(order);
-% jbDensity = 0.807 * jbDensity(order);
+aePredictedDensity = aePredictedDensity(order);
+msisDensity = msisDensity(order);
+jbDensity = jbDensity(order);
 goceDensity = goceDensity(order);
 
 aeModelCorr = corr(aePredictedDensity, goceDensity);

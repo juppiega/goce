@@ -47,6 +47,18 @@ timestamps1min = timestamps1min / secondsInDay + firstDatenum - datenum(referenc
 
 minDensityTime = min(regriddedTime(:));
 maxDensityTime = max(regriddedTime(:));
+firstDayIndices = regriddedTime < minDensityTime + 86400;
+firstDayGoce = regriddedGoceDensity(firstDayIndices);
+firstDayMsis = regriddedMsisDensity(firstDayIndices);
+firstDayAe = regriddedAeProxy(firstDayIndices);
+firstDayJb = regriddedJbDensity(firstDayIndices);
+msisMultiplier = mean(firstDayGoce(:) ./ firstDayMsis(:));
+aeMultiplier = mean(firstDayGoce(:) ./ firstDayAe(:));
+jbMultiplier = mean(firstDayGoce(:) ./ firstDayJb(:));
+
+regriddedMsisDensity = msisMultiplier * regriddedMsisDensity;
+regriddedAeProxy = aeMultiplier * regriddedAeProxy;
+regriddedJbDensity = jbMultiplier * regriddedJbDensity;
 
 minDensity = min(regriddedGoceDensity(:));
 maxDensity = max(regriddedGoceDensity(:));
@@ -61,7 +73,7 @@ subplotAxesHandle = subplot(4,2,goceDensitySubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedGoceDensity, 'EdgeColor', 'None')
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
-%caxis([minDensity maxDensity])
+caxis([minDensity maxDensity])
 view(2);
 colorbar('Location', 'EastOutside');
 ylabel('Geomagnetic latitude (°)')
@@ -83,7 +95,7 @@ surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedMsisDensity, 
 
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
-%caxis([minDensity maxDensity])
+caxis([minDensity maxDensity])
 colorbar('Location', 'EastOutside');
 view(2);
 xlabel(['Days since the UTC beginning of ', referenceDay])
@@ -105,7 +117,7 @@ surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedJbDensity, 'E
 
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
-%caxis([minDensity maxDensity])
+caxis([minDensity maxDensity])
 colorbar('Location', 'EastOutside');
 view(2);
 xlabel(['Days since the UTC beginning of ', referenceDay])
@@ -127,7 +139,7 @@ surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedAeProxy, 'Edg
 
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
-%caxis([minDensity maxDensity])
+caxis([minDensity maxDensity])
 colorbar('Location', 'EastOutside');
 view(2);
 xlabel(['Days since the UTC beginning of ', referenceDay])

@@ -757,7 +757,7 @@ function [morningFourierGrid, eveningFourierGrid, morningLatDoy, eveningLatDoy] 
 
 fprintf('%s\n', 'Computing fourier fits.')
 
-targetCount = length(morningBins);
+targetCount = 2*length(morningBins);
 barWidth = 50;
 p = TimedProgressBar( targetCount, barWidth, ...
                     'Running Parametrizations, ETA ', ...
@@ -768,101 +768,103 @@ p = TimedProgressBar( targetCount, barWidth, ...
 binWidth = 10;
 doy1day = (1:365)';
 
-% parfor i = 1:length(morningBins)
-%     timeThisLat = morningGrid{i};
-%     thisLatIndices = ismember(timestamps10sFixed, timeThisLat);
-%     densityThisLat = densityIndex(thisLatIndices);
-%     
-%     doyThisLat = ceil(doy(thisLatIndices));
-%     
-%     thisLatDens = zeros(length(doy1day),1);
-%     for k = 1:length(doy1day)
-%         indices = doyThisLat == doy1day(k);
-%         thisLatDens(k,:) = mean(densityThisLat(indices));
-%     end
-%    
-%     morningDensities(:,i) = thisLatDens; 
-%     
-%     p.progress;
-% end
-% 
-% parfor i = 1:length(eveningBins)
-%     timeThisLat = eveningGrid{i};
-%     thisLatIndices = ismember(timestamps10sFixed, timeThisLat);
-%     densityThisLat = densityIndex(thisLatIndices);
-% 
-%     doyThisLat = ceil(doy(thisLatIndices));
-%     
-%     thisLatDens = zeros(length(doy1day),1);
-%     for k = 1:length(doy1day)
-%         indices = doyThisLat == doy1day(k);
-%         thisLatDens(k,:) = mean(densityThisLat(indices));
-%     end
-% 
-%     eveningDensities(:,i) = thisLatDens;
-%     
-%     p.progress;
-% end
-
-latitude = morningBins;
-morningDensities = zeros(length(doy1day), length(latitude));
-eveningDensities = zeros(length(doy1day), length(latitude));
-morningSolarTime = 7.0;
-eveningSolarTime = 19.0;
-seconds = 0 : 3 * 60 * 60 : 24 * 60 * 60 - 1;
-morningMsis270km = zeros(length(seconds), 1);
-morningMsisNoAp = zeros(length(seconds), 1);
-eveningMsis270km = zeros(length(seconds), 1);
-eveningMsisNoAp = zeros(length(seconds), 1);
-
-F107A = F107median; % = 107
-F107 = F107median;
-ApDaily = 27;
-apNow = 80;
-ap3h = 207;
-ap6h = 48;
-ap9h = 15;
-apAver12To33h = 7;
-apAver36To57h = 7;
-for i = 1:length(latitude)
-    for j = 1:length(doy1day)
-        for k = 1:length(seconds)
-            morningLongitude = 180 * (morningSolarTime - (seconds(k)/3600)) / 12;
-            eveningLongitude = 180 * (eveningSolarTime - (seconds(k)/3600)) / 12;
-            morningLongitude(morningLongitude < -180) = morningLongitude + 360;
-            eveningLongitude(eveningLongitude > 180) = eveningLongitude - 360;
-            
-            [~,~,~,~,~,morningMsis270km(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),morningLongitude,morningSolarTime,F107A,F107,...
-            ApDaily,apNow,ap3h,ap6h,ap9h,apAver12To33h,apAver36To57h);
-
-            [~,~,~,~,~,morningMsisNoAp(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),morningLongitude,morningSolarTime,F107A,F107,3);
-        
-            [~,~,~,~,~,eveningMsis270km(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),eveningLongitude,eveningSolarTime,F107A,F107,...
-            ApDaily,apNow,ap3h,ap6h,ap9h,apAver12To33h,apAver36To57h);
-
-            [~,~,~,~,~,eveningMsisNoAp(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),eveningLongitude,eveningSolarTime,F107A,F107,3);            
-        end
-        
-        morningResidue = mean(morningMsis270km - morningMsisNoAp);
-        eveningResidue = mean(eveningMsis270km - eveningMsisNoAp);
-        morningDensities(j,i) = morningResidue * 1e14;        
-        eveningDensities(j,i) = eveningResidue * 1e14;
+parfor i = 1:length(morningBins)
+    timeThisLat = morningGrid{i};
+    thisLatIndices = ismember(timestamps10sFixed, timeThisLat);
+    densityThisLat = densityIndex(thisLatIndices);
+    
+    doyThisLat = ceil(doy(thisLatIndices));
+    
+    thisLatDens = zeros(length(doy1day),1);
+    for k = 1:length(doy1day)
+        indices = doyThisLat == doy1day(k);
+        thisLatDens(k,:) = mean(densityThisLat(indices));
     end
-    p.progress;    
+   
+    morningDensities(:,i) = thisLatDens; 
+    
+    p.progress;
 end
 
-p.stop;
+parfor i = 1:length(eveningBins)
+    timeThisLat = eveningGrid{i};
+    thisLatIndices = ismember(timestamps10sFixed, timeThisLat);
+    densityThisLat = densityIndex(thisLatIndices);
 
-morningDensities = bsxfun(@minus, morningDensities, mean(morningDensities));
-eveningDensities = bsxfun(@minus, eveningDensities, mean(eveningDensities));
+    doyThisLat = ceil(doy(thisLatIndices));
+    
+    thisLatDens = zeros(length(doy1day),1);
+    for k = 1:length(doy1day)
+        indices = doyThisLat == doy1day(k);
+        thisLatDens(k,:) = mean(densityThisLat(indices));
+    end
+
+    eveningDensities(:,i) = thisLatDens;
+    
+    p.progress;
+end
+
+% latitude = morningBins;
+% morningDensities = zeros(length(doy1day), length(latitude));
+% eveningDensities = zeros(length(doy1day), length(latitude));
+% morningSolarTime = 7.0;
+% eveningSolarTime = 19.0;
+% seconds = 0 : 3 * 60 * 60 : 24 * 60 * 60 - 1;
+% morningMsis270km = zeros(length(seconds), 1);
+% morningMsisNoAp = zeros(length(seconds), 1);
+% eveningMsis270km = zeros(length(seconds), 1);
+% eveningMsisNoAp = zeros(length(seconds), 1);
+% 
+% F107A = F107median; % = 107
+% F107 = F107median;
+% ApDaily = 27;
+% apNow = 80;
+% ap3h = 207;
+% ap6h = 48;
+% ap9h = 15;
+% apAver12To33h = 7;
+% apAver36To57h = 7;
+% for i = 1:length(latitude)
+%     for j = 1:length(doy1day)
+%         for k = 1:length(seconds)
+%             morningLongitude = 180 * (morningSolarTime - (seconds(k)/3600)) / 12;
+%             eveningLongitude = 180 * (eveningSolarTime - (seconds(k)/3600)) / 12;
+%             morningLongitude(morningLongitude < -180) = morningLongitude + 360;
+%             eveningLongitude(eveningLongitude > 180) = eveningLongitude - 360;
+%             
+%             [~,~,~,~,~,morningMsis270km(k),~,~,~,~,~]...
+%             =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),morningLongitude,morningSolarTime,F107A,F107,...
+%             ApDaily,apNow,ap3h,ap6h,ap9h,apAver12To33h,apAver36To57h);
+% 
+%             [~,~,~,~,~,morningMsisNoAp(k),~,~,~,~,~]...
+%             =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),morningLongitude,morningSolarTime,F107A,F107,3);
+%         
+%             [~,~,~,~,~,eveningMsis270km(k),~,~,~,~,~]...
+%             =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),eveningLongitude,eveningSolarTime,F107A,F107,...
+%             ApDaily,apNow,ap3h,ap6h,ap9h,apAver12To33h,apAver36To57h);
+% 
+%             [~,~,~,~,~,eveningMsisNoAp(k),~,~,~,~,~]...
+%             =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),eveningLongitude,eveningSolarTime,F107A,F107,3);            
+%         end
+%         
+%         morningResidue = mean(morningMsis270km - morningMsisNoAp);
+%         eveningResidue = mean(eveningMsis270km - eveningMsisNoAp);
+%         morningDensities(j,i) = morningResidue * 1e14;        
+%         eveningDensities(j,i) = eveningResidue * 1e14;
+%     end
+%     p.progress;    
+% end
+% 
+% p.stop;
+
 morningDensities = morningDensities';
 eveningDensities = eveningDensities';
-% morningDensities = bsxfun(@rdivide, morningDensities, std(morningDensities));
-% eveningDensities = bsxfun(@rdivide, eveningDensities, std(eveningDensities));
+morningDensities = bsxfun(@minus, morningDensities, mean(morningDensities));
+eveningDensities = bsxfun(@minus, eveningDensities, mean(eveningDensities));
+morningDensities = bsxfun(@rdivide, morningDensities, std(morningDensities));
+eveningDensities = bsxfun(@rdivide, eveningDensities, std(eveningDensities));
+morningDensities = bsxfun(@minus, morningDensities, mean(morningDensities,2));
+eveningDensities = bsxfun(@minus, eveningDensities, mean(eveningDensities,2));
 % h = 1/9*ones(3);
 % morningDensities = filter2(h,morningDensities);
 % eveningDensities = filter2(h,eveningDensities);
@@ -870,9 +872,6 @@ eveningDensities = eveningDensities';
 % morningDensities = morningDensities / max(morningDensities(:));
 % eveningDensities = eveningDensities - min(eveningDensities(:));
 % eveningDensities = eveningDensities / max(eveningDensities(:));
-
-% morningDensities = morningDensities - mean(morningDensities(:));
-% eveningDensities = eveningDensities - mean(eveningDensities(:));
 
 x = [doy1day - 365; doy1day; doy1day + 365];
 fitCoeffs(10) = 2 * pi / 365;
@@ -892,20 +891,20 @@ end
 
 [morningDoyGrid, morningLatGrid] = meshgrid(1:365, morningBins);
 [eveningDoyGrid, eveningLatGrid] = meshgrid(1:365, eveningBins);
-% %figure('units','normalized','outerposition',[0 0 1 1]);
-% figure;
-% subplot(2,1,1)
-% surf(morningDoyGrid, morningLatGrid, morningPlot)
-% title('Morning Fourier Grid')
-% view(2);
-% shading flat
-% colorbar;
-% subplot(2,1,2)
-% surf(eveningDoyGrid, eveningLatGrid, eveningPlot)
-% title('Evening Fourier Grid')
-% view(2);
-% shading flat
-% colorbar;
+%figure('units','normalized','outerposition',[0 0 1 1]);
+figure;
+subplot(2,1,1)
+surf(morningDoyGrid, morningLatGrid, morningPlot)
+title('Morning Fourier Grid')
+view(2);
+shading flat
+colorbar;
+subplot(2,1,2)
+surf(eveningDoyGrid, eveningLatGrid, eveningPlot)
+title('Evening Fourier Grid')
+view(2);
+shading flat
+colorbar;
 
 figure;
 subplot(2,1,1)

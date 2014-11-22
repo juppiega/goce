@@ -2,7 +2,7 @@
 
 % Selects predictors using an F-test. Terms with signifigance at the 95%
 % level for over 95% of the latitude bins are approved for the model.
-load ftests
+load ftestsGoceFourier
 format compact
 
 ftests = vertcat(morningFtest, eveningFtest);
@@ -25,10 +25,10 @@ end
 coefnames(goodPredictors)
 
 %%
-save('ftests.mat', 'morningFtest')
-save('ftests.mat', 'eveningFtest', '-append')
+save('ftestsGoceFourier.mat', 'morningFtest')
+save('ftestsGoceFourier.mat', 'eveningFtest', '-append')
 oneMorningFit = morningFits{1};
-save('ftests.mat', 'oneMorningFit', '-append')
+save('ftestsGoceFourier.mat', 'oneMorningFit', '-append')
 
 %%
 doy1day = (1:365)';
