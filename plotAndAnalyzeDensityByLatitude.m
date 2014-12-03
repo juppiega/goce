@@ -21,7 +21,7 @@ function plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, m
 persistent colormapFigHandle
 
 if ~isempty(strfind(lower(timeOfDay), 'morning'))
-    colormapFigHandle = figure('units','normalized','outerposition',[0 0 1 1]);
+    colormapFigHandle = figure('Color', 'white', 'units','normalized','outerposition',[0 0 1 1]);
     goceDensitySubplot = 1;
     msisDensitySubplot = 3;
     jbDensitySubplot = 5;
@@ -78,7 +78,7 @@ view(2);
 colorbar('Location', 'EastOutside');
 ylabel('Geomagnetic latitude (°)')
 xlabel(['Days since the UTC beginning of ', referenceDay])
-title(['1.23 x Goce ', timeOfDay,' density'])
+title(['Goce ', timeOfDay,' density'])
 
 hold all;
 aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));

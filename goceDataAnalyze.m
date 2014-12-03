@@ -42,12 +42,12 @@ for i = 1:cellArrayLength
 
     results = writeCorrelationsToResults(morningMsisDensity{i}, eveningMsisDensity{i}, morningJbDensity{i}, eveningJbDensity{i}, morningAeProxy{i}, eveningAeProxy{i}, morningTimestamps10s{i}, eveningTimestamps10s{i},...
         morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, results);
-    
-    results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
-        morningDensityNoBg{i}, morningMsisDensity{i}, morningJbDensity{i}, morningAeProxy{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
-    results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
-        eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningJbDensity{i}, eveningAeProxy{i}, eveningTimestamps10s{i}, eveningMagneticLatitude{i}, 'Evening', plotFigures, results);
-    
+%     
+%     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
+%         morningDensityNoBg{i}, morningMsisDensity{i}, morningJbDensity{i}, morningAeProxy{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
+%     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
+%         eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningJbDensity{i}, eveningAeProxy{i}, eveningTimestamps10s{i}, eveningMagneticLatitude{i}, 'Evening', plotFigures, results);
+%     
 %     results = plotAndAnalyzeChangesByOrbit(firstDatenum, morningDensityNoBg{i}, morningMagneticLatitude{i}, averagedDensityNoBg{i},...
 %         timestamps1minFixed{i}, morningTimestamps10s{i}, 'Morning', plotFigures, results);
 %     results = plotAndAnalyzeChangesByOrbit(firstDatenum, eveningDensityNoBg{i}, eveningMagneticLatitude{i}, averagedDensityNoBg{i},...
@@ -66,7 +66,7 @@ function results = initialize()
 
 poolobj = gcp('nocreate'); % If no pool, do not create new one.
 if isempty(poolobj)
-    parpool(6);
+    parpool(16);
 end
 
 results = {};
@@ -192,12 +192,62 @@ msisDensity = msisDensity(order);
 jbDensity = jbDensity(order);
 goceDensity = goceDensity(order);
 
+firstDayIndices = timestamps10s < timestamps10s(1) + 86400;
+msisMultiplier = mean(goceDensity(firstDayIndices) ./ msisDensity(firstDayIndices));
+aeMultiplier = mean(goceDensity(firstDayIndices) ./ aePredictedDensity(firstDayIndices));
+jbMultiplier = mean(goceDensity(firstDayIndices) ./ jbDensity(firstDayIndices));
+
+msisDensity = msisMultiplier * msisDensity;
+aePredictedDensity = aeMultiplier * aePredictedDensity;
+jbDensity = jbMultiplier * jbDensity;
+
+timestampsNorth = timestamps10s(latitude > 80);
+times = timestampsNorth(find(diff(timestampsNorth) > 45 * 60) + 1);
+ind = ismember(timestamps10s, times);
+msisSmooth = smooth(msisDensity, 541);
+aeSmooth = smooth(aePredictedDensity, 541);
+jbSmooth = smooth(jbDensity, 541);
+goceSmooth = smooth(goceDensity, 541);
+msisOrbAver = msisSmooth(ind);
+aeOrbAver = aeSmooth(ind);
+jbOrbAver = jbSmooth(ind);
+goceOrbAver = goceSmooth(ind);
+t = timestamps10s(ind);
+plot(t, msisOrbAver, t, jbOrbAver, t, goceOrbAver);
+legend('msis', 'jb', 'goce')
+
+equatorIndices = -30 < latitude & latitude < 30;
+msisEquator = msisDensity(equatorIndices);
+aeEquator = aePredictedDensity(equatorIndices);
+jbEquator = jbDensity(equatorIndices);
+goceEquator = goceDensity(equatorIndices);
+
+polarIndices = abs(latitude) > 45;
+msisPolar = msisDensity(polarIndices);
+aePolar = aePredictedDensity(polarIndices);
+jbPolar = jbDensity(polarIndices);
+gocePolar = goceDensity(polarIndices);
+
 aeModelCorr = corr(aePredictedDensity, goceDensity);
 msisCorr = corr(msisDensity, goceDensity);
 jbCorr = corr(jbDensity, goceDensity);
-goceAeRatio = goceDensity ./ aePredictedDensity;
-goceMsisRatio = goceDensity ./ msisDensity;
-goceJbRatio = goceDensity ./ jbDensity;
+msisEqCorr = corr(msisEquator, goceEquator);
+aeEqCorr = corr(aeEquator, goceEquator);
+jbEqCorr = corr(jbEquator, goceEquator);
+msisPolarCorr = corr(msisPolar, gocePolar);
+aePolarCorr = corr(aePolar, gocePolar);
+jbPolarCorr = corr(jbPolar, gocePolar);
+msisOrbAverCorr = corr(msisOrbAver, goceOrbAver);
+aeOrbAverCorr = corr(aeOrbAver, goceOrbAver);
+jbOrbAverCorr = corr(jbOrbAver, goceOrbAver);
+
+% goceAeRatio = goceDensity ./ aePredictedDensity;
+% goceMsisRatio = goceDensity ./ msisDensity;
+% goceJbRatio = goceDensity ./ jbDensity;
+
+goceAeRatio = goceOrbAver ./ aeOrbAver;
+goceMsisRatio = goceOrbAver ./ msisOrbAver;
+goceJbRatio = goceOrbAver ./ jbOrbAver;
 
 aeModelMeanRatio = mean(goceAeRatio);
 msisMeanRatio = mean(goceMsisRatio);
@@ -220,25 +270,49 @@ results{1, colNum} = 'Msis corr.';
 results{1, colNum + 1} = 'AE Int. model corr.';
 results{1, colNum + 2} = 'JB2008 corr.';
 
-results{1, colNum + 3} = 'Msis O/M.';
-results{1, colNum + 4} = 'AE Int. model O/M.';
-results{1, colNum + 5} = 'JB2008 O/M.';
+results{1, colNum + 3} = 'Msis eq.';
+results{1, colNum + 4} = 'AE eq.';
+results{1, colNum + 5} = 'JB2008 eq.';
 
-results{1, colNum + 6} = 'Msis std O/M.';
-results{1, colNum + 7} = 'AE Int. model std O/M.';
-results{1, colNum + 8} = 'JB2008 std O/M.';
+results{1, colNum + 6} = 'Msis polar.';
+results{1, colNum + 7} = 'AE polar.';
+results{1, colNum + 8} = 'JB2008 polar.';
+
+results{1, colNum + 9} = 'Msis O/M.';
+results{1, colNum + 10} = 'AE Int. model O/M.';
+results{1, colNum + 11} = 'JB2008 O/M.';
+
+results{1, colNum + 12} = 'Msis std O/M.';
+results{1, colNum + 13} = 'AE Int. model std O/M.';
+results{1, colNum + 14} = 'JB2008 std O/M.';
+
+results{1, colNum + 15} = 'Msis Orb. Aver. corr.';
+results{1, colNum + 16} = 'AE Orb. Aver. corr.';
+results{1, colNum + 17} = 'JB2008 Orb. Aver. corr.';
 
 results{rowNum, colNum} = msisCorr;
 results{rowNum, colNum + 1} = aeModelCorr;
 results{rowNum, colNum + 2} = jbCorr;
 
-results{rowNum, colNum + 3} = msisMeanRatio;
-results{rowNum, colNum + 4} = aeModelMeanRatio;
-results{rowNum, colNum + 5} = jbMeanRatio;
+results{rowNum, colNum + 3} = msisEqCorr;
+results{rowNum, colNum + 4} = aeEqCorr;
+results{rowNum, colNum + 5} = jbEqCorr;
 
-results{rowNum, colNum + 6} = msisStdRatio;
-results{rowNum, colNum + 7} = aeModelStdRatio;
-results{rowNum, colNum + 8} = jbStdRatio;
+results{rowNum, colNum + 6} = msisPolarCorr;
+results{rowNum, colNum + 7} = aePolarCorr;
+results{rowNum, colNum + 8} = jbPolarCorr;
+
+results{rowNum, colNum + 9} = msisMeanRatio;
+results{rowNum, colNum + 10} = aeModelMeanRatio;
+results{rowNum, colNum + 11} = jbMeanRatio;
+
+results{rowNum, colNum + 12} = msisStdRatio;
+results{rowNum, colNum + 13} = aeModelStdRatio;
+results{rowNum, colNum + 14} = jbStdRatio;
+
+results{rowNum, colNum + 15} = msisOrbAverCorr;
+results{rowNum, colNum + 16} = aeOrbAverCorr;
+results{rowNum, colNum + 17} = jbOrbAverCorr;
 
 end
 

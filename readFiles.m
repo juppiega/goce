@@ -265,7 +265,7 @@ Bx = Bx(indicesToConserve);
 By = By(indicesToConserve);
 Bz = Bz(indicesToConserve);
 B2 = Bx.^2 + By.^2 + Bz.^2;
-theta = atan(By ./ Bz);
+theta = atan2(By, Bz);
 
 indicesToConserve = find(Bx > -1e30 & By > -1e30 & Bz > -1e30);
 

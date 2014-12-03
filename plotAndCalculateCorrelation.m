@@ -81,22 +81,29 @@ density = density(shortenedIndicesGaps);
 geomIndexFixed = geomIndex(ismember(timestampsGeom, timestampsFixed));
 densityFixed = density(ismember(timestampsFixed, timestampsGeom));
 
-if strcmpi(indexName, 'Akasofu Epsilon') || ~isempty(strfind(upper(indexName), '|B|')) ...
-        || ~isempty(strfind(upper(indexName), '|V|'))
+if strcmpi(indexName, 'Akasofu Epsilon')
     % Solar indices are lagged by 6h
     % Cut 6h from the end of timestamps
-    timestampsLimitedFromEnd = timestampsGeom(ismember(timestampsGeom, timestampsGeom - 6 * 60 * 60));
-    % Lag these limited timestamps by 6h
-    timestampsLagged = timestampsLimitedFromEnd + 6 * 60 * 60;
-    % Pick geomIndex as geomIndex([tFixed(1), tfixed(2), ...])
-    geomIndex6hAgo = geomIndex(ismember(timestampsGeom, timestampsLimitedFromEnd));
-    geomIndex6hAgo = geomIndex6hAgo(ismember(timestampsLagged, timestampsFixed));
-    % Pick density values as density([tFixed(1)+6h, tFixed(2)+6h, ...])
-    densityShorter = density(ismember(timestampsFixed, timestampsLagged));
-    results = plotCorrelation(geomIndex6hAgo, densityShorter, indexName, 'Density at 270 km', plotFigures, results);
-else % ap || ae
-    results = plotCorrelation(geomIndexFixed, densityFixed, indexName, 'Density at 270 km', plotFigures, results);
+    lagtime = 540; %min
+elseif ~isempty(strfind(upper(indexName), '|B|'))
+    lagtime = 630; %min
+elseif ~isempty(strfind(upper(indexName), '|V|'))
+    lagtime = 540; %min
+elseif ~isempty(strfind(upper(indexName), 'AE'))
+    lagtime = 450; %min
+else
+    lagtime = 360;
 end
+
+timestampsLimitedFromEnd = timestampsGeom(ismember(timestampsGeom, timestampsGeom - lagtime * 60));
+% Lag these limited timestamps by 6h
+timestampsLagged = timestampsLimitedFromEnd + lagtime * 60;
+% Pick geomIndex as geomIndex([tFixed(1), tfixed(2), ...])
+geomIndex6hAgo = geomIndex(ismember(timestampsGeom, timestampsLimitedFromEnd));
+geomIndex6hAgo = geomIndex6hAgo(ismember(timestampsLagged, timestampsFixed));
+% Pick density values as density([tFixed(1)+6h, tFixed(2)+6h, ...])
+densityShorter = density(ismember(timestampsFixed, timestampsLagged));
+results = plotCorrelation(geomIndex6hAgo, densityShorter, indexName, 'Density at 270 km', plotFigures, results);
 
 end
 
@@ -111,11 +118,11 @@ indicesInHour = 60;
 if strcmpi(indexName, 'ae')
     averageGoodLag = 21 * indicesInHour;
 elseif strcmpi(indexName, 'Akasofu Epsilon')
-    averageGoodLag = 34 * indicesInHour;
-elseif ~isempty(strfind(upper(indexName), '|B|'))
-    averageGoodLag = 37 * indicesInHour;
-elseif ~isempty(strfind(upper(indexName), '|V|'))
     averageGoodLag = 30 * indicesInHour;
+elseif ~isempty(strfind(upper(indexName), '|B|'))
+    averageGoodLag = 41 * indicesInHour;
+elseif ~isempty(strfind(upper(indexName), '|V|'))
+    averageGoodLag = 43 * indicesInHour;
 else
     averageGoodLag = 8;
 end
@@ -138,8 +145,9 @@ lags(1) = 0;
 if strcmpi(indexName, 'ap'); lagsInHours = lags * 3;
 else lagsInHours = lags / 60; end
 
-bestLag = lags(find(correlations == max(correlations), 1, 'last'));
-bestLagInHours = lagsInHours(find(correlations == max(correlations), 1, 'last'));
+maxCorr = abs(correlations) == max(abs(correlations));
+bestLag = lags(find(maxCorr, 1, 'last'));
+bestLagInHours = lagsInHours(find(maxCorr, 1, 'last'));
 if bestLag > 0
     geomIndexBestInt = cumulativeGeomIndex(bestLag + 1 : end) - cumulativeGeomIndex(1 : end - bestLag);
 else
@@ -154,9 +162,10 @@ if plotFigures ~= 0
     title([indexName, ' integral optimal window length'])
     ylabel([correlationType, ' correlation']);
     xlabel('lags / h')
-    correlationMaximum = max(correlations);
+    correlationMaximum = max(abs(correlations));
     correlationMaximum = correlationMaximum(1);
-    integralWindowSize = lagsInHours(correlations == correlationMaximum);
+    integralWindowSize = lagsInHours(abs(correlations) == correlationMaximum);
+    integralWindowSize = integralWindowSize(1);
     ylimits = get(gca, 'ylim');
     line([integralWindowSize integralWindowSize], [ylimits(1) correlationMaximum], 'LineStyle', '--');
     textYLocation = mean([ylimits(1) correlationMaximum]);
