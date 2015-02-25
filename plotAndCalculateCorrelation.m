@@ -41,15 +41,15 @@ else
 end
 
 timestampsFixed = timestampsFixed(ismember(timestampsFixed, timestampsGeom));
-densityBestIntIndices = ismember(timestampsFixed, timestampsGeom(timelag + 1:end));
-    
+densityAverIntIndices = ismember(timestampsFixed, timestampsGeom(averageGoodLag + 1:end));
+
 if strcmpi(indexName, 'ae') && plotFigures ~=0
     figure(timeseriesHandle);
     subplot(2,2,2)
     secondsInDay = 24 * 60 * 60;
-    timestampsInDays = timestampsGeom(timelag + 1:end) / secondsInDay + firstDatenum;
-    timestampsInDaysFixed = timestampsFixed(densityBestIntIndices) / secondsInDay + firstDatenum;
-    [hAx,~,~] = plotyy(timestampsInDays, bestIntegral, timestampsInDaysFixed, density(densityBestIntIndices));
+    timestampsInDays = timestampsGeom(averageGoodLag + 1:end) / secondsInDay + firstDatenum;
+    timestampsInDaysFixed = timestampsFixed(densityAverIntIndices) / secondsInDay + firstDatenum;
+    [hAx,~,~] = plotyy(timestampsInDays, averageIntegral, timestampsInDaysFixed, density(densityAverIntIndices));
     ylabel(hAx(1), 'AE Integral')
     ylabel(hAx(2), 'Density')
     title('Raw AE integral vs FFT smoothed density');
@@ -57,8 +57,29 @@ if strcmpi(indexName, 'ae') && plotFigures ~=0
     datetick(hAx(1), 'x', 'dd', 'keeplimits')
     datetick(hAx(2), 'x', 'dd', 'keeplimits')
     grid on;
+    
+    figure('Color', 'white');
+    subplot(3,1,1)
+    plot(timestampsInDaysFixed, density(densityAverIntIndices) * 1e-12, 'k')
+    ylabel('Density (kg/m^3)', 'FontSize', 18);
+    axis tight
+    datetick('x', 'dd', 'keeplimits')
+    
+    subplot(3,1,2)
+    plot(timestampsInDays, averageIntegral, 'k')
+    ylabel('21-hour AE Integral', 'FontSize', 18);
+    axis tight
+    datetick('x', 'dd', 'keeplimits')
+    
+    subplot(3,1,3)
+    plot(timestampsInDays, geomIndex(averageGoodLag + 1:end), 'k')
+    xlabel('Calendar day on May 2011', 'FontSize', 18);
+    ylabel('AE (nT)', 'FontSize', 14);
+    axis tight
+    datetick('x', 'dd', 'keeplimits')
 end
 
+densityBestIntIndices = ismember(timestampsFixed, timestampsGeom(timelag + 1:end));
 bestIntegral = bestIntegral(ismember(timestampsGeom(timelag + 1:end), timestampsFixed));
 results = plotCorrelation(bestIntegral, density(densityBestIntIndices), [indexName, ' Best Integral'], 'Density', plotFigures, results);
 

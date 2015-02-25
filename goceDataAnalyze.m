@@ -40,14 +40,14 @@ for i = 1:cellArrayLength
 %         morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, '|V| * Bz', plotFigures, results, timeseriesFigHandle);
 %     
 
-    results = writeCorrelationsToResults(morningMsisDensity{i}, eveningMsisDensity{i}, morningJbDensity{i}, eveningJbDensity{i}, morningAeProxy{i}, eveningAeProxy{i}, morningTimestamps10s{i}, eveningTimestamps10s{i},...
-        morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, results);
-%     
-%     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
-%         morningDensityNoBg{i}, morningMsisDensity{i}, morningJbDensity{i}, morningAeProxy{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
-%     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
-%         eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningJbDensity{i}, eveningAeProxy{i}, eveningTimestamps10s{i}, eveningMagneticLatitude{i}, 'Evening', plotFigures, results);
-%     
+%     results = writeCorrelationsToResults(morningMsisDensity{i}, eveningMsisDensity{i}, morningJbDensity{i}, eveningJbDensity{i}, morningAeProxy{i}, eveningAeProxy{i}, morningTimestamps10s{i}, eveningTimestamps10s{i},...
+%         morningDensityNoBg{i}, eveningDensityNoBg{i}, latitude, timestamps10sFixed, results);
+    
+    results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
+        morningDensityNoBg{i}, morningMsisDensity{i}, morningJbDensity{i}, morningAeProxy{i}, morningTimestamps10s{i}, morningMagneticLatitude{i}, 'Morning', plotFigures, results);
+    results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
+        eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningJbDensity{i}, eveningAeProxy{i}, eveningTimestamps10s{i}, eveningMagneticLatitude{i}, 'Evening', plotFigures, results);
+    
 %     results = plotAndAnalyzeChangesByOrbit(firstDatenum, morningDensityNoBg{i}, morningMagneticLatitude{i}, averagedDensityNoBg{i},...
 %         timestamps1minFixed{i}, morningTimestamps10s{i}, 'Morning', plotFigures, results);
 %     results = plotAndAnalyzeChangesByOrbit(firstDatenum, eveningDensityNoBg{i}, eveningMagneticLatitude{i}, averagedDensityNoBg{i},...
@@ -212,9 +212,6 @@ msisOrbAver = msisSmooth(ind);
 aeOrbAver = aeSmooth(ind);
 jbOrbAver = jbSmooth(ind);
 goceOrbAver = goceSmooth(ind);
-t = timestamps10s(ind);
-plot(t, msisOrbAver, t, jbOrbAver, t, goceOrbAver);
-legend('msis', 'jb', 'goce')
 
 equatorIndices = -30 < latitude & latitude < 30;
 msisEquator = msisDensity(equatorIndices);

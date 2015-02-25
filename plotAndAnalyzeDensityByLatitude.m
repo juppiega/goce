@@ -19,6 +19,8 @@ function plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, m
 % plotDensityLatitudeTimeSurf(averagedDensity, averagedLatitude, timestamps
 
 persistent colormapFigHandle
+persistent minDensity
+persistent maxDensity
 
 if ~isempty(strfind(lower(timeOfDay), 'morning'))
     colormapFigHandle = figure('Color', 'white', 'units','normalized','outerposition',[0 0 1 1]);
@@ -26,6 +28,8 @@ if ~isempty(strfind(lower(timeOfDay), 'morning'))
     msisDensitySubplot = 3;
     jbDensitySubplot = 5;
     aeProxySubplot = 7;
+    minDensity = min(regriddedGoceDensity(:));
+    maxDensity = max(regriddedGoceDensity(:));
 else
     figure(colormapFigHandle);
     goceDensitySubplot = 2;
@@ -47,7 +51,7 @@ timestamps1min = timestamps1min / secondsInDay + firstDatenum - datenum(referenc
 
 minDensityTime = min(regriddedTime(:));
 maxDensityTime = max(regriddedTime(:));
-firstDayIndices = regriddedTime < minDensityTime + 86400;
+firstDayIndices = regriddedTime < minDensityTime + 1;
 firstDayGoce = regriddedGoceDensity(firstDayIndices);
 firstDayMsis = regriddedMsisDensity(firstDayIndices);
 firstDayAe = regriddedAeProxy(firstDayIndices);
@@ -56,14 +60,21 @@ msisMultiplier = mean(firstDayGoce(:) ./ firstDayMsis(:));
 aeMultiplier = mean(firstDayGoce(:) ./ firstDayAe(:));
 jbMultiplier = mean(firstDayGoce(:) ./ firstDayJb(:));
 
-regriddedMsisDensity = msisMultiplier * regriddedMsisDensity;
-regriddedAeProxy = aeMultiplier * regriddedAeProxy;
-regriddedJbDensity = jbMultiplier * regriddedJbDensity;
+plotIndices = (regriddedTime >= minDensityTime + 1.5 & regriddedTime <= maxDensityTime - 1.5);
+[plotRows, ~] = find(plotIndices);
+plotRows = unique(plotRows);
 
-minDensity = min(regriddedGoceDensity(:));
-maxDensity = max(regriddedGoceDensity(:));
-plotHeight = max(regriddedGoceDensity(:));
+regriddedGoceDensity = regriddedGoceDensity(plotRows, :);
+regriddedTime = regriddedTime(plotRows, :);
+regriddedLatitude = regriddedLatitude(plotRows, :);
+regriddedMsisDensity = msisMultiplier * regriddedMsisDensity(plotRows, :);
+regriddedAeProxy = aeMultiplier * regriddedAeProxy(plotRows, :);
+regriddedJbDensity = jbMultiplier * regriddedJbDensity(plotRows, :);
 
+plotHeight = maxDensity;
+
+minDensityTime = minDensityTime + 1.5;
+maxDensityTime = maxDensityTime - 1.5;
 [~, minAeIndex] = min(abs(timestamps1min - minDensityTime));
 [~, maxAeIndex] = min(abs(timestamps1min - maxDensityTime));
 aeIndicesToPlot = minAeIndex:maxAeIndex;
@@ -76,9 +87,9 @@ ylim([minLat maxLat]);
 caxis([minDensity maxDensity])
 view(2);
 colorbar('Location', 'EastOutside');
-ylabel('Geomagnetic latitude (°)')
-xlabel(['Days since the UTC beginning of ', referenceDay])
-title(['Goce ', timeOfDay,' density'])
+ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+title(['Goce ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+set(gca, 'fontsize', 12)
 
 hold all;
 aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
@@ -86,9 +97,10 @@ aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(a
 set(aeLineHandle, 'LineWidth', 0.1)
 view(2);
 set(aeAxesHandle, 'yaxislocation', 'right');
-ylabel(aeAxesHandle, 'AE Average Integral')
+ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
 set(aeAxesHandle, 'Color', 'none', 'XTick', []);
 hold off;
+set(gca, 'fontsize', 12)
 
 subplotAxesHandle = subplot(4,2,msisDensitySubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedMsisDensity, 'EdgeColor', 'None')
@@ -98,9 +110,9 @@ ylim([minLat maxLat]);
 caxis([minDensity maxDensity])
 colorbar('Location', 'EastOutside');
 view(2);
-xlabel(['Days since the UTC beginning of ', referenceDay])
-ylabel('Geomagnetic latitude (°)')
-title(['Msis ', timeOfDay,' density'])
+ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+title(['NRLMSISE-00 ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+set(gca, 'fontsize', 12)
 
 hold all;
 aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
@@ -108,9 +120,10 @@ aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(a
 set(aeLineHandle, 'LineWidth', 0.1)
 view(2);
 set(aeAxesHandle, 'yaxislocation', 'right');
-ylabel(aeAxesHandle, 'AE Average Integral')
+ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
 set(aeAxesHandle, 'Color', 'none', 'XTick', []);
 hold off;
+set(gca, 'fontsize', 12)
 
 subplotAxesHandle = subplot(4,2,jbDensitySubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedJbDensity, 'EdgeColor', 'None')
@@ -120,9 +133,9 @@ ylim([minLat maxLat]);
 caxis([minDensity maxDensity])
 colorbar('Location', 'EastOutside');
 view(2);
-xlabel(['Days since the UTC beginning of ', referenceDay])
-ylabel('Geomagnetic latitude (°)')
-title(['JB2008 ', timeOfDay,' density'])
+ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+title(['JB2008 ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+set(gca, 'fontsize', 12)
 
 hold all;
 aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
@@ -130,9 +143,10 @@ aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(a
 set(aeLineHandle, 'LineWidth', 0.1)
 view(2);
 set(aeAxesHandle, 'yaxislocation', 'right');
-ylabel(aeAxesHandle, 'AE Average Integral')
+ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
 set(aeAxesHandle, 'Color', 'none', 'XTick', []);
 hold off;
+set(gca, 'fontsize', 12)
 
 subplotAxesHandle = subplot(4,2,aeProxySubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedAeProxy, 'EdgeColor', 'None')
@@ -142,9 +156,10 @@ ylim([minLat maxLat]);
 caxis([minDensity maxDensity])
 colorbar('Location', 'EastOutside');
 view(2);
-xlabel(['Days since the UTC beginning of ', referenceDay])
-ylabel('Geomagnetic latitude (°)')
-title(['AE Predicted ', timeOfDay,' density'])
+xlabel(['Days since the UTC beginning of ', referenceDay], 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+title(['AE Predicted ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+set(gca, 'fontsize', 12)
 
 hold all;
 aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
@@ -152,9 +167,10 @@ aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(a
 set(aeLineHandle, 'LineWidth', 0.1)
 view(2);
 set(aeAxesHandle, 'yaxislocation', 'right');
-ylabel(aeAxesHandle, 'AE Average Integral')
+ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
 set(aeAxesHandle, 'Color', 'none', 'XTick', []);
 hold off;
+set(gca, 'fontsize', 12)
 
 end
 
