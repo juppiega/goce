@@ -1,6 +1,6 @@
 function goceDataAnalyze( varargin )
 % goceDataAnalyze( threshold )
-%   Detailed explanation goes here
+%   Detailed explanation goes here%
 
 results = initialize();
 
@@ -48,10 +48,10 @@ for i = 1:cellArrayLength
     results = plotAndAnalyzeDensityByLatitude(firstDatenum, ae{i}, timestamps1min{i}, aeIntegral, timestampsAeInt, timestamps1minFixed{i}, ...
         eveningDensityNoBg{i}, eveningMsisDensity{i}, eveningJbDensity{i}, eveningAeProxy{i}, eveningTimestamps10s{i}, eveningMagneticLatitude{i}, 'Evening', plotFigures, results);
     
-%     results = plotAndAnalyzeChangesByOrbit(firstDatenum, morningDensityNoBg{i}, morningMagneticLatitude{i}, averagedDensityNoBg{i},...
-%         timestamps1minFixed{i}, morningTimestamps10s{i}, 'Morning', plotFigures, results);
-%     results = plotAndAnalyzeChangesByOrbit(firstDatenum, eveningDensityNoBg{i}, eveningMagneticLatitude{i}, averagedDensityNoBg{i},...
-%         timestamps1minFixed{i}, eveningTimestamps10s{i}, 'Evening', plotFigures, results);
+    results = plotAndAnalyzeChangesByOrbit(firstDatenum, morningDensityNoBg{i}, morningMagneticLatitude{i}, averagedDensityNoBg{i},...
+        timestamps1minFixed{i}, morningTimestamps10s{i}, 'Morning', plotFigures, results);
+    results = plotAndAnalyzeChangesByOrbit(firstDatenum, eveningDensityNoBg{i}, eveningMagneticLatitude{i}, averagedDensityNoBg{i},...
+        timestamps1minFixed{i}, eveningTimestamps10s{i}, 'Evening', plotFigures, results);
     
     plotFigures = 0;
 end
