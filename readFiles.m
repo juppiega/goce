@@ -3,13 +3,13 @@ function readFiles()
 
 poolobj = gcp('nocreate'); % If no pool, do not create new one.
 if isempty(poolobj)
-    parpool(24);
+    parpool();
 end
 
 tic;
 [ae, timestampsAeDatenum] = readAeFiles();
 
-[F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, indexDatenums, datenumToJulian] = readSolarIndexFile();
+[F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, datenumToJulian] = readSolarIndexFiles();
 
 [absB, timestampsAbsBDatenum, akasofuEpsilon, epsilonQualityFlag, timestampsEpsilonDatenum, vBz] ...
     = readSolarWindFiles(timestampsAeDatenum);
@@ -20,15 +20,15 @@ tic;
 
 [aeIntegrals] = computeAeIntegrals(ae, timestamps1min, timestamps10sFixed, absB, timestampsAbsB);
 
-[apAll, dtc] = readApAndDtcFiles(timestampsDensityDatenum);
+[apAll, amAll, dtc] = readApAndDtcFiles(timestampsDensityDatenum);
 
-[F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A] = giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, indexDatenums, timestampsDensityDatenum);
+[F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A] = giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, timestampsDensityDatenum);
 
-[apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, ap, timestamps3h, timestamps3hFixed] =...
-    giveApValsForMSIS(apAll, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum);
+[apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, ap, timestamps3h, timestamps3hFixed] =...
+    giveApValsForMSIS(apAll, amAll, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum);
 
-[densityNoBg, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h]  = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDensityDatenum, doy,...
-    timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
+[densityNoBg, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h]  = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDensityDatenum, doy,...
+    timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, am3h, amAver24h, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
 measuredDensity = density;
 
 [morningTimestamps10s, eveningTimestamps10s, morningLatitude, eveningLatitude, morningDoy, eveningDoy] = ...
@@ -75,6 +75,9 @@ save('goceVariables.mat', 'densityNoBg', '-append')
 save('goceVariables.mat', 'msisDensityVariableAlt', '-append')
 save('goceVariables.mat', 'msisDensity270km', '-append')
 save('goceVariables.mat', 'msisDensity270kmNoAp', '-append')
+save('goceVariables.mat', 'dtm2013Density270km', '-append')
+save('goceVariables.mat', 'dtm2013Density270kmNoAm', '-append')
+save('goceVariables.mat', 'dtm2013DensityVariableAlt', '-append')
 save('goceVariables.mat', 'jb2008Density270km', '-append')
 save('goceVariables.mat', 'jb2008Density270kmNoDtc', '-append')
 save('goceVariables.mat', 'jb2008DensityVariableAlt', '-append')
@@ -136,7 +139,7 @@ ae = interp1(tInterp, aeInterp, timestampsAeDatenum, 'linear', 'extrap');
 
 end
 
-function [ap, dtc] = readApAndDtcFiles(timestampsDensityDatenum)
+function [ap, am, dtc] = readApAndDtcFiles(timestampsDensityDatenum)
 %
 fprintf('%s\n', 'Began reading ap file')
 
@@ -169,6 +172,27 @@ ap = reshape(apValues(apRows, :)', numel(apValues(apRows, :)), 1);
 
 firstHour = round(str2double(datestr(timestampsDensityDatenum(1), 'HH')));
 ap(1:firstHour/3) = [];
+
+
+amFile = fopen('am_file_spider.dat');
+if amFile == -1
+    error('am File open unsuccesful! Check that you have a file "m_file_spider.data" in your WORKING DIRECTORY.')
+end
+
+amData = textscan(amFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f', 'MultipleDelimsAsOne',1);
+amValues = horzcat(amData{end-8:end});
+[row, ~] = find(isnan(amValues));
+amValues(row,2:9) = amValues(row,1:8);
+amValues = amValues(:,2:9);
+
+year = mod(amData{2}, 10000);
+month = amData{1};
+day = floor(amData{2}/10000);
+timestampsAm = datenum(year, month, day);
+amValues(amValues < 0) = 0.0;
+amRows = find(timestampsAm > timestampsDensityDatenum(1) - 4 & timestampsAm <= timestampsDensityDatenum(end));
+am = reshape(amValues(amRows, :)', numel(amValues(amRows, :)), 1);
+am(1:firstHour/3) = [];
 
 
 dtcFile = fopen('DTCFILE.TXT');
@@ -206,9 +230,9 @@ dtc = interp1(timestampsDtc, double(dtc), timestampsFixed, 'linear', 'extrap');
 
 end
 
-function [F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, indexDatenums, datenumToJulian] = readSolarIndexFile
+function [F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, datenumToJulian] = readSolarIndexFiles
 %
-fprintf('%s\n', 'Began reading solar index file')
+fprintf('%s\n', 'Began reading solar index files')
 
 solarFile = fopen('SOLFSMY.TXT');
 if solarFile == -1
@@ -235,6 +259,23 @@ dayOfYear = solarData{2};
 indexDatenums = datenum(double(year), 1, 1) + double(dayOfYear) - 1;
 julianDate = solarData{3};
 datenumToJulian = julianDate(1) - indexDatenums(1) - 0.5;
+
+
+solarFile = fopen('proxies_unadjusted.dat');
+if solarFile == -1
+    error('Solar index file open unsuccesful! Check that you have a file "proxies_unadjusted.dat" in your WORKING DIRECTORY.')
+end
+
+solarData = textscan(solarFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f', 'MultipleDelimsAsOne',1, 'CommentStyle','//');
+F30 = solarData{14};
+F30A = solarData{15};
+
+year = solarData{1};
+month = solarData{2};
+day = solarData{3};
+F30datenum = datenum(year, month, day);
+F30 = interp1(F30datenum, F30, indexDatenums, 'nearest', 'extrap');
+F30A = interp1(F30datenum, F30A, indexDatenums, 'nearest', 'extrap');
 
 end
 
@@ -493,61 +534,83 @@ aeIntegrals = aeIntegrals(:,columnsToConserve);
 
 end
 
-function [F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A] = giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, indexDatenums, timestampsDensityDatenum)
+function [F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A] = giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, timestampsDensityDatenum)
 %
 fprintf('%s\n', 'Computing solar index values for models')
 
-indexBeginDay = floor(timestampsDensityDatenum(1)) - 6;
-indexEndDay = floor(timestampsDensityDatenum(end));
-indicesToConserve = indexDatenums >= indexBeginDay & indexDatenums <= indexEndDay;
-F10 = F10(indicesToConserve);
-F81A = F81A(indicesToConserve);
-S10 = S10(indicesToConserve);
-S81A = S81A(indicesToConserve);
-M10 = M10(indicesToConserve);
-M81A = M81A(indicesToConserve);
-Y10 = Y10(indicesToConserve);
-Y81A = Y81A(indicesToConserve);
+msisF81A = interp1(indexDatenums, F81A, timestampsDensityDatenum, 'linear', 100);
+F30A = interp1(indexDatenums, F30A, timestampsDensityDatenum, 'linear', 100);
 
-secondsInDay = 86400;
-timestampsFixed = round((timestampsDensityDatenum - indexBeginDay(1)) * secondsInDay);
-numOfDays = indexEndDay - indexBeginDay + 1;
-timestampsMsisF81 = (0 : 10 : numOfDays * secondsInDay - 1)';
-timestampsFS = (0 : 10 : numOfDays * secondsInDay - 1)' + secondsInDay;
-timestampsM = (0 : 10 : numOfDays * secondsInDay - 1)' + 2 * secondsInDay;
-timestampsY = (0 : 10 : numOfDays * secondsInDay - 1)' + 5 * secondsInDay;
+F10 = interp1(indexDatenums + 1, F10, timestampsDensityDatenum, 'linear', 100);
+F81A = interp1(indexDatenums + 1, F81A, timestampsDensityDatenum, 'linear', 100);
+S10 = interp1(indexDatenums + 1, S10, timestampsDensityDatenum, 'linear', 100);
+S81A = interp1(indexDatenums + 1, S81A, timestampsDensityDatenum, 'linear', 100);
+F30 = interp1(indexDatenums + 1, F30, timestampsDensityDatenum, 'linear', 100);
 
-pointsInDay = 8640;
-F10 = reshape(repmat((F10)', pointsInDay, 1), [], 1);
-msisF81A = reshape(repmat((F81A)', pointsInDay, 1), [], 1);
-F81A = reshape(repmat((F81A)', pointsInDay, 1), [], 1);
-S10 = reshape(repmat((S10)', pointsInDay, 1), [], 1);
-S81A = reshape(repmat((S81A)', pointsInDay, 1), [], 1);
-M10 = reshape(repmat((M10)', pointsInDay, 1), [], 1);
-M81A = reshape(repmat((M81A)', pointsInDay, 1), [], 1);
-Y10 = reshape(repmat((Y10)', pointsInDay, 1), [], 1);
-Y81A = reshape(repmat((Y81A)', pointsInDay, 1), [], 1);
+M10 = interp1(indexDatenums + 2, M10, timestampsDensityDatenum, 'linear', 100);
+M81A = interp1(indexDatenums + 2, M81A, timestampsDensityDatenum, 'linear', 100);
 
-msisF81A = msisF81A(ismember(timestampsMsisF81, timestampsFixed));
+Y10 = interp1(indexDatenums + 5, Y10, timestampsDensityDatenum, 'linear', 100);
+Y81A = interp1(indexDatenums + 5, Y81A, timestampsDensityDatenum, 'linear', 100);
 
-FSindices = ismember(timestampsFS, timestampsFixed);
-F10 = F10(FSindices);
-F81A = F81A(FSindices);
-S10 = S10(FSindices);
-S81A = S81A(FSindices);
+% indexBeginDay = floor(timestampsDensityDatenum(1)) - 6;
+% indexEndDay = floor(timestampsDensityDatenum(end));
+% indicesToConserve = indexDatenums >= indexBeginDay & indexDatenums <= indexEndDay;
+% F10 = F10(indicesToConserve);
+% F81A = F81A(indicesToConserve);
+% S10 = S10(indicesToConserve);
+% S81A = S81A(indicesToConserve);
+% M10 = M10(indicesToConserve);
+% M81A = M81A(indicesToConserve);
+% Y10 = Y10(indicesToConserve);
+% Y81A = Y81A(indicesToConserve);
+% F30 = F30(indicesToConserve);
+% F30A = F30A(indicesToConserve);
 
-Mindices = ismember(timestampsM, timestampsFixed);
-M10 = M10(Mindices);
-M81A = M81A(Mindices);
+% secondsInDay = 86400;
+% timestampsFixed = round((timestampsDensityDatenum - indexBeginDay(1)) * secondsInDay);
+% numOfDays = indexEndDay - indexBeginDay + 1;
+% timestampsMsisF81 = (0 : 10 : numOfDays * secondsInDay - 1)';
+% timestampsFS = (0 : 10 : numOfDays * secondsInDay - 1)' + secondsInDay;
+% timestampsM = (0 : 10 : numOfDays * secondsInDay - 1)' + 2 * secondsInDay;
+% timestampsY = (0 : 10 : numOfDays * secondsInDay - 1)' + 5 * secondsInDay;
 
-Yindices = ismember(timestampsY, timestampsFixed);
-Y10 = Y10(Yindices);
-Y81A = Y81A(Yindices);
+% pointsInDay = 8640;
+% F10 = reshape(repmat((F10)', pointsInDay, 1), [], 1);
+% msisF81A = reshape(repmat((F81A)', pointsInDay, 1), [], 1);
+% F81A = reshape(repmat((F81A)', pointsInDay, 1), [], 1);
+% S10 = reshape(repmat((S10)', pointsInDay, 1), [], 1);
+% S81A = reshape(repmat((S81A)', pointsInDay, 1), [], 1);
+% M10 = reshape(repmat((M10)', pointsInDay, 1), [], 1);
+% M81A = reshape(repmat((M81A)', pointsInDay, 1), [], 1);
+% Y10 = reshape(repmat((Y10)', pointsInDay, 1), [], 1);
+% Y81A = reshape(repmat((Y81A)', pointsInDay, 1), [], 1);
+% F30 = reshape(repmat((F30)', pointsInDay, 1), [], 1);
+% F30A = reshape(repmat((F30A)', pointsInDay, 1), [], 1);
+% 
+% F81Indices = ismember(timestampsMsisF81, timestampsFixed);
+% msisF81A = msisF81A(F81Indices);
+% F30A = F30A(F81Indices);
+% 
+% FSindices = ismember(timestampsFS, timestampsFixed);
+% F10 = F10(FSindices);
+% F81A = F81A(FSindices);
+% S10 = S10(FSindices);
+% S81A = S81A(FSindices);
+% F30 = F30(FSindices);
+% 
+% Mindices = ismember(timestampsM, timestampsFixed);
+% M10 = M10(Mindices);
+% M81A = M81A(Mindices);
+% 
+% Yindices = ismember(timestampsY, timestampsFixed);
+% Y10 = Y10(Yindices);
+% Y81A = Y81A(Yindices);
 
 end
 
-function [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, apAllFixed, timestamps3h, timestamps3hFixed] = ...
-    giveApValsForMSIS(apAll, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum)
+function [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, apAllFixed, timestamps3h, timestamps3hFixed] = ...
+    giveApValsForMSIS(apAll, amAll, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum)
 % 
 fprintf('%s\n', 'Computing ap values for msis')
 
@@ -584,6 +647,19 @@ apAver12To33h = apAver12To33h(finalIndices);
 apAver36To57h = apAver36To57h(finalIndices);
 ApDaily = ApDaily(finalIndices);
 
+am3h = interp1(timestamps3h + threeHinSec, amAll, timestamps10sFixed, 'linear', 'extrap');
+
+averagingMatrix = nan(8, length(amAll) - 7);
+
+for i = 1:8
+    lastIndex = length(amAll) - 8 + i;
+    averagingMatrix(i,:) = amAll(i:lastIndex)';
+end
+averagingMatrix = [repmat(averagingMatrix(:,1),1,7) averagingMatrix];
+amAver24h = trapz(averagingMatrix)' / 8;
+
+amAver24h = interp1(timestamps3h, amAver24h, timestamps10sFixed, 'linear', 'extrap');
+
 % apNow = interp1(timestamps3h, apAll, timestamps10sFixed, 'linear', 'extrap');
 % ap3h = interp1(timestamps3h + threeHinSec, apAll, timestamps10sFixed, 'linear', 'extrap');
 % ap6h = interp1(timestamps3h + 2 * threeHinSec, apAll, timestamps10sFixed, 'linear', 'extrap');
@@ -601,8 +677,8 @@ timestamps3h = timestamps3h(ismember(timestamps3h, timestamps1min))';
 
 end
 
-function [correctedDensity, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDatenum, doy,...
-          timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longtitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
+function [correctedDensity, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDatenum, doy,...
+          timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longtitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, am3h, amAver24h, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
       
 fprintf('%s\n', 'Computing normalized densities with models. This may take even half an hour.')
 
@@ -614,6 +690,7 @@ modelingIndices = 1:length(density);
 
 altitudeInKm = altitude / 1000;
 
+doyDecimal = doy;
 doy = ceil(doy);
 doy(doy == 0) = 1;
 
@@ -640,7 +717,7 @@ parfor i = modelingIndices
       ApDaily(i),apNow(i),ap3h(i),ap6h(i),ap9h(i),apAver12To33h(i),apAver36To57h(i));
 
     [~,~,~,~,~,msisDensity270kmNoAp(i),~,~,~,~,~]...
-      =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longtitude(i),solarTime(i),msisF81A(i),F10(i),3);
+      =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longtitude(i),solarTime(i),msisF81A(i),F10(i), 3);
 
     if mod(i, 10000) == 0
      p.progress;
@@ -672,6 +749,35 @@ parfor i = modelingIndices
     end
 end
 p.stop;
+
+dtm2013Density270km = nan(size(density));
+dtm2013DensityVariableAlt = nan(size(density));
+dtm2013Density270kmNoAm = nan(size(density));
+
+p = TimedProgressBar( targetCount, barWidth, ...
+                    'Running DTM-2013, ETA ', ...
+                    '. Now at ', ...
+                    'Completed in ' );
+                
+parfor i = modelingIndices
+    [~, ~, dtm2013DensityVariableAlt(i),~,~,~] = dtm2013_mex(doyDecimal(i), altitudeInKm(i), latitude(i), longtitude(i), ...
+        solarTime(i), F30(i), F30A(i), am3h(i), amAver24h(i));
+    
+    [~, ~, dtm2013Density270km(i),~,~,~] = dtm2013_mex(doyDecimal(i), 270, latitude(i), longtitude(i), ...
+        solarTime(i), F30(i), F30A(i), am3h(i), amAver24h(i));
+    
+    [~, ~, dtm2013Density270kmNoAm(i),~,~,~] = dtm2013_mex(doyDecimal(i), 270, latitude(i), longtitude(i), ...
+        solarTime(i), F30(i), F30A(i), 0.0, 0.0);
+    
+    if mod(i, 10000) == 0
+     p.progress;
+    end
+end
+p.stop;
+
+dtm2013DensityVariableAlt = dtm2013DensityVariableAlt * power(10, 14);
+dtm2013Density270km = dtm2013Density270km * power(10, 14);
+dtm2013Density270kmNoAm = dtm2013Density270kmNoAm * power(10, 14);
 
 jb2008DensityVariableAlt = jb2008DensityVariableAlt * power(10, 11);
 jb2008Density270km = jb2008Density270km * power(10, 11);

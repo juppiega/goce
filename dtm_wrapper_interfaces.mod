@@ -1,13 +1,13 @@
-GFORTRAN module version '9' created from lib/dtm_interfaces.f90
-MD5:b8b6922467f09c99e060273a8a79f72d -- If you edit this, you'll get what you deserve.
+GFORTRAN module version '10' created from /home/juho/goce/dtm_interfaces.f90
+MD5:3b8c81f8e3eb021738349da6fd34c67c -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () ()
 () () () ())
 
 ()
 
-(('load_config_interface' 'dtm_wrapper_interfaces' 2) (
-'dtm_wrapper_interface' 'dtm_wrapper_interfaces' 3))
+(('dtm_wrapper_interface' 'dtm_wrapper_interfaces' 2) (
+'load_config_interface' 'dtm_wrapper_interfaces' 3))
 
 ()
 
@@ -15,14 +15,14 @@ MD5:b8b6922467f09c99e060273a8a79f72d -- If you edit this, you'll get what you de
 
 ()
 
-(3 'dtm_wrapper' 'dtm_wrapper_interfaces' '' 1 ((PROCEDURE
+(2 'dtm_wrapper' 'dtm_wrapper_interfaces' '' 1 ((PROCEDURE
 UNKNOWN-INTENT MODULE-PROC BODY UNKNOWN 0 0 EXTERNAL SUBROUTINE
 ALWAYS_EXPLICIT) (UNKNOWN 0 0 0 0 UNKNOWN ()) 4 0 (5 6 7 8 9 10 11 12 13
 14 15 16 17 18 19 20) () 0 () () () 0 0)
 21 'dtm_wrapper_interface' 'dtm_wrapper_interfaces' '' 1 ((PROCEDURE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 SUBROUTINE GENERIC) (
 UNKNOWN 0 0 0 0 UNKNOWN ()) 0 0 () () 0 () () () 0 0)
-2 'load_config' 'dtm_wrapper_interfaces' '' 1 ((PROCEDURE UNKNOWN-INTENT
+3 'load_config' 'dtm_wrapper_interfaces' '' 1 ((PROCEDURE UNKNOWN-INTENT
 MODULE-PROC BODY UNKNOWN 0 0 EXTERNAL SUBROUTINE) (UNKNOWN 0 0 0 0
 UNKNOWN ()) 22 0 (23 24) () 0 () () () 0 0)
 25 'load_config_interface' 'dtm_wrapper_interfaces' '' 1 ((PROCEDURE
@@ -92,5 +92,5 @@ UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0) UNKNOWN-ACCESS ()))
 PUBLIC (() () () ()) () 0 0 92916820)
 )
 
-('dtm_wrapper' 0 3 'dtm_wrapper_interface' 0 21 'load_config' 0 2
+('dtm_wrapper' 0 2 'dtm_wrapper_interface' 0 21 'load_config' 0 3
 'load_config_interface' 0 25)

@@ -1,11 +1,11 @@
-function [results] = plotAndAnalyzeDensityByLatitude(firstDatenum, ae, timestamps1min, aeIntegral, timestampsAeInt, timestamps1minFixed, correctedDensity, msisDensity, jbDensity, aeProxyDensity,...
+function [results] = plotAndAnalyzeDensityByLatitude(firstDatenum, ae, timestamps1min, aeIntegral, timestampsAeInt, timestamps1minFixed, correctedDensity, msisDensity, jbDensity, dtmDensity, aeProxyDensity,...
     timestamps10s, magneticLatitude, timeOfDay, plotFigures, results)
 % plotCorrectedDensityLatitudes(ae, timestamps1min, correctedDensity, timestamps10s, latitude, timestampsDatenum, computeLatitudes);
     
 [limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps10s, magneticLatitude);
 
 [crossingTimes, goceDensityByLatitude, msisDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestampsAeInt, timestamps10s, magneticLatitude, ...
-    correctedDensity, msisDensity, jbDensity, aeProxyDensity, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay);
+    correctedDensity, msisDensity, jbDensity, dtmDensity, aeProxyDensity, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay);
 
 if plotFigures ~= 0
     analyzeLagByLatitude(timestamps1min, ae, goceDensityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay, 'Goce');
@@ -15,7 +15,7 @@ results = plotAndAnalyzeByHemisphere(firstDatenum, goceDensityByLatitude, ae, cr
 
 end
 
-function plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, regriddedLatitude, regriddedTime, regriddedGoceDensity, regriddedMsisDensity, regriddedJbDensity, regriddedAeProxy, timeOfDay)
+function plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, regriddedLatitude, regriddedTime, regriddedGoceDensity, regriddedMsisDensity, regriddedJbDensity, regriddedDtmDensity, regriddedAeProxy, timeOfDay)
 % plotDensityLatitudeTimeSurf(averagedDensity, averagedLatitude, timestamps
 
 persistent colormapFigHandle
@@ -27,7 +27,8 @@ if ~isempty(strfind(lower(timeOfDay), 'morning'))
     goceDensitySubplot = 1;
     msisDensitySubplot = 3;
     jbDensitySubplot = 5;
-    aeProxySubplot = 7;
+    dtmDensitySubplot = 7;
+    aeProxySubplot = 9;
     minDensity = min(regriddedGoceDensity(:));
     maxDensity = max(regriddedGoceDensity(:));
 else
@@ -35,7 +36,8 @@ else
     goceDensitySubplot = 2;
     msisDensitySubplot = 4;
     jbDensitySubplot = 6;
-    aeProxySubplot = 8;
+    dtmDensitySubplot = 8;
+    aeProxySubplot = 10;
 end
 secondsInDay = 60 * 60 * 24;
 minDensityTime = min(regriddedTime(:));
@@ -56,11 +58,13 @@ firstDayGoce = regriddedGoceDensity(firstDayIndices);
 firstDayMsis = regriddedMsisDensity(firstDayIndices);
 firstDayAe = regriddedAeProxy(firstDayIndices);
 firstDayJb = regriddedJbDensity(firstDayIndices);
+firstDayDtm = regriddedDtmDensity(firstDayIndices);
 msisMultiplier = mean(firstDayGoce(:) ./ firstDayMsis(:));
 aeMultiplier = mean(firstDayGoce(:) ./ firstDayAe(:));
 jbMultiplier = mean(firstDayGoce(:) ./ firstDayJb(:));
+dtmMultiplier = mean(firstDayGoce(:) ./ firstDayDtm(:));
 
-plotIndices = (regriddedTime >= minDensityTime + 1.5 & regriddedTime <= maxDensityTime - 1.5);
+plotIndices = (regriddedTime >= minDensityTime + 0.0 & regriddedTime <= maxDensityTime);
 [plotRows, ~] = find(plotIndices);
 plotRows = unique(plotRows);
 
@@ -70,17 +74,18 @@ regriddedLatitude = regriddedLatitude(plotRows, :);
 regriddedMsisDensity = msisMultiplier * regriddedMsisDensity(plotRows, :);
 regriddedAeProxy = aeMultiplier * regriddedAeProxy(plotRows, :);
 regriddedJbDensity = jbMultiplier * regriddedJbDensity(plotRows, :);
+regriddedDtmDensity = dtmMultiplier * regriddedDtmDensity(plotRows, :);
 
 plotHeight = maxDensity;
 
-minDensityTime = minDensityTime + 1.5;
-maxDensityTime = maxDensityTime - 1.5;
+minDensityTime = minDensityTime + 0.0;
+maxDensityTime = maxDensityTime - 0.0;
 [~, minAeIndex] = min(abs(timestamps1min - minDensityTime));
 [~, maxAeIndex] = min(abs(timestamps1min - maxDensityTime));
 aeIndicesToPlot = minAeIndex:maxAeIndex;
 
 
-subplotAxesHandle = subplot(4,2,goceDensitySubplot);
+subplotAxesHandle = subplot(5,2,goceDensitySubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedGoceDensity, 'EdgeColor', 'None')
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
@@ -102,7 +107,7 @@ set(aeAxesHandle, 'Color', 'none', 'XTick', []);
 hold off;
 set(gca, 'fontsize', 12)
 
-subplotAxesHandle = subplot(4,2,msisDensitySubplot);
+subplotAxesHandle = subplot(5,2,msisDensitySubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedMsisDensity, 'EdgeColor', 'None')
 
 xlim([minDensityTime maxDensityTime]);
@@ -125,7 +130,7 @@ set(aeAxesHandle, 'Color', 'none', 'XTick', []);
 hold off;
 set(gca, 'fontsize', 12)
 
-subplotAxesHandle = subplot(4,2,jbDensitySubplot);
+subplotAxesHandle = subplot(5,2,jbDensitySubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedJbDensity, 'EdgeColor', 'None')
 
 xlim([minDensityTime maxDensityTime]);
@@ -148,7 +153,32 @@ set(aeAxesHandle, 'Color', 'none', 'XTick', []);
 hold off;
 set(gca, 'fontsize', 12)
 
-subplotAxesHandle = subplot(4,2,aeProxySubplot);
+
+subplotAxesHandle = subplot(5,2,dtmDensitySubplot);
+surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedDtmDensity, 'EdgeColor', 'None')
+
+xlim([minDensityTime maxDensityTime]);
+ylim([minLat maxLat]);
+caxis([minDensity maxDensity])
+colorbar('Location', 'EastOutside');
+view(2);
+ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+title(['DTM-2013 ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+set(gca, 'fontsize', 12)
+
+hold all;
+aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
+aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * plotHeight, 'k');
+set(aeLineHandle, 'LineWidth', 0.1)
+view(2);
+set(aeAxesHandle, 'yaxislocation', 'right');
+ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
+set(aeAxesHandle, 'Color', 'none', 'XTick', []);
+hold off;
+set(gca, 'fontsize', 12)
+
+
+subplotAxesHandle = subplot(5,2,aeProxySubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedAeProxy, 'EdgeColor', 'None')
 
 xlim([minDensityTime maxDensityTime]);
@@ -207,7 +237,7 @@ limitedLatitude = limitedLatitude(newIndices);
 end
 
 function [crossingTimes, goceDensityByLatitude, msisDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestamps1min, timestamps10s, magneticLatitude, ...
-    correctedDensity, msisDensity, jbDensity, aeProxyDensity, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay)
+    correctedDensity, msisDensity, jbDensity, dtmDensity, aeProxyDensity, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay)
 %
 
 oneDegreeStep = minAllowedLatitude:maxAllowedLatitude;
@@ -215,12 +245,14 @@ if plotFigures == 0
     goceInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, correctedDensity);
     msisInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, msisDensity);
     jbInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, jbDensity);
+    dtmInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, dtmDensity);
     aeProxyInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, aeProxyDensity);
     for i = 1:length(oneDegreeStep)
         crossingTimes(:,i) = latitudeCrossingTimes(limitedLatitude, limitedTimestamps, oneDegreeStep(i));    
         goceDensityByLatitude(:,i) = goceInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
         msisDensityByLatitude(:,i) = msisInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
         jbDensityByLatitude(:,i) = jbInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
+        dtmDensityByLatitude(:,i) = dtmInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
         aeProxyDensityByLatitude(:,i) = aeProxyInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
     end
 else
@@ -232,11 +264,13 @@ else
     regriddedGoceDensity = interp1(timestamps10s, correctedDensity, regriddedTime, 'spline');
     regriddedMsisDensity = interp1(timestamps10s, msisDensity, regriddedTime, 'spline');
     regriddedJbDensity = interp1(timestamps10s, jbDensity, regriddedTime, 'spline');
+    regriddedDtmDensity = interp1(timestamps10s, dtmDensity, regriddedTime, 'spline');
     regriddedAeProxy = interp1(timestamps10s, aeProxyDensity, regriddedTime, 'spline');
     crossingTimes = regriddedTime(:,1:4:end);
     goceDensityByLatitude = regriddedGoceDensity(:,1:4:end);
     msisDensityByLatitude = regriddedMsisDensity(:,1:4:end);
     jbDensityByLatitude = regriddedJbDensity(:,1:4:end);
+    dtmDensityByLatitude = regriddedDtmDensity(:,1:4:end);
     aeProxyDensityByLatitude = regriddedAeProxy(:,1:4:end);
     
     numOfOrbits = length(regriddedTime(:,1));
@@ -246,23 +280,26 @@ else
         goceDensityThisLatitude = regriddedGoceDensity(:,i);
         msisDensityThisLatitude = regriddedMsisDensity(:,i);
         jbDensityThisLatitude = regriddedJbDensity(:,i);
+        dtmDensityThisLatitude = regriddedDtmDensity(:,i);
         aeProxyThisLatitude = regriddedAeProxy(:,i);
 
         tInterp = interp1(1:numOfOrbits, timeThisLatitude, 1:1/20:numOfOrbits);
         interpolatedGoceDensity = interp1(timeThisLatitude, goceDensityThisLatitude, tInterp, 'spline');
         interpolatedMsisDensity = interp1(timeThisLatitude, msisDensityThisLatitude, tInterp, 'spline');
         interpolatedJbDensity = interp1(timeThisLatitude, jbDensityThisLatitude, tInterp, 'spline');
+        interpolatedDtmDensity = interp1(timeThisLatitude, dtmDensityThisLatitude, tInterp, 'spline');
         interpolatedAeProxy = interp1(timeThisLatitude, aeProxyThisLatitude, tInterp, 'spline');
 
         latitudeMatrix(:,i) = ones(length(tInterp), 1) * oneQuarterDegreeStep(i); 
         goceDensityMatrix(:,i) = interpolatedGoceDensity;
         msisDensityMatrix(:,i) = interpolatedMsisDensity;
         jbDensityMatrix(:,i) = interpolatedJbDensity;
+        dtmDensityMatrix(:,i) = interpolatedDtmDensity;
         aeProxyDensityMatrix(:,i) = interpolatedAeProxy;
         timeMatrix(:,i) = tInterp;
     end
 
-    plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, latitudeMatrix, timeMatrix, goceDensityMatrix, msisDensityMatrix, jbDensityMatrix, aeProxyDensityMatrix, timeOfDay);
+    plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, latitudeMatrix, timeMatrix, goceDensityMatrix, msisDensityMatrix, jbDensityMatrix, dtmDensityMatrix, aeProxyDensityMatrix, timeOfDay);
 end
 
 end

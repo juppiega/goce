@@ -60,7 +60,7 @@ if strcmpi(indexName, 'ae') && plotFigures ~=0
     
     figure('Color', 'white');
     subplot(3,1,1)
-    plot(timestampsInDaysFixed, density(densityAverIntIndices) * 1e-12, 'k')
+    plot(timestampsInDaysFixed, density(densityAverIntIndices) * 1e-11, 'k')
     ylabel('Density (kg/m^3)', 'FontSize', 18);
     axis tight
     datetick('x', 'dd', 'keeplimits')

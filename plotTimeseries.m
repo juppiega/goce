@@ -38,7 +38,7 @@ legend('GOCE', 'MSIS', 'JB2008', 'AE Model')
 datetick('x', 'dd')
 title('Model low pass filtered density comparison')
 xlabel(['Date on ', datestr(timestampsInDays1minFixed(1), 'mmm yyyy')])
-ylabel('Density [10^{-12} kg/m^3]')
+ylabel('Density [10^{-11} kg/m^3]')
 
 timeseriesFigHandle = figure('units','normalized','outerposition',[0 0 1 1]);
 subplot(2,2,1)
