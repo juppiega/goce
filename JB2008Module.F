@@ -558,7 +558,7 @@ C
       ENDIF
 C
       RETURN
-      END
+      END SUBROUTINE
 
 C***********************************************************************
 
@@ -585,7 +585,7 @@ C     Evaluates Equation (1)
     1 AMB = DZ * AMB + C(J)
       XAMBAR = AMB
       RETURN
-      END
+      END FUNCTION
 
 C***********************************************************************
 
@@ -597,7 +597,7 @@ C     Evaluates Equation (8)
 
       XGRAV = 9.80665D0/(1.D0 + Z/6356.766D0)**2
       RETURN
-      END
+      END FUNCTION
 
 C***********************************************************************
 
@@ -617,7 +617,7 @@ C     Evaluates Equation (10) or Equation (13), depending on Z
       RETURN
  1    XLOCAL = TC(1) + TC(3) * DATAN(TC(4)*DZ*(1.D0 + 4.5D-6*DZ**2.5))
       RETURN
-      END
+      END FUNCTION
 
 C***********************************************************************
 

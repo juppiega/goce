@@ -62,16 +62,37 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
                  ! 5 molecular oxygen
                  ! 6 atomic nitrogen (currently unused)
 
-    real :: pi, degreesToRadians, m, c
+    real :: pi, degreesToRadians, m, c, zero
+
+    character(len = 80) temp
 
     pi = 4.0 * atan(1.0)
     degreesToRadians = pi / 180.0
-    m = 0.521660985377791 ! Constants to convert am -> km
-    c = 1.575168678069221
+
     
     ! Check input and output argument counts
-    if(nrhs /= 9) then
-       call mexErrMsgTxt('DTM2013: 9 inputs required!')
+    if(nrhs /= 9 .and. nrhs /= 0) then
+       call mexErrMsgTxt('DTM2013: 9 or 0 inputs required!')
+    endif
+
+    if(nrhs == 0) then
+        call P_ReadDTM12 ()
+        
+        zero = 0.0
+        plhs(1) = mxCreateDoubleScalar(dble(zero))
+        plhs(2) = mxCreateDoubleScalar(dble(zero))
+        plhs(3) = mxCreateDoubleScalar(dble(zero))
+        plhs(4) = mxCreateDoubleScalar(dble(zero))
+        plhs(5) = mxCreateDoubleScalar(dble(zero))
+    
+        ! The sixth output is a matrix of concentrations: d
+        plhs(6) = mxCreateDoubleMatrix(6,1,0) ! 6 by 1 real matrix
+        output_ptr = mxGetPr(plhs(6))
+        output_size = 6
+        d = 0.0
+        call mxCopyReal8ToPtr(dble(d), output_ptr, output_size) 
+
+        return
     endif
 
     if(nlhs > 6) then
@@ -89,7 +110,7 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
     am3h = mxGetScalar(prhs(8))
     am24hA = mxGetScalar(prhs(9))
 
-    !Convert am -> km
+    ! Convert am -> km
     km3h = max(0.0, a2K(am3h))
     km24hA = max(0.0, a2K(am24hA))
 
@@ -103,16 +124,31 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
     km(3) = km24hA
     km(4) = 0.0
 
-    !First, a call to P_ReadDTM13 is required to initialize the dtm2013 model
-    call P_ReadDTM12 ()
+    ! Print Debug information
+    !write(temp, *) f(1)
+    !k=mexPrintf('f(1): '//temp//achar(13))
+    !write(temp, *) fbar(1)
+    !k=mexPrintf('fbar(1): '//temp//achar(13))
+    !write(temp, *) km(1)
+    !k=mexPrintf('km(1): '//temp//achar(13))
+    !write(temp, *) km(3)
+    !k=mexPrintf('km(3): '//temp//achar(13))
+    !write(temp, *) alt
+    !k=mexPrintf('alt: '//temp//achar(13))
+    !write(temp, *) lst
+    !k=mexPrintf('lst: '//temp//achar(13))
+    !write(temp, *) lat
+    !k=mexPrintf('lat: '//temp//achar(13))
+    !write(temp, *) lon
+    !k=mexPrintf('lon: '//temp//achar(13))
 
-    !Now call dtm2013
-    call dtm2012(doy, f, fbar, km, alt, lst, lat, lon, tz, tinf, tg120, &
-                 density, d, meanMolarMass)
-    
-    ! Convert lst back to hours, and compute uncertainty
-    !lst = lst * 24.0 / (2.0 * pi)
-    !call density_uncertainty(alt, lat, lst, f(1), km(1), densityUncert)
+    ! First, a call to P_ReadDTM13 is required to initialize the dtm2013 model
+    !call P_ReadDTM12 ()
+
+    ! Now call dtm2013 *****************************************************
+    call dtm2012(doy, f, fbar, km, alt, lst, lat, lon, tz, tinf, tg120, & !*
+                 density, d, meanMolarMass)                               !*
+    ! **********************************************************************
     
     densityUncert = 1E-30
 

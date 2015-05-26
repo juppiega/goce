@@ -1,10 +1,15 @@
 function readFiles()
 %
 
-poolobj = gcp('nocreate'); % If no pool, do not create new one.
-if isempty(poolobj)
-    parpool();
+% poolobj = gcp('nocreate'); % If no pool, do not create new one.
+% if isempty(poolobj)
+%     parpool();
+% end
+
+if(matlabpool('size')==0)
+    matlabpool;
 end
+
 
 tic;
 [ae, timestampsAeDatenum] = readAeFiles();
@@ -176,7 +181,7 @@ ap(1:firstHour/3) = [];
 
 amFile = fopen('am_file_spider.dat');
 if amFile == -1
-    error('am File open unsuccesful! Check that you have a file "m_file_spider.data" in your WORKING DIRECTORY.')
+    error('am File open unsuccesful! Check that you have a file "am_file_spider.data" in your WORKING DIRECTORY.')
 end
 
 amData = textscan(amFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f', 'MultipleDelimsAsOne',1);
@@ -269,13 +274,15 @@ end
 solarData = textscan(solarFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f', 'MultipleDelimsAsOne',1, 'CommentStyle','//');
 F30 = solarData{14};
 F30A = solarData{15};
+F10Dtm = solarData{5};
+F30toF10 = mean(F10Dtm ./ F30);
 
 year = solarData{1};
 month = solarData{2};
 day = solarData{3};
 F30datenum = datenum(year, month, day);
-F30 = interp1(F30datenum, F30, indexDatenums, 'nearest', 'extrap');
-F30A = interp1(F30datenum, F30A, indexDatenums, 'nearest', 'extrap');
+F30 = F30toF10 * interp1(F30datenum, F30, indexDatenums, 'nearest', 'extrap');
+F30A = F30toF10 * interp1(F30datenum, F30A, indexDatenums, 'nearest', 'extrap');
 
 end
 
@@ -753,6 +760,7 @@ p.stop;
 dtm2013Density270km = nan(size(density));
 dtm2013DensityVariableAlt = nan(size(density));
 dtm2013Density270kmNoAm = nan(size(density));
+dtm2013_mex();
 
 p = TimedProgressBar( targetCount, barWidth, ...
                     'Running DTM-2013, ETA ', ...
