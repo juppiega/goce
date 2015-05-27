@@ -15,9 +15,9 @@ end
 
 allTimestamps = timestamps10sFixed;
 
-%compareGoceDensityToModel(densityNoBg, msisDensity270km, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'NRLMSISE00', firstDatenum);
-%compareGoceDensityToModel(densityNoBg, jb2008Density270km, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'JB2008', firstDatenum);
-%compareGoceDensityToModel(densityNoBg, dtm2013Density270km, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'DTM-2013', firstDatenum);
+compareGoceDensityToModel(densityNoBg, msisDensity270km, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'NRLMSISE00', firstDatenum);
+compareGoceDensityToModel(densityNoBg, jb2008Density270km, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'JB2008', firstDatenum);
+compareGoceDensityToModel(densityNoBg, dtm2013Density270km, ae, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'DTM-2013', firstDatenum);
 
 intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
 
@@ -61,7 +61,7 @@ if ~exist('predictedStormDensity', 'var')
     
 end
 
-%compareGoceDensityToModel(densityNoBg, predictedStormDensity, aeAll, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'AE proxy model', firstDatenum);
+compareGoceDensityToModel(densityNoBg, predictedStormDensity, aeAll, timestamps10sFixed, doy, latitude, aeIntegrals(:,3), timestampsAeDatenum, timestampsDensityDatenum, results, 'AE proxy model', firstDatenum);
 [morningAeProxy, eveningAeProxy] = splitPredictedDensity(timestamps10sFixed, morningTimestamps10s, eveningTimestamps10s, predictedStormDensity);
 
 end

@@ -70,7 +70,7 @@ function results = initialize()
 % end
 
 if(matlabpool('size')==0)
-    matlabpool;
+    matlabpool(16);
 end
 
 results = {};
