@@ -32,7 +32,7 @@ tic;
 [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, ap, timestamps3h, timestamps3hFixed] =...
     giveApValsForMSIS(apAll, amAll, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum);
 
-[densityNoBg, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h]  = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDensityDatenum, doy,...
+[densityNoBg, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, hwmU, hwmV, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h]  = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDensityDatenum, doy,...
     timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, am3h, amAver24h, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
 measuredDensity = density;
 
@@ -86,6 +86,8 @@ save('goceVariables.mat', 'dtm2013DensityVariableAlt', '-append')
 save('goceVariables.mat', 'jb2008Density270km', '-append')
 save('goceVariables.mat', 'jb2008Density270kmNoDtc', '-append')
 save('goceVariables.mat', 'jb2008DensityVariableAlt', '-append')
+save('goceVariables.mat', 'hwmU', '-append')
+save('goceVariables.mat', 'hwmV', '-append')
 save('goceVariables.mat', 'morningFourierGrid', '-append')
 save('goceVariables.mat', 'eveningFourierGrid', '-append')
 save('goceVariables.mat', 'morningLatDoy', '-append')
@@ -684,7 +686,7 @@ timestamps3h = timestamps3h(ismember(timestamps3h, timestamps1min))';
 
 end
 
-function [correctedDensity, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDatenum, doy,...
+function [correctedDensity, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, hwmU, hwmV, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDatenum, doy,...
           timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longtitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, am3h, amAver24h, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
       
 fprintf('%s\n', 'Computing normalized densities with models. This may take even half an hour.')
@@ -706,6 +708,8 @@ secondsInDay = 24 * 60 * 60;
 seconds = (timestampsDatenum - floor(timestampsDatenum)) * secondsInDay;
 
 julianDay = timestampsDatenum + datenumToJulian;
+
+obsYear = year(timestampsDatenum);
 
 targetCount = round(length(modelingIndices) / 10000);
 barWidth = 50;
@@ -776,6 +780,24 @@ for i = modelingIndices
     
     [~, ~, dtm2013Density270kmNoAm(i),~,~,~] = dtm2013_mex(doyDecimal(i), 270, latitude(i), longtitude(i), ...
         solarTime(i), F30(i), F30A(i), 0.0, 0.0);
+    
+    if mod(i, 10000) == 0
+     p.progress;
+    end
+end
+p.stop;
+
+hwmU = nan(size(density));
+hwmV = nan(size(density));
+hwm07_mex();
+
+p = TimedProgressBar( targetCount, barWidth, ...
+                    'Running HWM07, ETA ', ...
+                    '. Now at ', ...
+                    'Completed in ' );
+                
+for i = modelingIndices
+    [hwmU(i), hwmV(i)] = hwm07_mex(obsYear(i), doyDecimal(i), altitudeInKm(i), latitude(i), longtitude(i), apNow(i));
     
     if mod(i, 10000) == 0
      p.progress;

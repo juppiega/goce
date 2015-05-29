@@ -1,0 +1,51 @@
+GFORTRAN module created from HWM07Module.F90 on Fri May 29 13:33:57 2015
+If you edit this, you'll get what you deserve.
+
+(() () () () () () () () () () () () () () () () () () () () ())
+
+()
+
+()
+
+()
+
+()
+
+(2 'a' 'vshengine' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+DIMENSION) (REAL 8 ()) 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 ()) 0 '0')
+(CONSTANT (INTEGER 4 ()) 0 '11') (CONSTANT (INTEGER 4 ()) 0 '0') (
+CONSTANT (INTEGER 4 ()) 0 '11')) 0 () ())
+3 'c' 'vshengine' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+DIMENSION) (REAL 8 ()) 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 ()) 0 '0')
+(CONSTANT (INTEGER 4 ()) 0 '11') (CONSTANT (INTEGER 4 ()) 0 '0') (
+CONSTANT (INTEGER 4 ()) 0 '11')) 0 () ())
+4 'mmax' 'vshengine' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN)
+(INTEGER 4 ()) 0 0 () (CONSTANT (INTEGER 4 ()) 0 '11') () 0 () ())
+5 'd' 'vshengine' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+DIMENSION) (REAL 8 ()) 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 ()) 0 '0')
+(CONSTANT (INTEGER 4 ()) 0 '11') (CONSTANT (INTEGER 4 ()) 0 '0') (
+CONSTANT (INTEGER 4 ()) 0 '11')) 0 () ())
+6 'p1' 'vshengine' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+DIMENSION) (REAL 8 ()) 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 ()) 0 '0')
+(CONSTANT (INTEGER 4 ()) 0 '11') (CONSTANT (INTEGER 4 ()) 0 '0') (
+CONSTANT (INTEGER 4 ()) 0 '11')) 0 () ())
+7 'p0' 'vshengine' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+DIMENSION) (REAL 8 ()) 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 ()) 0 '0')
+(CONSTANT (INTEGER 4 ()) 0 '11') (CONSTANT (INTEGER 4 ()) 0 '0') (
+CONSTANT (INTEGER 4 ()) 0 '11')) 0 () ())
+8 'nmax' 'vshengine' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN)
+(INTEGER 4 ()) 0 0 () (CONSTANT (INTEGER 4 ()) 0 '11') () 0 () ())
+9 'b' 'vshengine' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+DIMENSION) (REAL 8 ()) 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 ()) 0 '0')
+(CONSTANT (INTEGER 4 ()) 0 '11') (CONSTANT (INTEGER 4 ()) 0 '0') (
+CONSTANT (INTEGER 4 ()) 0 '11')) 0 () ())
+10 'vshengine' 'vshengine' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN) (UNKNOWN 0 ()) 0 0 () () 0 () ())
+11 'sf' 'vshengine' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+DIMENSION) (REAL 8 ()) 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 ()) 0 '0')
+(CONSTANT (INTEGER 4 ()) 0 '11') (CONSTANT (INTEGER 4 ()) 0 '0') (
+CONSTANT (INTEGER 4 ()) 0 '11')) 0 () ())
+)
+
+('sf' 0 11 'b' 0 9 'a' 0 2 'nmax' 0 8 'd' 0 5 'c' 0 3 'mmax' 0 4 'p0' 0
+7 'p1' 0 6 'vshengine' 0 10)
