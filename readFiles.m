@@ -709,7 +709,8 @@ seconds = (timestampsDatenum - floor(timestampsDatenum)) * secondsInDay;
 
 julianDay = timestampsDatenum + datenumToJulian;
 
-obsYear = year(timestampsDatenum);
+obsYear = datevec(timestampsDatenum);
+obsYear = obsYear(:,1);
 
 targetCount = round(length(modelingIndices) / 10000);
 barWidth = 50;

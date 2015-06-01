@@ -1,7 +1,12 @@
-GFORTRAN module created from dwm07b.F90 on Fri May 29 13:33:57 2015
-If you edit this, you'll get what you deserve.
+GFORTRAN module version '10' created from /home/juho/goce/dwm07b.F90
+MD5:55d252e5b7dd9730562b81e0efdfde8c -- If you edit this, you'll get what you deserve.
 
-(() () () () () () () () () () () () () () () () () () () () ())
+(() () () () () () () () () () () () () () () () () () () () () () () ()
+() () ())
+
+()
+
+()
 
 ()
 
@@ -9,38 +14,44 @@ If you edit this, you'll get what you deserve.
 
 ()
 
-()
-
-(2 'coeff' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
-ALLOCATABLE DIMENSION) (REAL 4 ()) 0 0 () (1 DEFERRED () ()) 0 () ())
-3 'modelinit' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
-UNKNOWN) (LOGICAL 4 ()) 0 0 () () 0 () ())
-4 'mmax' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN)
-(INTEGER 4 ()) 0 0 () () 0 () ())
-5 'lmax' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN)
-(INTEGER 4 ()) 0 0 () () 0 () ())
-6 'dwm_module' 'dwm_module' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC
-UNKNOWN) (UNKNOWN 0 ()) 0 0 () () 0 () ())
-7 'nterm' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN)
-(INTEGER 4 ()) 0 0 () () 0 () ())
-8 'termarr' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
-UNKNOWN ALLOCATABLE DIMENSION) (INTEGER 4 ()) 0 0 () (2 DEFERRED () () ()
-()) 0 () ())
-9 'twidth' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN)
-(REAL 4 ()) 0 0 () () 0 () ())
-10 'termval' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
-UNKNOWN ALLOCATABLE DIMENSION) (REAL 4 ()) 0 0 () (2 DEFERRED () () () ())
-0 () ())
-11 'nvshfn' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
-UNKNOWN) (INTEGER 4 ()) 0 0 () () 0 () ())
-12 'defaultdata' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
-UNKNOWN) (CHARACTER 1 ((CONSTANT (INTEGER 4 ()) 0 '128'))) 0 0 () () 0 ()
-())
-13 'vsh_terms' 'dwm_module' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
-UNKNOWN ALLOCATABLE DIMENSION) (REAL 4 ()) 0 0 () (2 DEFERRED () () () ())
-0 () ())
+(2 'coeff' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0 ALLOCATABLE DIMENSION) (REAL 4 0 0 0 REAL ())
+0 0 () (1 0 DEFERRED () ()) 0 () () () 0 0)
+3 'defaultdata' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0) (CHARACTER 1 0 0 0 CHARACTER ((CONSTANT (
+INTEGER 4 0 0 0 INTEGER ()) 0 '128'))) 0 0 () () 0 () () () 0 0)
+4 'dwm_module' 'dwm_module' '' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN 0 0) (UNKNOWN 0 0 0 0 UNKNOWN ()) 0 0 () () 0 () () () 0
+0)
+5 'lmax' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0) (INTEGER 4 0 0 0 INTEGER ()) 0 0 () () 0 () ()
+() 0 0)
+6 'mmax' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0) (INTEGER 4 0 0 0 INTEGER ()) 0 0 () () 0 () ()
+() 0 0)
+7 'modelinit' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0) (LOGICAL 4 0 0 0 LOGICAL ()) 0 0 () () 0 () ()
+() 0 0)
+8 'nterm' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0) (INTEGER 4 0 0 0 INTEGER ()) 0 0 () () 0 () ()
+() 0 0)
+9 'nvshfn' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0) (INTEGER 4 0 0 0 INTEGER ()) 0 0 () () 0 () ()
+() 0 0)
+10 'termarr' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0 ALLOCATABLE DIMENSION) (INTEGER 4 0 0 0
+INTEGER ()) 0 0 () (2 0 DEFERRED () () () ()) 0 () () () 0 0)
+11 'termval' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0 ALLOCATABLE DIMENSION) (REAL 4 0 0 0 REAL ())
+0 0 () (2 0 DEFERRED () () () ()) 0 () () () 0 0)
+12 'twidth' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0) (REAL 4 0 0 0 REAL ()) 0 0 () () 0 () () () 0
+0)
+13 'vsh_terms' 'dwm_module' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE 0 0 ALLOCATABLE DIMENSION) (REAL 4 0 0 0 REAL ())
+0 0 () (2 0 DEFERRED () () () ()) 0 () () () 0 0)
 )
 
-('vsh_terms' 0 13 'defaultdata' 0 12 'coeff' 0 2 'nvshfn' 0 11 'nterm' 0
-7 'dwm_module' 0 6 'lmax' 0 5 'mmax' 0 4 'modelinit' 0 3 'termval' 0 10
-'termarr' 0 8 'twidth' 0 9)
+('coeff' 0 2 'defaultdata' 0 3 'dwm_module' 0 4 'lmax' 0 5 'mmax' 0 6
+'modelinit' 0 7 'nterm' 0 8 'nvshfn' 0 9 'termarr' 0 10 'termval' 0 11
+'twidth' 0 12 'vsh_terms' 0 13)
