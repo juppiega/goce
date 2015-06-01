@@ -1,8 +1,8 @@
 function [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, morningJbDensity, morningDtmDensity, eveningDtmDensity, eveningMsisDensity, eveningJbDensity, morningAeProxy, eveningAeProxy, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
  timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, ...
- morningMagneticLatitude, eveningMagneticLatitude, latitude, allTimestamps, cellArrayLength, firstDatenum] ...
- = compareToMsisAndGiveVariables(threshold, results)
+ morningMagneticLatitude, eveningMagneticLatitude, latitude, allTimestamps, cellArrayLength, firstDatenum, winds] ...
+ = compareToModelsAndGiveVariables(threshold, results)
 
 if exist('goceVariables.mat', 'file') == 2 
     % Try to load the data file
@@ -21,9 +21,11 @@ allTimestamps = timestamps10sFixed;
 
 intervalsOfInterest = findInterestingIntervals(ae, timestampsAeDatenum, timestamps1minFixed, averagedDensityNoBg, epsilonQualityFlag, timestampsEpsilonDatenum, timestampsDensityDatenum, threshold);
 
+winds = struct('morningGoceU', crwindEast, 'morningGoceV', crwindNorth, 'morningHwmU', hwmU, 'morningHwmV', hwmV);
+
 [morningTimestamps10s, morningMagneticLatitude, morningDensityNoBg, morningMsisDensity, morningJbDensity, morningDtmDensity, eveningDtmDensity, eveningTimestamps10s, ...
-    eveningMagneticLatitude, morningLatitudeForFit, eveningLatitudeForFit, eveningDensityNoBg, eveningMsisDensity, eveningJbDensity, morningIndex, eveningIndex] = ...
-    splitBySolarTime(timestamps10sFixed, magneticLatitude, latitude, densityNoBg, msisDensity270km, jb2008Density270km, dtm2013Density270km, densityIndex, solarTime);
+    eveningMagneticLatitude, morningLatitudeForFit, eveningLatitudeForFit, eveningDensityNoBg, eveningMsisDensity, eveningJbDensity, morningIndex, eveningIndex, winds] = ...
+    splitBySolarTime(timestamps10sFixed, magneticLatitude, latitude, densityNoBg, msisDensity270km, jb2008Density270km, dtm2013Density270km, densityIndex, winds, solarTime);
 morningTimestamps10sAll = morningTimestamps10s;
 eveningTimestamps10sAll = eveningTimestamps10s;
 % 
@@ -34,10 +36,10 @@ end
 aeAll = ae;
 [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, morningJbDensity, morningDtmDensity, eveningDtmDensity, eveningMsisDensity, eveningJbDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1min, timestampsAbsB, ...
- timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
+ timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, winds, cellArrayLength] ...
  = sliceToInterestingIntervals(ae, ap, absB, vBz, densityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, morningJbDensity, morningDtmDensity, eveningDtmDensity, eveningMsisDensity, eveningJbDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
- morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, intervalsOfInterest);
+ morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, winds, intervalsOfInterest);
 
 if ~exist('predictedStormDensity', 'var')
     
@@ -68,21 +70,12 @@ end
 
 
 function [morningTimestamps10s, morningMagneticLatitude, morningDensityNoBg, morningMsisDensity, morningJbDensity, morningDtmDensity, eveningDtmDensity, eveningTimestamps10s, ...
-    eveningMagneticLatitude, morningLatitude, eveningLatitude, eveningDensityNoBg, eveningMsisDensity, eveningJbDensity, morningIndex, eveningIndex] = ...
-    splitBySolarTime(timestamps10s, magneticLatitude, latitude, densityNoBg, msisDensity, jb2008Density, dtmDensity, densityIndex, solarTime)
+    eveningMagneticLatitude, morningLatitude, eveningLatitude, eveningDensityNoBg, eveningMsisDensity, eveningJbDensity, morningIndex, eveningIndex, winds] = ...
+    splitBySolarTime(timestamps10s, magneticLatitude, latitude, densityNoBg, msisDensity, jb2008Density, dtmDensity, densityIndex, winds, solarTime)
 %
 
 morningIndices = find(solarTime <= 12);
 eveningIndices = find(solarTime > 12);
-
-morningTimestamps10s = timestamps10s(morningIndices);
-morningMagneticLatitude = magneticLatitude(morningIndices);
-morningLatitude = latitude(morningIndices);
-morningDensityNoBg = densityNoBg(morningIndices);
-morningMsisDensity = msisDensity(morningIndices);
-morningIndex = densityIndex(morningIndices);
-morningJbDensity = jb2008Density(morningIndices);
-morningDtmDensity = dtmDensity(morningIndices);
 
 eveningTimestamps10s = timestamps10s(eveningIndices);
 eveningMagneticLatitude = magneticLatitude(eveningIndices);
@@ -92,6 +85,23 @@ eveningMsisDensity = msisDensity(eveningIndices);
 eveningIndex = densityIndex(eveningIndices);
 eveningJbDensity = jb2008Density(eveningIndices);
 eveningDtmDensity = dtmDensity(eveningIndices);
+winds.('eveningGoceU') = winds.morningGoceU(eveningIndices);
+winds.('eveningGoceV') = winds.morningGoceV(eveningIndices);
+winds.('eveningHwmU') = winds.morningHwmU(eveningIndices);
+winds.('eveningHwmV') = winds.morningHwmV(eveningIndices);
+
+morningTimestamps10s = timestamps10s(morningIndices);
+morningMagneticLatitude = magneticLatitude(morningIndices);
+morningLatitude = latitude(morningIndices);
+morningDensityNoBg = densityNoBg(morningIndices);
+morningMsisDensity = msisDensity(morningIndices);
+morningIndex = densityIndex(morningIndices);
+morningJbDensity = jb2008Density(morningIndices);
+morningDtmDensity = dtmDensity(morningIndices);
+winds.morningGoceU = winds.morningGoceU(morningIndices);
+winds.morningGoceV = winds.morningGoceV(morningIndices);
+winds.morningHwmU = winds.morningHwmU(morningIndices);
+winds.morningHwmV = winds.morningHwmV(morningIndices);
 
 end
 
@@ -903,10 +913,10 @@ end
 
 function [ae, ap, absB, vBz, akasofuEpsilon, averagedDensityNoBg, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, morningJbDensity, morningDtmDensity, eveningDtmDensity, eveningMsisDensity, eveningJbDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minOut, timestampsAbsB, ...
- timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, cellArrayLength] ...
+ timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed, density3h, timestampsDatenum, morningMagneticLatitude, eveningMagneticLatitude, winds, cellArrayLength] ...
  = sliceToInterestingIntervals(ae, ap, absB, vBz, densityAll, morningDensityNoBg, eveningDensityNoBg, ...
  morningMsisDensity, morningJbDensity, morningDtmDensity, eveningDtmDensity, eveningMsisDensity, eveningJbDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
- morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDatenum, intervalsOfInterest)
+ morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDatenum, windTemp, intervalsOfInterest)
 % 
 
 aeTemp = ae; apTemp = ap; morningDensityNoBgTemp = morningDensityNoBg; 
@@ -923,6 +933,8 @@ eveningDensityNoBg = {}; morningMsisDensity = {}; eveningMsisDensity = {}; morni
 eveningTimestamps10s = {}; timestamps1minFixed = {}; timestamps3h = {}; density3h = {}; morningMagneticLatitude = {};
 eveningMagneticLatitude = {}; timestampsAbsB = {}; akasofuEpsilon = {}; vBz = {}; timestampsEpsilon = {}; absB = {}; timestampsDatenum = {};
 timestamps3hFixed = {}; morningDtmDensity = {}; eveningDtmDensity = {};
+winds = struct('morningGoceU', {{}}, 'morningGoceV', {{}}, 'morningHwmU', {{}}, 'morningHwmV', {{}},...
+    'eveningGoceU', {{}}, 'eveningGoceV', {{}}, 'eveningHwmU', {{}}, 'eveningHwmV', {{}});
 
 cellArrayLength = length(intervalsOfInterest(:,1));
 
@@ -980,6 +992,14 @@ for i = 1:cellArrayLength
     eveningTimestamps10s{i} = eveningTimestamps10sTemp(beginIndexEvening10s:endIndexEvening10s);
     morningMagneticLatitude{i} = morningMagneticLatitudeTemp(beginIndexMorning10s:endIndexMorning10s);
     eveningMagneticLatitude{i} = eveningMagneticLatitudeTemp(beginIndexEvening10s:endIndexEvening10s);
+    winds.morningGoceU{i} = windTemp.morningGoceU(beginIndexMorning10s:endIndexMorning10s);
+    winds.morningGoceV{i} = windTemp.morningGoceV(beginIndexMorning10s:endIndexMorning10s);
+    winds.morningHwmU{i} = windTemp.morningHwmU(beginIndexMorning10s:endIndexMorning10s);
+    winds.morningHwmV{i} = windTemp.morningHwmV(beginIndexMorning10s:endIndexMorning10s);
+    winds.eveningGoceU{i} = windTemp.eveningGoceU(beginIndexEvening10s:endIndexEvening10s);
+    winds.eveningGoceV{i} = windTemp.eveningGoceV(beginIndexEvening10s:endIndexEvening10s);
+    winds.eveningHwmU{i} = windTemp.eveningHwmU(beginIndexEvening10s:endIndexEvening10s);
+    winds.eveningHwmV{i} = windTemp.eveningHwmV(beginIndexEvening10s:endIndexEvening10s);
     
     [~, beginIndex3hFixed] = min(abs(timestamps3hFixedTemp - threeHinSec * round(timestamps1min(beginIndex) / threeHinSec)));
     [~, endIndex3hFixed] = min(abs(timestamps3hFixedTemp - threeHinSec * round(timestamps1min(endIndex) / threeHinSec)));
