@@ -47,6 +47,8 @@ measuredDensity = density;
 [morningFourierGrid, eveningFourierGrid, morningLatDoy, eveningLatDoy] = computeFourierGrids(morningGrid, morningBins, eveningGrid, ...
     eveningBins, doy, morningLatitude, eveningLatitude, morningDoy, eveningDoy, timestamps10sFixed, densityIndex, aeIntegrals(:,9), median(F10));
 
+[hwmU, hwmV] = computeCrossTrackWind(hwmU, hwmV, crwindEast, crwindNorth);
+
 if fclose('all') ~= 0
     display('File close unsuccesful - check if some of the files are reserved by another editor.')
 end
@@ -687,7 +689,7 @@ timestamps3h = timestamps3h(ismember(timestamps3h, timestamps1min))';
 end
 
 function [correctedDensity, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, hwmU, hwmV, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h] = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDatenum, doy,...
-          timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longtitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, am3h, amAver24h, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
+          timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, am3h, amAver24h, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
       
 fprintf('%s\n', 'Computing normalized densities with models. This may take even half an hour.')
 
@@ -721,15 +723,15 @@ p = TimedProgressBar( targetCount, barWidth, ...
 
 parfor i = modelingIndices
     [~,~,~,~,~,msisDensityVariableAlt(i),~,~,~,~,~]...
-      =nrlmsise_mex(doy(i),seconds(i),altitudeInKm(i),latitude(i),longtitude(i),solarTime(i),msisF81A(i),F10(i),...
+      =nrlmsise_mex(doy(i),seconds(i),altitudeInKm(i),latitude(i),longitude(i),solarTime(i),msisF81A(i),F10(i),...
       ApDaily(i),apNow(i),ap3h(i),ap6h(i),ap9h(i),apAver12To33h(i),apAver36To57h(i));
 
     [~,~,~,~,~,msisDensity270km(i),~,~,~,~,~]...
-      =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longtitude(i),solarTime(i),msisF81A(i),F10(i),...
+      =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longitude(i),solarTime(i),msisF81A(i),F10(i),...
       ApDaily(i),apNow(i),ap3h(i),ap6h(i),ap9h(i),apAver12To33h(i),apAver36To57h(i));
 
     [~,~,~,~,~,msisDensity270kmNoAp(i),~,~,~,~,~]...
-      =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longtitude(i),solarTime(i),msisF81A(i),F10(i), 3);
+      =nrlmsise_mex(doy(i),seconds(i),270,latitude(i),longitude(i),solarTime(i),msisF81A(i),F10(i), 3);
 
     if mod(i, 10000) == 0
      p.progress;
@@ -747,13 +749,13 @@ p = TimedProgressBar( targetCount, barWidth, ...
                     'Completed in ' );
                 
 parfor i = modelingIndices
-    [~,~,jb2008DensityVariableAlt(i)] = jb2008_mex(julianDay(i), altitudeInKm(i), latitude(i), longtitude(i), F10(i), F81A(i), S10(i),...
+    [~,~,jb2008DensityVariableAlt(i)] = jb2008_mex(julianDay(i), altitudeInKm(i), latitude(i), longitude(i), F10(i), F81A(i), S10(i),...
         S81A(i), M10(i), M81A(i), Y10(i), Y81A(i), dtc(i));
     
-    [~,~,jb2008Density270km(i)] = jb2008_mex(julianDay(i), 270, latitude(i), longtitude(i), F10(i), F81A(i), S10(i),...
+    [~,~,jb2008Density270km(i)] = jb2008_mex(julianDay(i), 270, latitude(i), longitude(i), F10(i), F81A(i), S10(i),...
         S81A(i), M10(i), M81A(i), Y10(i), Y81A(i), dtc(i));
     
-    [~,~,jb2008Density270kmNoDtc(i)] = jb2008_mex(julianDay(i), 270, latitude(i), longtitude(i), F10(i), F81A(i), S10(i),...
+    [~,~,jb2008Density270kmNoDtc(i)] = jb2008_mex(julianDay(i), 270, latitude(i), longitude(i), F10(i), F81A(i), S10(i),...
         S81A(i), M10(i), M81A(i), Y10(i), Y81A(i), 0);
     
     if mod(i, 10000) == 0
@@ -773,13 +775,13 @@ p = TimedProgressBar( targetCount, barWidth, ...
                     'Completed in ' );
                 
 for i = modelingIndices
-    [~, ~, dtm2013DensityVariableAlt(i),~,~,~] = dtm2013_mex(doyDecimal(i), altitudeInKm(i), latitude(i), longtitude(i), ...
+    [~, ~, dtm2013DensityVariableAlt(i),~,~,~] = dtm2013_mex(doyDecimal(i), altitudeInKm(i), latitude(i), longitude(i), ...
         solarTime(i), F30(i), F30A(i), am3h(i), amAver24h(i));
     
-    [~, ~, dtm2013Density270km(i),~,~,~] = dtm2013_mex(doyDecimal(i), 270, latitude(i), longtitude(i), ...
+    [~, ~, dtm2013Density270km(i),~,~,~] = dtm2013_mex(doyDecimal(i), 270, latitude(i), longitude(i), ...
         solarTime(i), F30(i), F30A(i), am3h(i), amAver24h(i));
     
-    [~, ~, dtm2013Density270kmNoAm(i),~,~,~] = dtm2013_mex(doyDecimal(i), 270, latitude(i), longtitude(i), ...
+    [~, ~, dtm2013Density270kmNoAm(i),~,~,~] = dtm2013_mex(doyDecimal(i), 270, latitude(i), longitude(i), ...
         solarTime(i), F30(i), F30A(i), 0.0, 0.0);
     
     if mod(i, 10000) == 0
@@ -798,7 +800,7 @@ p = TimedProgressBar( targetCount, barWidth, ...
                     'Completed in ' );
                 
 for i = modelingIndices
-    [hwmU(i), hwmV(i)] = hwm07_mex(obsYear(i), doyDecimal(i), altitudeInKm(i), latitude(i), longtitude(i), apNow(i));
+    [hwmU(i), hwmV(i)] = hwm07_mex(obsYear(i), doyDecimal(i), altitudeInKm(i), latitude(i), longitude(i), apNow(i));
     
     if mod(i, 10000) == 0
      p.progress;
@@ -834,6 +836,19 @@ averagedDensityNoBg = normalize(averagedDensityNoBg, averagedDensity);
 
 density3h = smooth(averagedDensityNoBg, 179);
 density3h = density3h(find(ismember(timestamps1minFixed, timestamps3hFixed)) - 90);
+
+end
+
+function [crwindEast, crwindNorth] = computeCrossTrackWind(fullU, fullV, goceCrwindEast, goceCrwindNorth)
+
+goceMag = sqrt(goceCrwindEast.^2 + goceCrwindNorth.^2);
+crossTrackX = goceCrwindEast ./ goceMag;
+crossTrackY = goceCrwindNorth ./ goceMag;
+
+projectionMag = fullU .* crossTrackX + fullV .* crossTrackY;
+
+crwindEast = projectionMag .* crossTrackX;
+crwindNorth = projectionMag .* crossTrackY;
 
 end
 

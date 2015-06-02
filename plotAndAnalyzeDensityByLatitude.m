@@ -94,12 +94,12 @@ goceVMatrix = goceVMatrix(plotRows, :);
 hwmVMatrix = hwmVMatrix(plotRows, :);
 goceUMatrix = goceUMatrix(plotRows, :);
 hwmUMatrix = hwmUMatrix(plotRows, :);
-i = round(size(regriddedTime, 1) / 20);
-j = round(size(regriddedTime, 2) / 15);
-goceVMatrix = goceVMatrix(1:i:end, 1:j:end);
-goceUMatrix = goceUMatrix(1:i:end, 1:j:end);
-hwmVMatrix = hwmVMatrix(1:i:end, 1:j:end);
-hwmUMatrix = hwmUMatrix(1:i:end, 1:j:end);
+% i = round(size(regriddedTime, 1) / 20);
+% j = round(size(regriddedTime, 2) / 15);
+% goceVMatrix = goceVMatrix(1:i:end, 1:j:end);
+% goceUMatrix = goceUMatrix(1:i:end, 1:j:end);
+% hwmVMatrix = hwmVMatrix(1:i:end, 1:j:end);
+% hwmUMatrix = hwmUMatrix(1:i:end, 1:j:end);
 
 plotHeight = maxDensity;
 
@@ -232,29 +232,33 @@ set(gca, 'fontsize', 12)
 
 figure(windFigHandle);
 
-plotHeight = max(goceVMatrix(:));
-greatestVel = max([max(goceVMatrix(:)), -min(goceVMatrix(:))]);
+goceTotWind = sqrt(goceVMatrix.^2 + goceUMatrix.^2);
+
+
+hwmTotWind = sqrt(hwmVMatrix.^2 + hwmUMatrix.^2);
+plotHeight = max(goceTotWind(:));
+greatestVel = max(goceTotWind(:));%max([max(goceVMatrix(:)), -min(goceVMatrix(:))]);
 
 subplotAxesHandle = subplot(2,2,goceSubplot);
 
-%quiver(subplotAxesHandle, regriddedTime(1:i:end,1:j:end), regriddedLatitude(1:i:end,1:j:end), goceUMatrix, goceVMatrix, 'o')
-quiver(subplotAxesHandle, goceUMatrix, goceVMatrix, 'o')
-% xlim([minDensityTime maxDensityTime]);
-% ylim([minLat maxLat]);
+% %quiver(subplotAxesHandle, regriddedTime(1:i:end,1:j:end), regriddedLatitude(1:i:end,1:j:end), goceUMatrix, goceVMatrix, 'o')
+% quiver(subplotAxesHandle, goceUMatrix, goceVMatrix, 'o')
+% % xlim([minDensityTime maxDensityTime]);
+% % ylim([minLat maxLat]);
+% ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+% title(['Goce wind ', timeOfDay], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+% set(gca, 'fontsize', 12)
+
+surf(subplotAxesHandle, regriddedTime, regriddedLatitude, goceTotWind, 'EdgeColor', 'None')
+xlim([minDensityTime maxDensityTime]);
+ylim([minLat maxLat]);
+colorbar('Location', 'EastOutside');
+caxis([-greatestVel greatestVel])
+view(2);
 ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
 title(['Goce wind ', timeOfDay], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
 set(gca, 'fontsize', 12)
 
-%surf(subplotAxesHandle, regriddedTime, regriddedLatitude, goceVMatrix, 'EdgeColor', 'None')
-% xlim([minDensityTime maxDensityTime]);
-% ylim([minLat maxLat]);
-% colorbar('Location', 'EastOutside');
-% caxis([-greatestVel greatestVel])
-% view(2);
-% ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
-% title(['Goce meridional wind ', timeOfDay], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
-% set(gca, 'fontsize', 12)
-% 
 % hold all;
 % aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
 % aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * plotHeight, 'k');
@@ -270,23 +274,23 @@ set(gca, 'fontsize', 12)
 
 subplotAxesHandle = subplot(2,2,hwmSubplot);
 
-%quiver(subplotAxesHandle, regriddedTime(1:i:end,1:j:end), regriddedLatitude(1:i:end,1:j:end), hwmUMatrix, hwmVMatrix, 'o')
-quiver(subplotAxesHandle, hwmUMatrix, hwmVMatrix, 'o')
-% xlim([minDensityTime maxDensityTime]);
-% ylim([minLat maxLat]);
-ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
-title(['HWM wind ', timeOfDay], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
-set(gca, 'fontsize', 12)
-
-%surf(subplotAxesHandle, regriddedTime, regriddedLatitude, hwmVMatrix, 'EdgeColor', 'None')
-% xlim([minDensityTime maxDensityTime]);
-% ylim([minLat maxLat]);
-% colorbar('Location', 'EastOutside');
-% caxis([-greatestVel greatestVel])
-% view(2);
+% %quiver(subplotAxesHandle, regriddedTime(1:i:end,1:j:end), regriddedLatitude(1:i:end,1:j:end), hwmUMatrix, hwmVMatrix, 'o')
+% quiver(subplotAxesHandle, hwmUMatrix, hwmVMatrix, 'o')
+% % xlim([minDensityTime maxDensityTime]);
+% % ylim([minLat maxLat]);
 % ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
-% title(['HWM07 meridional wind ', timeOfDay], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+% title(['HWM wind ', timeOfDay], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
 % set(gca, 'fontsize', 12)
+
+surf(subplotAxesHandle, regriddedTime, regriddedLatitude, hwmTotWind, 'EdgeColor', 'None')
+xlim([minDensityTime maxDensityTime]);
+ylim([minLat maxLat]);
+colorbar('Location', 'EastOutside');
+caxis([-greatestVel greatestVel])
+view(2);
+ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+title(['HWM07 wind ', timeOfDay], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+set(gca, 'fontsize', 12)
 % 
 % hold all;
 % aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
@@ -359,10 +363,10 @@ else
         regriddedTime(:,i) = latitudeCrossingTimes(limitedLatitude, limitedTimestamps, oneQuarterDegreeStep(i));    
     end
     
-    goceV = smooth(goceV, 15);
-    goceU = smooth(goceU, 15);
-    hwmV = smooth(hwmV, 15);
-    hwmU = smooth(hwmU, 15);
+%     goceV = smooth(goceV, 15);
+%     goceU = smooth(goceU, 15);
+%     hwmV = smooth(hwmV, 15);
+%     hwmU = smooth(hwmU, 15);
     
     regriddedGoceDensity = interp1(timestamps10s, correctedDensity, regriddedTime, 'spline');
     regriddedMsisDensity = interp1(timestamps10s, msisDensity, regriddedTime, 'spline');
