@@ -792,15 +792,14 @@ p.stop;
 
 hwmU = nan(size(density));
 hwmV = nan(size(density));
-hwm07_mex();
 
 p = TimedProgressBar( targetCount, barWidth, ...
                     'Running HWM07, ETA ', ...
                     '. Now at ', ...
                     'Completed in ' );
                 
-for i = modelingIndices
-    [hwmU(i), hwmV(i)] = hwm07_mex(obsYear(i), doyDecimal(i), altitudeInKm(i), latitude(i), longitude(i), apNow(i));
+parfor i = modelingIndices
+    [hwmU(i), hwmV(i)] = hwm14_mex(obsYear(i), doyDecimal(i), altitudeInKm(i), latitude(i), longitude(i), apNow(i));
     
     if mod(i, 10000) == 0
      p.progress;

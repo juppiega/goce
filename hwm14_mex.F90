@@ -1,21 +1,21 @@
 ! *****************************************************************
-! MATLAB® mex-interface for the HWM07 model.                      *
+! MATLAB® mex-interface for the HWM14 model.                      *
 !                                                                 *
 ! By Juho Iipponen (Finnish Meteorological Institute)             *
 !                                                                 *
 ! Building:                                                       *
-! mex FCFLAGS="\$FCFLAGS -O3" -output hwm07_mex apexcord.F90 dwm07b.F90 HWM07Module.F90 hwm07_mex.F90                                                      *
+! mex FCFLAGS="\$FCFLAGS -O3" -output hwm14_mex HWM14Module.F90 hwm14_mex.F90                                                      *
 !                                                                 *
 ! Usage:                                                          *
 ! [zonalW, meridionalW]                                           *
-! = hwm07_mex(year, day_of_year, altitude, latitude, longitude,ap)*
+! = hwm14_mex(year, day_of_year, altitude, latitude, longitude,ap)*
 ! *****************************************************************
 
 #include "fintrf.h"
 !#include "mex.h"
 subroutine mexfunction(nlhs, plhs, nrhs, prhs)
 
-    use HWM07Module ! The model functions.
+    use HWM14Module ! The model functions.
 
     implicit none
 
@@ -51,6 +51,11 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
 
     pi = 4.0 * atan(1.0)
 
+    open(unit=77, file='foo.dat', form='unformatted', access='stream')
+    write(20) zero
+    close(20)
+
+
     
     ! Check input and output argument counts
     if(nrhs /= 6 .and. nrhs /= 0) then
@@ -58,7 +63,7 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
     endif
 
     if(nrhs == 0) then
-        call loadmodel(defaultdata)
+        call inithwm()
         
         zero = 0.0
         plhs(1) = mxCreateDoubleScalar(dble(zero))
@@ -108,8 +113,8 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
     !write(temp, *) ap(2)
     !k=mexPrintf('ap(2): '//temp//achar(13))
 
-    ! Now call HWM07 **************************************************************
-    call hwm07(yearDayInput, secondOfDay, alt, lat, lon, zero,zero,zero,ap,wind) !*
+    ! Now call HWM14 **************************************************************
+    call hwm14(yearDayInput, secondOfDay, alt, lat, lon, zero,zero,zero,ap,wind) !*
     ! *****************************************************************************
 
     !write(temp, *) wind(2)

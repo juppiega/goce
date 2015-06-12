@@ -233,11 +233,19 @@ set(gca, 'fontsize', 12)
 figure(windFigHandle);
 
 goceTotWind = sqrt(goceVMatrix.^2 + goceUMatrix.^2);
-
+upDir = repmat([0 0 1], size(goceTotWind(:)), 1);
+northDir = repmat([0 1 0], size(goceTotWind(:)), 1);
+goceCrWind3d = [goceUMatrix(:), goceVMatrix(:), zeros(size(goceTotWind(:)))];
+ind = (dot(upDir, cross(northDir, goceCrWind3d, 2), 2)) > 0;
+goceTotWind(ind) = -goceTotWind(ind);
 
 hwmTotWind = sqrt(hwmVMatrix.^2 + hwmUMatrix.^2);
+hwmCrWind3d = [hwmUMatrix(:), hwmVMatrix(:), zeros(size(hwmTotWind(:)))];
+ind = (dot(upDir, cross(northDir, hwmCrWind3d, 2), 2)) > 0;
+hwmTotWind(ind) = -hwmTotWind(ind);
+
 plotHeight = max(goceTotWind(:));
-greatestVel = max(goceTotWind(:));%max([max(goceVMatrix(:)), -min(goceVMatrix(:))]);
+greatestVel = max([max(goceVMatrix(:)), -min(goceVMatrix(:))]);
 
 subplotAxesHandle = subplot(2,2,goceSubplot);
 
@@ -249,7 +257,7 @@ subplotAxesHandle = subplot(2,2,goceSubplot);
 % title(['Goce wind ', timeOfDay], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
 % set(gca, 'fontsize', 12)
 
-surf(subplotAxesHandle, regriddedTime, regriddedLatitude, goceTotWind, 'EdgeColor', 'None')
+surf(subplotAxesHandle, regriddedTime, regriddedLatitude, goceVMatrix, 'EdgeColor', 'None')
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
 colorbar('Location', 'EastOutside');
@@ -282,7 +290,7 @@ subplotAxesHandle = subplot(2,2,hwmSubplot);
 % title(['HWM wind ', timeOfDay], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
 % set(gca, 'fontsize', 12)
 
-surf(subplotAxesHandle, regriddedTime, regriddedLatitude, hwmTotWind, 'EdgeColor', 'None')
+surf(subplotAxesHandle, regriddedTime, regriddedLatitude, hwmVMatrix, 'EdgeColor', 'None')
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
 colorbar('Location', 'EastOutside');
