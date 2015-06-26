@@ -23,6 +23,8 @@ tic;
  timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, doy, timestampsAbsB, timestampsEpsilon, firstDatenum, absDensityError, ...
  absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = readDensityFile(timestampsAeDatenum, timestampsAbsBDatenum, timestampsEpsilonDatenum);
 
+[tiegcmDensityVariableAlt, tiegcmDensity270km] = readTiegcmFile(timestampsDensityDatenum);
+
 [aeIntegrals] = computeAeIntegrals(ae, timestamps1min, timestamps10sFixed, absB, timestampsAbsB);
 
 [apAll, amAll, dtc] = readApAndDtcFiles(timestampsDensityDatenum);
@@ -88,6 +90,8 @@ save('goceVariables.mat', 'dtm2013DensityVariableAlt', '-append')
 save('goceVariables.mat', 'jb2008Density270km', '-append')
 save('goceVariables.mat', 'jb2008Density270kmNoDtc', '-append')
 save('goceVariables.mat', 'jb2008DensityVariableAlt', '-append')
+save('goceVariables.mat', 'tiegcmDensity270km', '-append')
+save('goceVariables.mat', 'tiegcmDensityVariableAlt', '-append')
 save('goceVariables.mat', 'hwmU', '-append')
 save('goceVariables.mat', 'hwmV', '-append')
 save('goceVariables.mat', 'morningFourierGrid', '-append')
@@ -126,7 +130,7 @@ fprintf('%s\n', 'Began reading AE files')
 ae = [];
 timestampsAeDatenum = [];
 
-aeFiles = dir('ae*');
+aeFiles = dir('ae2*');
 parfor i = 1:length(aeFiles)
     aeFile = fopen(aeFiles(i).name);
     if aeFile == -1
@@ -136,6 +140,7 @@ parfor i = 1:length(aeFiles)
     aeData = textscan(aeFile, '%s %s %f %f %f %f %f', 'MultipleDelimsAsOne',1, 'HeaderLines',15);
 
     ae = [ae; aeData{4}];
+    strVec = strcat(aeData{1}, aeData{2});
     timestampsAeDatenum = [timestampsAeDatenum; datenum(strcat(aeData{1}, aeData{2}), 'yyyy-mm-ddHH:MM:SS.FFF')];
 end
 [timestampsAeDatenum, indicesToConserve, ~] = unique(timestampsAeDatenum);
@@ -486,6 +491,21 @@ timestampsEpsilon = round((timestampsEpsilonDatenum - firstDatenum) * secondsInD
 
 end
 
+function [tiegcmDensityVariableAlt, tiegcmDensity270km] = readTiegcmFile(timestampsDensityDatenum)
+
+tiegcmDensityVariableAlt = ones(size(timestampsDensityDatenum));
+tiegcmDensity270km = ones(size(timestampsDensityDatenum));
+
+if exist('tiegcmDens.mat', 'file')
+    load tiegcmDens.mat
+    ind1 = ismember(timestampsDensityDatenum, tiegcmDatenums);
+    ind2 = ismember(tiegcmDatenums, timestampsDensityDatenum);
+    tiegcmDensityVariableAlt(ind1) = tiegcmGoceInterp(ind2) * 1e14;
+    tiegcmDensity270km(ind1) = tiegcmGoce270km(ind2) * 1e14;
+end
+
+end
+
 function indicesToRemove = roundTimestampsToBeginFromNearestThreeHourMark(timestampsDensityDatenum)
 %
 
@@ -799,7 +819,7 @@ p = TimedProgressBar( targetCount, barWidth, ...
                     'Completed in ' );
                 
 parfor i = modelingIndices
-    [hwmU(i), hwmV(i)] = hwm14_mex(obsYear(i), doyDecimal(i), altitudeInKm(i), latitude(i), longitude(i), apNow(i));
+    [hwmU(i), hwmV(i)] = hwm07_mex(obsYear(i), doyDecimal(i), altitudeInKm(i), latitude(i), longitude(i), apNow(i));
     
     if mod(i, 10000) == 0
      p.progress;

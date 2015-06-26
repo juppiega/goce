@@ -1,4 +1,4 @@
-function [results] = plotAndAnalyzeDensityByLatitude(firstDatenum, ae, timestamps1min, aeIntegral, timestampsAeInt, timestamps1minFixed, correctedDensity, msisDensity, jbDensity, dtmDensity, aeProxyDensity,...
+function [results] = plotAndAnalyzeDensityByLatitude(firstDatenum, ae, timestamps1min, aeIntegral, timestampsAeInt, timestamps1minFixed, correctedDensity, msisDensity, jbDensity, dtmDensity, tiegcmDensity, aeProxyDensity,...
     timestamps10s, magneticLatitude, i, winds, timeOfDay, plotFigures, results)
 % plotCorrectedDensityLatitudes(ae, timestamps1min, correctedDensity, timestamps10s, latitude, timestampsDatenum, computeLatitudes);
 
@@ -17,7 +17,7 @@ end
 [limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps10s, magneticLatitude);
 
 [crossingTimes, goceDensityByLatitude, msisDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestampsAeInt, timestamps10s, magneticLatitude, ...
-    correctedDensity, msisDensity, jbDensity, dtmDensity, aeProxyDensity, goceV, goceU, hwmV, hwmU, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay);
+    correctedDensity, msisDensity, jbDensity, dtmDensity, tiegcmDensity, aeProxyDensity, goceV, goceU, hwmV, hwmU, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay);
 
 if plotFigures ~= 0
     analyzeLagByLatitude(timestamps1min, ae, goceDensityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay, 'Goce');
@@ -27,7 +27,8 @@ results = plotAndAnalyzeByHemisphere(firstDatenum, goceDensityByLatitude, ae, cr
 
 end
 
-function plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, regriddedLatitude, regriddedTime, regriddedGoceDensity, regriddedMsisDensity, regriddedJbDensity, regriddedDtmDensity, regriddedAeProxy,  goceVMatrix, goceUMatrix, hwmVMatrix, hwmUMatrix, timeOfDay)
+function plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, regriddedLatitude, regriddedTime, regriddedGoceDensity, regriddedMsisDensity, regriddedJbDensity, regriddedDtmDensity, regriddedTiegcmDensity, ...
+    regriddedAeProxy,  goceVMatrix, goceUMatrix, hwmVMatrix, hwmUMatrix, timeOfDay)
 % plotDensityLatitudeTimeSurf(averagedDensity, averagedLatitude, timestamps
 
 persistent colormapFigHandle
@@ -35,24 +36,31 @@ persistent windFigHandle
 persistent minDensity
 persistent maxDensity
 
+numPlotRows = 6; % 2 or 6
 if ~isempty(strfind(lower(timeOfDay), 'morning'))
     colormapFigHandle = figure('Color', 'white', 'units','normalized','outerposition',[0 0 1 1]);
     windFigHandle = figure('Color', 'white', 'units','normalized','outerposition',[0 0 1 1]);
     goceSubplot = 1;
-    msisDensitySubplot = 3;
+    tiegcmSubplot = 3;
     hwmSubplot = 3;
-    jbDensitySubplot = 5;
-    dtmDensitySubplot = 7;
-    aeProxySubplot = 9;
+    if numPlotRows == 6
+        msisDensitySubplot = 5;
+        jbDensitySubplot = 7;
+        dtmDensitySubplot = 9;
+        aeProxySubplot = 11;
+    end
     minDensity = min(regriddedGoceDensity(:));
     maxDensity = max(regriddedGoceDensity(:));
 else
     goceSubplot = 2;
+    tiegcmSubplot = 4;
     hwmSubplot = 4;
-    msisDensitySubplot = 4;
-    jbDensitySubplot = 6;
-    dtmDensitySubplot = 8;
-    aeProxySubplot = 10;
+    if numPlotRows == 6
+        msisDensitySubplot = 6;
+        jbDensitySubplot = 8;
+        dtmDensitySubplot = 10;
+        aeProxySubplot = 12;
+    end
 end
 secondsInDay = 60 * 60 * 24;
 minDensityTime = min(regriddedTime(:));
@@ -74,10 +82,12 @@ firstDayMsis = regriddedMsisDensity(firstDayIndices);
 firstDayAe = regriddedAeProxy(firstDayIndices);
 firstDayJb = regriddedJbDensity(firstDayIndices);
 firstDayDtm = regriddedDtmDensity(firstDayIndices);
+firstDayTiegcm = regriddedTiegcmDensity(firstDayIndices);
 msisMultiplier = mean(firstDayGoce(:) ./ firstDayMsis(:));
 aeMultiplier = mean(firstDayGoce(:) ./ firstDayAe(:));
 jbMultiplier = mean(firstDayGoce(:) ./ firstDayJb(:));
 dtmMultiplier = mean(firstDayGoce(:) ./ firstDayDtm(:));
+tiegcmMultiplier = mean(firstDayGoce(:) ./ firstDayTiegcm(:));
 
 plotIndices = (regriddedTime >= minDensityTime + 0.0 & regriddedTime <= maxDensityTime);
 [plotRows, ~] = find(plotIndices);
@@ -90,6 +100,7 @@ regriddedMsisDensity = msisMultiplier * regriddedMsisDensity(plotRows, :);
 regriddedAeProxy = aeMultiplier * regriddedAeProxy(plotRows, :);
 regriddedJbDensity = jbMultiplier * regriddedJbDensity(plotRows, :);
 regriddedDtmDensity = dtmMultiplier * regriddedDtmDensity(plotRows, :);
+regriddedTiegcmDensity = tiegcmMultiplier * regriddedTiegcmDensity(plotRows, :);
 goceVMatrix = goceVMatrix(plotRows, :);
 hwmVMatrix = hwmVMatrix(plotRows, :);
 goceUMatrix = goceUMatrix(plotRows, :);
@@ -111,7 +122,7 @@ aeIndicesToPlot = minAeIndex:maxAeIndex;
 
 figure(colormapFigHandle);
 
-subplotAxesHandle = subplot(5,2,goceSubplot);
+subplotAxesHandle = subplot(numPlotRows,2,goceSubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedGoceDensity, 'EdgeColor', 'None')
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
@@ -133,16 +144,15 @@ set(aeAxesHandle, 'Color', 'none', 'XTick', []);
 hold off;
 set(gca, 'fontsize', 12)
 
-subplotAxesHandle = subplot(5,2,msisDensitySubplot);
-surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedMsisDensity, 'EdgeColor', 'None')
-
+subplotAxesHandle = subplot(numPlotRows,2,tiegcmSubplot);
+surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedTiegcmDensity, 'EdgeColor', 'None')
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
 caxis([minDensity maxDensity])
-colorbar('Location', 'EastOutside');
 view(2);
+colorbar('Location', 'EastOutside');
 ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
-title(['NRLMSISE-00 ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+title(['TIEGCM ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
 set(gca, 'fontsize', 12)
 
 hold all;
@@ -156,77 +166,102 @@ set(aeAxesHandle, 'Color', 'none', 'XTick', []);
 hold off;
 set(gca, 'fontsize', 12)
 
-subplotAxesHandle = subplot(5,2,jbDensitySubplot);
-surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedJbDensity, 'EdgeColor', 'None')
+if numPlotRows == 6
+    subplotAxesHandle = subplot(numPlotRows,2,msisDensitySubplot);
+    surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedMsisDensity, 'EdgeColor', 'None')
 
-xlim([minDensityTime maxDensityTime]);
-ylim([minLat maxLat]);
-caxis([minDensity maxDensity])
-colorbar('Location', 'EastOutside');
-view(2);
-ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
-title(['JB2008 ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
-set(gca, 'fontsize', 12)
+    xlim([minDensityTime maxDensityTime]);
+    ylim([minLat maxLat]);
+    caxis([minDensity maxDensity])
+    colorbar('Location', 'EastOutside');
+    view(2);
+    ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+    title(['NRLMSISE-00 ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+    set(gca, 'fontsize', 12)
 
-hold all;
-aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
-aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * plotHeight, 'k');
-set(aeLineHandle, 'LineWidth', 0.1)
-view(2);
-set(aeAxesHandle, 'yaxislocation', 'right');
-ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
-set(aeAxesHandle, 'Color', 'none', 'XTick', []);
-hold off;
-set(gca, 'fontsize', 12)
+    hold all;
+    aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
+    aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * plotHeight, 'k');
+    set(aeLineHandle, 'LineWidth', 0.1)
+    view(2);
+    set(aeAxesHandle, 'yaxislocation', 'right');
+    ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
+    set(aeAxesHandle, 'Color', 'none', 'XTick', []);
+    hold off;
+    set(gca, 'fontsize', 12)
+
+    subplotAxesHandle = subplot(numPlotRows,2,jbDensitySubplot);
+    surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedJbDensity, 'EdgeColor', 'None')
+
+    xlim([minDensityTime maxDensityTime]);
+    ylim([minLat maxLat]);
+    caxis([minDensity maxDensity])
+    colorbar('Location', 'EastOutside');
+    view(2);
+    ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+    title(['JB2008 ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+    set(gca, 'fontsize', 12)
+
+    hold all;
+    aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
+    aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * plotHeight, 'k');
+    set(aeLineHandle, 'LineWidth', 0.1)
+    view(2);
+    set(aeAxesHandle, 'yaxislocation', 'right');
+    ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
+    set(aeAxesHandle, 'Color', 'none', 'XTick', []);
+    hold off;
+    set(gca, 'fontsize', 12)
 
 
-subplotAxesHandle = subplot(5,2,dtmDensitySubplot);
-surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedDtmDensity, 'EdgeColor', 'None')
+    subplotAxesHandle = subplot(numPlotRows,2,dtmDensitySubplot);
+    surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedDtmDensity, 'EdgeColor', 'None')
 
-xlim([minDensityTime maxDensityTime]);
-ylim([minLat maxLat]);
-caxis([minDensity maxDensity])
-colorbar('Location', 'EastOutside');
-view(2);
-ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
-title(['DTM-2013 ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
-set(gca, 'fontsize', 12)
+    xlim([minDensityTime maxDensityTime]);
+    ylim([minLat maxLat]);
+    caxis([minDensity maxDensity])
+    colorbar('Location', 'EastOutside');
+    view(2);
+    ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+    title(['DTM-2013 ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+    set(gca, 'fontsize', 12)
 
-hold all;
-aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
-aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * plotHeight, 'k');
-set(aeLineHandle, 'LineWidth', 0.1)
-view(2);
-set(aeAxesHandle, 'yaxislocation', 'right');
-ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
-set(aeAxesHandle, 'Color', 'none', 'XTick', []);
-hold off;
-set(gca, 'fontsize', 12)
+    hold all;
+    aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
+    aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * plotHeight, 'k');
+    set(aeLineHandle, 'LineWidth', 0.1)
+    view(2);
+    set(aeAxesHandle, 'yaxislocation', 'right');
+    ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
+    set(aeAxesHandle, 'Color', 'none', 'XTick', []);
+    hold off;
+    set(gca, 'fontsize', 12)
 
 
-subplotAxesHandle = subplot(5,2,aeProxySubplot);
-surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedAeProxy, 'EdgeColor', 'None')
+    subplotAxesHandle = subplot(numPlotRows,2,aeProxySubplot);
+    surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedAeProxy, 'EdgeColor', 'None')
 
-xlim([minDensityTime maxDensityTime]);
-ylim([minLat maxLat]);
-caxis([minDensity maxDensity])
-colorbar('Location', 'EastOutside');
-view(2);
-xlabel(['Days since the UTC beginning of ', referenceDay], 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
-ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
-title(['AE Predicted ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
-set(gca, 'fontsize', 12)
+    xlim([minDensityTime maxDensityTime]);
+    ylim([minLat maxLat]);
+    caxis([minDensity maxDensity])
+    colorbar('Location', 'EastOutside');
+    view(2);
+    xlabel(['Days since the UTC beginning of ', referenceDay], 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+    ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
+    title(['AE Predicted ', timeOfDay,' density'], 'fontsize', 13, 'fontname', 'courier', 'fontweight', 'bold')
+    set(gca, 'fontsize', 12)
 
-hold all;
-aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
-aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * plotHeight, 'k');
-set(aeLineHandle, 'LineWidth', 0.1)
-view(2);
-set(aeAxesHandle, 'yaxislocation', 'right');
-ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
-set(aeAxesHandle, 'Color', 'none', 'XTick', []);
-hold off;
-set(gca, 'fontsize', 12)
+    hold all;
+    aeAxesHandle = axes('Position', get(subplotAxesHandle, 'Position'));
+    aeLineHandle = plot3(aeAxesHandle, timestamps1min(aeIndicesToPlot), aeIntegral(aeIndicesToPlot), ones(size(aeIndicesToPlot)) * plotHeight, 'k');
+    set(aeLineHandle, 'LineWidth', 0.1)
+    view(2);
+    set(aeAxesHandle, 'yaxislocation', 'right');
+    ylabel(aeAxesHandle, 'AE 21-h Integral', 'fontsize', 12, 'fontname', 'courier', 'fontweight', 'bold')
+    set(aeAxesHandle, 'Color', 'none', 'XTick', []);
+    hold off;
+    set(gca, 'fontsize', 12)
+end
 
 % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -347,7 +382,7 @@ limitedLatitude = limitedLatitude(newIndices);
 end
 
 function [crossingTimes, goceDensityByLatitude, msisDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestamps1min, timestamps10s, magneticLatitude, ...
-    correctedDensity, msisDensity, jbDensity, dtmDensity, aeProxyDensity, goceV, goceU, hwmV, hwmU, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay)
+    correctedDensity, msisDensity, jbDensity, dtmDensity, tiegcmDensity, aeProxyDensity, goceV, goceU, hwmV, hwmU, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay)
 %
 
 oneDegreeStep = minAllowedLatitude:maxAllowedLatitude;
@@ -380,6 +415,7 @@ else
     regriddedMsisDensity = interp1(timestamps10s, msisDensity, regriddedTime, 'spline');
     regriddedJbDensity = interp1(timestamps10s, jbDensity, regriddedTime, 'spline');
     regriddedDtmDensity = interp1(timestamps10s, dtmDensity, regriddedTime, 'spline');
+    regriddedTiegcmDensity = interp1(timestamps10s, tiegcmDensity, regriddedTime, 'spline');
     regriddedAeProxy = interp1(timestamps10s, aeProxyDensity, regriddedTime, 'spline');
     regriddedGoceV = interp1(timestamps10s, goceV, regriddedTime, 'spline');
     regriddedHwmV = interp1(timestamps10s, hwmV, regriddedTime, 'spline');
@@ -390,6 +426,7 @@ else
     goceDensityByLatitude = regriddedGoceDensity(:,1:4:end);
     msisDensityByLatitude = regriddedMsisDensity(:,1:4:end);
     jbDensityByLatitude = regriddedJbDensity(:,1:4:end);
+    tiegcmDensityByLatitude = regriddedTiegcmDensity(:,1:4:end);
     dtmDensityByLatitude = regriddedDtmDensity(:,1:4:end);
     aeProxyDensityByLatitude = regriddedAeProxy(:,1:4:end);
     
@@ -402,6 +439,7 @@ else
         msisDensityThisLatitude = regriddedMsisDensity(:,i);
         jbDensityThisLatitude = regriddedJbDensity(:,i);
         dtmDensityThisLatitude = regriddedDtmDensity(:,i);
+        tiegcmDensityThisLatitude = regriddedTiegcmDensity(:,i);
         aeProxyThisLatitude = regriddedAeProxy(:,i);
         goceVThisLatitude = regriddedGoceV(:,i);
         hwmVThisLatitude = regriddedHwmV(:,i);
@@ -413,6 +451,7 @@ else
         interpolatedMsisDensity = interp1(timeThisLatitude, msisDensityThisLatitude, tInterp, 'spline');
         interpolatedJbDensity = interp1(timeThisLatitude, jbDensityThisLatitude, tInterp, 'spline');
         interpolatedDtmDensity = interp1(timeThisLatitude, dtmDensityThisLatitude, tInterp, 'spline');
+        interpolatedTiegcmDensity = interp1(timeThisLatitude, tiegcmDensityThisLatitude, tInterp, 'spline');
         interpolatedAeProxy = interp1(timeThisLatitude, aeProxyThisLatitude, tInterp, 'spline');
         interpolatedGoceV = interp1(timeThisLatitude, goceVThisLatitude, tInterp, 'spline');
         interpolatedHwmV = interp1(timeThisLatitude, hwmVThisLatitude, tInterp, 'spline'); 
@@ -424,6 +463,7 @@ else
         msisDensityMatrix(:,i) = interpolatedMsisDensity;
         jbDensityMatrix(:,i) = interpolatedJbDensity;
         dtmDensityMatrix(:,i) = interpolatedDtmDensity;
+        tiegcmDensityMatrix(:,i) = interpolatedTiegcmDensity;
         aeProxyDensityMatrix(:,i) = interpolatedAeProxy;
         goceVMatrix(:,i) = interpolatedGoceV;
         hwmVMatrix(:,i) = interpolatedHwmV;
@@ -433,7 +473,7 @@ else
     end
 
     plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, latitudeMatrix, ...
-        timeMatrix, goceDensityMatrix, msisDensityMatrix, jbDensityMatrix, dtmDensityMatrix, aeProxyDensityMatrix, goceVMatrix, goceUMatrix, hwmVMatrix, hwmUMatrix, timeOfDay);
+        timeMatrix, goceDensityMatrix, msisDensityMatrix, jbDensityMatrix, dtmDensityMatrix, tiegcmDensityMatrix, aeProxyDensityMatrix, goceVMatrix, goceUMatrix, hwmVMatrix, hwmUMatrix, timeOfDay);
 end
 
 end
