@@ -1,6 +1,6 @@
 FILENAME = 'tiegcm_init.nc';
 original = 'TGCM.tiegcm1.95_dres.p_whi2008_weimer_imf.nc';
-varname = 'VN_NM';
+varname = 'QJOULE';
 % Read var
 varMyInit = ncread(FILENAME, varname);
 varCompare = ncread(original, varname);

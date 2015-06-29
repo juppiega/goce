@@ -117,32 +117,39 @@ load('goceVariables.mat', 'latitude', 'magneticLatitude', 'longitude', 'altitude
 ind = (timestampsDensityDatenum >= datenums(1) & timestampsDensityDatenum <= datenums(end));
 goceDatenums = timestampsDensityDatenum(ind);
 
-if ~exist('tiegcmDens.mat', 'file')
-    goceTimestamps = (goceDatenums - goceDatenums(1)) * 86400;
-    goceLon = longitude(ind);
-    goceLat = latitude(ind);
-    goceAlt = altitude(ind);
+goceTimestamps = (goceDatenums - datenums(1)) * 86400;
+goceLon = longitude(ind);
+goceLat = latitude(ind);
+goceAlt = altitude(ind);
+goceSolarTime = solarTime(ind);
 
-    tiegcmTime = (datenums - datenums(1)) * 86400;
-    tiegcmFiles = dir(tiegcmFileNames);
-    lat = ncread(tiegcmFiles(1).name, 'lat');
-    lon = ncread(tiegcmFiles(1).name, 'lon');
-    lev = ncread(tiegcmFiles(1).name, 'lev');
-    tiegcmAlt = zeros(length(lon), length(lat), length(lev), length(datenums));
+tiegcmTime = (datenums - datenums(1)) * 86400;
+tiegcmFiles = dir(tiegcmFileNames);
+lat = ncread(tiegcmFiles(1).name, 'lat');
+lon = ncread(tiegcmFiles(1).name, 'lon');
+lev = ncread(tiegcmFiles(1).name, 'lev');
+tiegcmAlt = zeros(length(lon), length(lat), length(lev), length(datenums));
+k = 1;
+for i = 1:length(tiegcmFiles)
+    mtimes = double(ncread(tiegcmFiles(i).name, 'mtime')); numTimes = size(mtimes,2);
+    tiegcmAlt(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(i).name, 'ZG'));
+    k = k + numTimes;
+end
+tiegcmAlt = tiegcmAlt / 100;
+
+%tiegcmAlt(:,:,:,1) = [];
+%tiegcmTime = tiegcmTime(2:end);
+
+if ~exist('tiegcmDens.mat', 'file')
     tiegcmDens = zeros(length(lon), length(lat), length(lev), length(datenums));
     k = 1;
     for i = 1:length(tiegcmFiles)
         mtimes = double(ncread(tiegcmFiles(i).name, 'mtime')); numTimes = size(mtimes,2);
-        tiegcmAlt(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(i).name, 'ZG'));
         tiegcmDens(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(i).name, 'DEN'));
         k = k + numTimes;
     end
-    tiegcmAlt = tiegcmAlt / 100;
-
-    tiegcmAlt(:,:,:,1) = [];
-    tiegcmDens(:,:,:,1) = [];
-    tiegcmTime = tiegcmTime(2:end);
-
+    %tiegcmDens(:,:,:,1) = [];
+    
     tiegcmGoceInterp = nan(size(goceTimestamps));
     tiegcmGoce270km = nan(size(goceTimestamps));
     targetCount = round(length(goceTimestamps) / 500);
@@ -181,6 +188,7 @@ end
 
 load tiegcmDens.mat
 tiegcmPlot = smooth(tiegcmGoce270km * 1e14, 540);
+tiegcmPlot = tiegcmPlot(ismember(tiegcmDatenums, goceDatenums));
 t1 = datenum('2010-04-04');
 t2 = datenum('2010-04-09');
 firstInd = find(goceDatenums <= t1, 1, 'last');
@@ -197,43 +205,138 @@ figure(timeseriesFig);
 hold all;
 subplot(2,1,1)
 plot(goceDatenums(orbAverInd), tiegcmPlot, 'linewidth', 2.0)
+%plot(goceDatenums, tiegcmPlot, 'linewidth', 2.0)
 %datetick('x', 'dd/mm');
 %xlim([t1 t2])
 legend('1.23 x GOCE', 'TIEGCM')
 
 hold off;
 
-goceDens270km = densityNoBg(ind);
-magLat = magneticLatitude(ind);
-solarTime = solarTime(ind);
-morningIndices = solarTime <= 12;
-eveningIndices = solarTime > 12;
-tiegcmMorning = tiegcmGoce270km(morningIndices);
-tiegcmEvening = tiegcmGoce270km(eveningIndices);
-goceMorning = goceDens270km(morningIndices);
-goceEvening = goceDens270km(eveningIndices);
-timeMorning = (goceDatenums(morningIndices) - t1) * 1440;
-timeEvening = (goceDatenums(eveningIndices) - t1) * 1440;
-latMorning = magLat(morningIndices);
-latEvening = magLat(eveningIndices);
+% goceDens270km = densityNoBg(ind);
+% magLat = magneticLatitude(ind);
+% solarTime = solarTime(ind);
+% morningIndices = solarTime <= 12;
+% eveningIndices = solarTime > 12;
+% tiegcmMorning = tiegcmGoce270km(morningIndices);
+% tiegcmEvening = tiegcmGoce270km(eveningIndices);
+% goceMorning = goceDens270km(morningIndices);
+% goceEvening = goceDens270km(eveningIndices);
+% timeMorning = (goceDatenums(morningIndices) - t1) * 1440;
+% timeEvening = (goceDatenums(eveningIndices) - t1) * 1440;
+% latMorning = magLat(morningIndices);
+% latEvening = magLat(eveningIndices);
 
-[timeGrid, latGrid] = meshgrid(1440:5:max(timeMorning)-3*1440, -70:1:70);
+tiegcm10minDatenums = datenums;
+stormBegin = datenum('2010-04-05 07:00:00');
+stormEnd = datenum('2010-04-05 23:59:00');
+plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, tiegcmAlt, {'QJOULE','DEN','WN','VN'}, ...
+    goceDatenums, goceSolarTime, goceLat, goceAlt, stormBegin, stormEnd)
 
-goceMorningSurf = griddata(timeMorning, latMorning, goceMorning, timeGrid, latGrid);
-goceEveningSurf = griddata(timeEvening, latEvening, goceEvening, timeGrid, latGrid);
-tiegcmMorningSurf = griddata(timeMorning, latMorning, tiegcmMorning, timeGrid, latGrid);
-tiegcmEveningSurf = griddata(timeEvening, latEvening, tiegcmEvening, timeGrid, latGrid);
+end
 
-% timeGrid = timeGrid / 1440;
-% figure('Color', 'w');
-% subplot(2,2,1)
-% surf(timeGrid, latGrid, tiegcmMorningSurf, 'linestyle', 'none')
-% view(2)
-% axis('tight')
-% colorbar
-% xlabel(['Days from the beginning of ', datestr(t1, 'mmmm dd yyyy')]);
-% ylabel('Geomagnetic latitude')
-% title('Goce Morning Density')
+function plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, tiegcmAlt, fieldNames, ...
+    goceDatenums, goceSolarTime, goceLat, goceAlt, stormBegin, stormEnd)
+
+fields = cell(length(fieldNames),1);
+tiegcmFiles = dir(tiegcmFileNames);
+for i = 1:length(fieldNames)
+    temporaryField = zeros(size(tiegcmAlt));
+    k = 1;
+    for j = 1:length(tiegcmFiles)
+        mtimes = double(ncread(tiegcmFiles(j).name, 'mtime')); numTimes = size(mtimes,2);
+        temporaryField(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(j).name, fieldNames{i}));
+        k = k + numTimes;
+    end
+    if any(temporaryField(:,:,end,:) >= 1e35)
+        temporaryField(:,:,end,:) = temporaryField(:,:,end-1,:);
+    end
+    if strcmpi(fieldNames{i}, 'DEN') || strcmpi(fieldNames{i}, 'O_N2')
+        temporaryField = log(temporaryField);
+    end
+    if strcmpi(fieldNames{i}, 'VN') || strcmpi(fieldNames{i}, 'WN')
+        temporaryField = temporaryField / 100;
+    end
+    
+    fields{i} = temporaryField;
+end
+
+numPlotRows = ceil(length(fieldNames) / 2);
+[latGrid,~] = meshgrid(lat, 1:size(tiegcmAlt,3));
+plotLocalTime = 7; % hours
+figHandle = figure('units','normalized','outerposition',[0 0 1 1]);
+
+[~,beginInd] = min(abs(tiegcm10minDatenums - stormBegin));
+[~,endInd] = min(abs(tiegcm10minDatenums - stormEnd));
+
+axisLim = repmat([realmax, -realmax], length(fieldNames), 1);
+
+for t = beginInd:endInd
+    [~,~,~,hours,minutes,seconds] = datevec(tiegcm10minDatenums(t));
+    hourNow = hours + minutes/60 + seconds/3600;
+    plotLon = 15 * (plotLocalTime - hourNow);
+    if plotLon < -180; plotLon = plotLon + 360; end
+    if plotLon >= 180; plotLon = plotLon - 360; end
+    [~,plotLonInd(t)] = min(abs(lon - plotLon));
+    
+    for i = 1:length(fieldNames)
+        fieldSlice = fields{i}(plotLonInd(t),:,:,t);
+        if min(fieldSlice(:)) < axisLim(i,1)
+            axisLim(i,1) = min(fieldSlice(:));
+        end
+        if max(fieldSlice(:)) > axisLim(i,2)
+            axisLim(i,2) = max(fieldSlice(:));
+        end
+    end
+end
+
+writerObj = VideoWriter('testLatCrossSect.avi');
+writerObj.FrameRate = 1;
+open(writerObj);
+
+for t = beginInd:endInd
+    altSlice = tiegcmAlt(plotLonInd(t),:,:,t);
+    altSlice = reshape(altSlice,size(tiegcmAlt,2),size(tiegcmAlt,3));
+    altSlice = flipud(altSlice') / 1E3;
+    
+    for i = 1:length(fieldNames)
+        subplot(numPlotRows,2,i)
+        fieldSlice = fields{i}(plotLonInd(t),:,:,t);
+        fieldSlice = reshape(fieldSlice,size(tiegcmAlt,2),size(tiegcmAlt,3));
+        fieldSlice = flipud(fieldSlice');
+        surf(latGrid, altSlice, fieldSlice, 'linestyle', 'none', 'edgecolor', 'none')
+        view(2);
+        grid off;
+        shading interp
+        xlim([min(lat) max(lat)])
+        ylim([100 600])
+        colorbar;
+        caxis(axisLim(i,:))
+        xlabel('Geographic Latitude', 'fontsize', 14)
+        ylabel('Geometric Height [km]', 'fontsize', 14)
+        fieldLongName = ncreadatt(tiegcmFiles(1).name, fieldNames{i}, 'long_name');
+        fieldUnit = ncreadatt(tiegcmFiles(1).name, fieldNames{i}, 'units');
+        if strcmpi(fieldNames{i}, 'VN') || strcmpi(fieldNames{i}, 'WN')
+            fieldUnit = 'm/s';
+        end
+        title([fieldLongName, ' [', fieldUnit, ']'], 'fontsize', 14)
+        set(gca,'FontSize',14)
+        
+        hold all;
+        [~,nearestGoce] = min(abs(goceDatenums - tiegcm10minDatenums(t)));
+        if goceSolarTime(nearestGoce) > plotLocalTime-1 && goceSolarTime(nearestGoce) < plotLocalTime+1
+            plot(goceLat(nearestGoce), goceAlt(nearestGoce)/1E3, 'kx');
+        end
+        hold off;
+    end
+    
+    supertitle = ['UT ', datestr(tiegcm10minDatenums(t),'HH:MM')];
+    [~,h] = suplabel(supertitle  ,'t');
+    set(h,'FontSize',16)
+    
+    frame = getframe(figHandle);
+    writeVideo(writerObj,frame);
+end
+close(writerObj);
 
 end
 
@@ -437,6 +540,107 @@ if nargout <= 1
             x = cat(dims + 1, x, y, z);
         end
     end
+end
+
+end
+
+function [ax,h]=suplabel(text,whichLabel,supAxes)
+% PLaces text as a title, xlabel, or ylabel on a group of subplots.
+% Returns a handle to the label and a handle to the axis.
+%  [ax,h]=suplabel(text,whichLabel,supAxes)
+% returns handles to both the axis and the label.
+%  ax=suplabel(text,whichLabel,supAxes)
+% returns a handle to the axis only.
+%  suplabel(text) with one input argument assumes whichLabel='x'
+%
+% whichLabel is any of 'x', 'y', 'yy', or 't', specifying whether the 
+% text is to be the xlable, ylabel, right side y-label, 
+% or title respectively.
+%
+% supAxes is an optional argument specifying the Position of the 
+%  "super" axes surrounding the subplots. 
+%  supAxes defaults to [.08 .08 .84 .84]
+%  specify supAxes if labels get chopped or overlay subplots
+%
+% EXAMPLE:
+%  subplot(2,2,1);ylabel('ylabel1');title('title1')
+%  subplot(2,2,2);ylabel('ylabel2');title('title2')
+%  subplot(2,2,3);ylabel('ylabel3');xlabel('xlabel3')
+%  subplot(2,2,4);ylabel('ylabel4');xlabel('xlabel4')
+%  [ax1,h1]=suplabel('super X label');
+%  [ax2,h2]=suplabel('super Y label','y');
+%  [ax3,h2]=suplabel('super Y label (right)','yy');
+%  [ax4,h3]=suplabel('super Title'  ,'t');
+%  set(h3,'FontSize',30)
+%
+% SEE ALSO: text, title, xlabel, ylabel, zlabel, subplot,
+%           suptitle (Matlab Central)
+
+% Author: Ben Barrowes <barrowes@alum.mit.edu>
+
+%modified 3/16/2010 by IJW to make axis behavior re "zoom" on exit same as
+%at beginning. Requires adding tag to the invisible axes
+
+
+currax=findobj(gcf,'type','axes','-not','tag','suplabel');
+
+if nargin < 3
+ supAxes=[.08 .08 .84 .84];
+ ah=findall(gcf,'type','axes');
+ if ~isempty(ah)
+  supAxes=[inf,inf,0,0];
+  leftMin=inf;  bottomMin=inf;  leftMax=0;  bottomMax=0;
+  axBuf=.04;
+  set(ah,'units','normalized')
+  ah=findall(gcf,'type','axes');
+  for ii=1:length(ah)
+   if strcmp(get(ah(ii),'Visible'),'on')
+    thisPos=get(ah(ii),'Position');
+    leftMin=min(leftMin,thisPos(1));
+    bottomMin=min(bottomMin,thisPos(2));
+    leftMax=max(leftMax,thisPos(1)+thisPos(3));
+    bottomMax=max(bottomMax,thisPos(2)+thisPos(4));
+   end
+  end
+  supAxes=[leftMin-axBuf,bottomMin-axBuf,leftMax-leftMin+axBuf*2,bottomMax-bottomMin+axBuf*2];
+ end
+end
+if nargin < 2, whichLabel = 'x';  end
+if nargin < 1, help(mfilename); return; end
+
+if ~isstr(text) | ~isstr(whichLabel)
+  error('text and whichLabel must be strings')
+end
+whichLabel=lower(whichLabel);
+
+ax=axes('Units','Normal','Position',supAxes,'Visible','off','tag','suplabel');
+if strcmp('t',whichLabel)
+  set(get(ax,'Title'),'Visible','on')
+  title(text);
+elseif strcmp('x',whichLabel)
+  set(get(ax,'XLabel'),'Visible','on')
+  xlabel(text);
+elseif strcmp('y',whichLabel)
+  set(get(ax,'YLabel'),'Visible','on')
+  ylabel(text);
+elseif strcmp('yy',whichLabel)
+  set(get(ax,'YLabel'),'Visible','on')
+  ylabel(text);
+  set(ax,'YAxisLocation','right')
+end
+
+for k=1:length(currax), axes(currax(k));end % restore all other axes
+
+if (nargout < 2)
+  return
+end
+if strcmp('t',whichLabel)
+  h=get(ax,'Title');
+  set(h,'VerticalAlignment','middle')
+elseif strcmp('x',whichLabel)
+  h=get(ax,'XLabel');
+elseif strcmp('y',whichLabel) | strcmp('yy',whichLabel)
+  h=get(ax,'YLabel');
 end
 
 end
