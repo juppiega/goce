@@ -1,12 +1,12 @@
 function results = plotAndAnalyzeChangesByOrbit(firstDatenum, densityNoBg, magneticLatitude, averagedDensityNoBg, timestamps1minFixed, ...
-    timestamps10s, timeOfDay, plotFigures, results)
+    timestamps10s, timeOfDay, densityName, plotFigures, results)
 % 
 
 [limitedTimestamps, limitedLatitude, limitedDensity, orbits, minAllowedLatitude, maxAllowedLatitude] = ...
     giveInterpolationQualifyingOrbits(timestamps10s, magneticLatitude, densityNoBg);
 
 results = loopAroundOrbits(orbits, timestamps1minFixed, limitedTimestamps, limitedLatitude, averagedDensityNoBg, limitedDensity, ...
-    plotFigures, timeOfDay, firstDatenum, minAllowedLatitude, maxAllowedLatitude, results);
+    plotFigures, timeOfDay, densityName, firstDatenum, minAllowedLatitude, maxAllowedLatitude, results);
 
 end
 
@@ -90,7 +90,7 @@ limitedDensity = limitedDensity(newIndices);
 end
 
 function results = loopAroundOrbits(orbits, timestamps1minFixed, limitedTimestamps, limitedLatitude, averagedDensityNoBg, ...
-    limitedDensity, plotFigures, timeOfDay, firstDatenum, minAllowedLatitude, maxAllowedLatitude, results)
+    limitedDensity, plotFigures, timeOfDay, densityName, firstDatenum, minAllowedLatitude, maxAllowedLatitude, results)
 %
 
 persistent densityByOrbitFigHandle
@@ -124,7 +124,7 @@ for i = 1:length(loopOrbits)
         TADplotIndices(indices) = indices;            
         smoothedDensity11800km = smooth(limitedDensity(indices), 151);
         smoothedDensity2600km = smooth(limitedDensity(indices), 33); 
-        TADdensity(indices) = (smoothedDensity2600km - smoothedDensity11800km);% ./ smoothedDensity11800km;
+        TADdensity(indices) = (smoothedDensity2600km - smoothedDensity11800km) ./ smoothedDensity11800km;
     end    
 end
 
@@ -140,7 +140,7 @@ if plotFigures ~= 0
 
     plotResiduePlot(magneticLatitudeForResidue, relativeResidues, timeOfDay)
     plotTADcolormap(limitedTimestamps, limitedLatitude, TADdensity, TADplotIndices, minAllowedLatitude, maxAllowedLatitude, ...
-        orbits, beginOrbit, calmOrbits, endColorMapOrbit, firstDatenum, timeOfDay)
+        orbits, beginOrbit, calmOrbits, endColorMapOrbit, firstDatenum, timeOfDay, densityName)
     plotDensityByOrbit(linehandles, calmOrbits, timeOfDay, densityByOrbitAxesHandle, densityByOrbitFigHandle)
 end
 
@@ -228,7 +228,7 @@ end
 
 
 function plotTADcolormap(limitedTimestamps, limitedLatitude, TADdensity, TADplotIndices, minAllowedLatitude, maxAllowedLatitude, orbits, ...
-    beginOrbit, calmOrbits, endColorMapOrbit, firstDatenum, timeOfDay)
+    beginOrbit, calmOrbits, endColorMapOrbit, firstDatenum, timeOfDay, densityName)
 %
 
 [timeMatrix, latitudeMatrix, densityMatrix] = advancedScatteredInterpolate(limitedTimestamps, limitedLatitude, TADdensity, TADplotIndices,...
@@ -254,7 +254,7 @@ hold on;
 h = plot3(orbitTrackTime, orbitTrackLatitude, orbitTrackPlotHeight, '.k');
 set(h, 'MarkerSize', 3)
 ylabel('Magnetic Latitude')
-title(['1300-5200km changes (TADs) [(2600 km smooth - 10400 km smooth) / 10400 km smooth] ', timeOfDay])
+title(['1300-5200km changes (TADs) [(2600 km smooth - 10400 km smooth)] ', densityName, ' ', timeOfDay])
 colorbar
 %colormap jet(500)
 ylim([minAllowedLatitude maxAllowedLatitude]);

@@ -36,7 +36,7 @@ persistent windFigHandle
 persistent minDensity
 persistent maxDensity
 
-numPlotRows = 6; % 2 or 6
+numPlotRows = 2; % 2 or 6
 if ~isempty(strfind(lower(timeOfDay), 'morning'))
     colormapFigHandle = figure('Color', 'white', 'units','normalized','outerposition',[0 0 1 1]);
     windFigHandle = figure('Color', 'white', 'units','normalized','outerposition',[0 0 1 1]);
@@ -100,7 +100,7 @@ regriddedMsisDensity = msisMultiplier * regriddedMsisDensity(plotRows, :);
 regriddedAeProxy = aeMultiplier * regriddedAeProxy(plotRows, :);
 regriddedJbDensity = jbMultiplier * regriddedJbDensity(plotRows, :);
 regriddedDtmDensity = dtmMultiplier * regriddedDtmDensity(plotRows, :);
-regriddedTiegcmDensity = tiegcmMultiplier * regriddedTiegcmDensity(plotRows, :);
+regriddedTiegcmDensity = regriddedTiegcmDensity(plotRows, :);%tiegcmMultiplier * regriddedTiegcmDensity(plotRows, :);
 goceVMatrix = goceVMatrix(plotRows, :);
 hwmVMatrix = hwmVMatrix(plotRows, :);
 goceUMatrix = goceUMatrix(plotRows, :);
@@ -148,7 +148,7 @@ subplotAxesHandle = subplot(numPlotRows,2,tiegcmSubplot);
 surf(subplotAxesHandle, regriddedTime, regriddedLatitude, regriddedTiegcmDensity, 'EdgeColor', 'None')
 xlim([minDensityTime maxDensityTime]);
 ylim([minLat maxLat]);
-caxis([minDensity maxDensity])
+%caxis([minDensity maxDensity])
 view(2);
 colorbar('Location', 'EastOutside');
 ylabel('Geomagnetic lat.', 'fontsize', 14, 'fontname', 'Courier', 'fontweight', 'bold')
