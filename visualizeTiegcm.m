@@ -1,5 +1,9 @@
 function [] = visualizeTiegcm(tiegcmFiles)
 
+if(matlabpool('size')==0)
+    matlabpool;
+end
+
 [timeseriesFig, axes, datenums] = plotTimeseries(tiegcmFiles);
 plotSurfs(timeseriesFig, axes, datenums, tiegcmFiles)
 
@@ -162,9 +166,9 @@ if ~exist('tiegcmDens.mat', 'file')
 
     for i = 1:length(goceTimestamps)
         tiegcmGoceInterp(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, tiegcmDens,...
-                                                goceLon(i), goceLat(i), goceAlt(i), goceTimestamps(i));
+                                                goceLon(i), goceLat(i), goceAlt(i), goceTimestamps(i), 1);
         tiegcmGoce270km(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, tiegcmDens,...
-                                                goceLon(i), goceLat(i), 270E3, goceTimestamps(i));
+                                                goceLon(i), goceLat(i), 270E3, goceTimestamps(i), 1);
         if mod(i, 500) == 0
             p.progress;
         end
@@ -212,25 +216,15 @@ legend('1.23 x GOCE', 'TIEGCM')
 
 hold off;
 
-% goceDens270km = densityNoBg(ind);
-% magLat = magneticLatitude(ind);
-% solarTime = solarTime(ind);
-% morningIndices = solarTime <= 12;
-% eveningIndices = solarTime > 12;
-% tiegcmMorning = tiegcmGoce270km(morningIndices);
-% tiegcmEvening = tiegcmGoce270km(eveningIndices);
-% goceMorning = goceDens270km(morningIndices);
-% goceEvening = goceDens270km(eveningIndices);
-% timeMorning = (goceDatenums(morningIndices) - t1) * 1440;
-% timeEvening = (goceDatenums(eveningIndices) - t1) * 1440;
-% latMorning = magLat(morningIndices);
-% latEvening = magLat(eveningIndices);
-
 tiegcm10minDatenums = datenums;
 stormBegin = datenum('2010-04-05 07:00:00');
 stormEnd = datenum('2010-04-05 23:59:00');
-plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, tiegcmAlt, {'QJOULE','DEN','WN','VN'}, ...
-    goceDatenums, goceSolarTime, goceLat, goceAlt, stormBegin, stormEnd)
+% 
+% plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, tiegcmAlt, {'QJOULE','NO','WN','VN'}, ...
+%     goceDatenums, goceSolarTime, goceLat, goceAlt, stormBegin, stormEnd)
+
+plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, lev, tiegcmAlt, {'QJOULE_INTEG','DEN'}, ...
+    goceDatenums, goceLon, goceLat, goceAlt, stormBegin, stormEnd, 270)
 
 end
 
@@ -289,7 +283,7 @@ for t = beginInd:endInd
     end
 end
 
-writerObj = VideoWriter('testLatCrossSect.avi');
+writerObj = VideoWriter('LatCrossSect.avi');
 writerObj.FrameRate = 1;
 open(writerObj);
 
@@ -297,6 +291,8 @@ for t = beginInd:endInd
     altSlice = tiegcmAlt(plotLonInd(t),:,:,t);
     altSlice = reshape(altSlice,size(tiegcmAlt,2),size(tiegcmAlt,3));
     altSlice = flipud(altSlice') / 1E3;
+    latForGeopHeight = repmat(lat, 1, length(altSlice(1:4:end,1)));
+    geopHeight = altSlice(1:4:end,:)';
     
     for i = 1:length(fieldNames)
         subplot(numPlotRows,2,i)
@@ -326,6 +322,9 @@ for t = beginInd:endInd
         if goceSolarTime(nearestGoce) > plotLocalTime-1 && goceSolarTime(nearestGoce) < plotLocalTime+1
             plot(goceLat(nearestGoce), goceAlt(nearestGoce)/1E3, 'kx');
         end
+        
+        geopPlotHeight = repmat(max(fieldSlice(:)),size(geopHeight,1),size(geopHeight,2));
+        plot3(latForGeopHeight, geopHeight, geopPlotHeight, 'color', 'w', 'linewidth', 1.5)
         hold off;
     end
     
@@ -340,7 +339,141 @@ close(writerObj);
 
 end
 
-function [valAtSatLoc] = interpSatellite(lon, lat, altGrid, modelTime, modelField, satLon, satLat, satAlt, satTime)
+function plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, lev, tiegcmAlt, fieldNames, ...
+    goceDatenums, goceLon, goceLat, goceAlt, stormBegin, stormEnd, plotAlt)
+
+fields = cell(length(fieldNames),1);
+tiegcmFiles = dir(tiegcmFileNames);
+for i = 1:length(fieldNames)
+    
+    temporaryField = double(ncread(tiegcmFiles(1).name, fieldNames{i}));
+    if length(size(temporaryField)) == 3
+        temporaryField = zeros(size(tiegcmAlt,1),size(tiegcmAlt,2),size(tiegcmAlt,4));
+    else
+        temporaryField = zeros(size(tiegcmAlt));
+    end
+    k = 1;
+    for j = 1:length(tiegcmFiles)
+        mtimes = double(ncread(tiegcmFiles(j).name, 'mtime')); numTimes = size(mtimes,2);
+        if length(size(temporaryField)) == 3
+            temporaryField(:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(j).name, fieldNames{i}));
+        else
+            temporaryField(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(j).name, fieldNames{i}));
+        end
+        k = k + numTimes;
+    end
+%     if length(size(temporaryField)) == 4 && any(temporaryField(:,:,end,:) >= 1e35)
+%         temporaryField(:,:,end,:) = temporaryField(:,:,end-1,:);
+%     end
+    
+    fields{i} = temporaryField;
+end
+
+endLat = 30;
+if endLat > 0
+    latInd = lat > endLat;
+else
+    latInd = lat < endLat;
+end
+latToPlot = lat(latInd);
+
+[lonGrid,latGrid] = meshgrid(lon, latToPlot);
+[x, y, ~] = geod2ecef(latGrid(:), lonGrid(:), plotAlt*1E3*ones(numel(latGrid),1));
+x = reshape(x, size(latGrid,1), size(latGrid,2));
+y = reshape(y, size(latGrid,1), size(latGrid,2));
+radius = x.^2 + y.^2;
+plotRadius = mean(radius, 2);
+
+axisLim = zeros(length(fieldNames),2);
+for i = 1:length(fieldNames)
+    if length(size(fields{i})) == 4
+        interpolatedField = zeros(length(lon), length(latToPlot), length(tiegcm10minDatenums));
+        fourDimField = fields{i};
+        nlev = length(lev);
+        
+        targetCount = length(tiegcm10minDatenums);
+        barWidth = 50;
+        p = TimedProgressBar( targetCount, barWidth, ...
+                        'Interpolating Surfs, ETA ', ...
+                        '. Now at ', ...
+                        'Completed in ' );
+        
+        parfor t = 1:length(tiegcm10minDatenums)
+            tempField = zeros(length(lon), length(latToPlot));
+            for latIter = 1:size(latGrid,1)
+                for lonIter = 1:size(lonGrid,2)
+                    altCol = tiegcmAlt(lonIter,latIter,:,t);
+                    levelBelow = find(altCol < plotAlt*1E3, 1, 'last');
+                    if isempty(levelBelow) || levelBelow == nlev
+                        tempField(lonIter, latIter) = nan(1);
+                    else
+                        zInterp = [altCol(levelBelow), altCol(levelBelow+1)];
+                        valInterp = [fourDimField(lonIter, latIter, levelBelow, t),...
+                                     fourDimField(lonIter, latIter, levelBelow+1, t)];
+                        tempField(lonIter, latIter) = interp1(zInterp, valInterp, plotAlt*1E3);
+                    end
+                end             
+            end
+            interpolatedField(:,:,t) = tempField;
+            p.progress;
+        end
+        p.stop;
+        fields{i} = interpolatedField;
+    else
+        fields{i} = fields{i}(:,latInd,:);
+    end
+    
+    axisLim(i,:) = [min(fields{i}(:)), max(fields{i}(:))];
+end
+
+[~,beginInd] = min(abs(tiegcm10minDatenums - stormBegin));
+[~,endInd] = min(abs(tiegcm10minDatenums - stormEnd));
+numPlotRows = ceil(length(fieldNames)/2);
+if length(fieldNames) == 1
+    numPlotCols = 1;
+else
+    numPlotCols = 2;
+end
+
+figHandle = figure('units','normalized','outerposition',[0 0 1 1]);
+
+writerObj = VideoWriter('AltCrossSect.avi');
+writerObj.FrameRate = 1;
+open(writerObj);
+
+for t = beginInd:endInd
+    [~,~,~,hours,minutes,seconds] = datevec(tiegcm10minDatenums(t));
+    hourNow = hours + minutes/60 + seconds/3600;
+    lst = hourNow + lon/15;
+    lst(lst < 0) = lst(lst < 0) + 24;
+    lst(lst >= 24) = lst(lst >= 24) - 24;
+    plotAngle = lst*2*pi/24;
+    midnightInd = find(abs(diff(lst)) > 12);
+    
+    
+    for i = 1:length(fieldNames)
+        subplot(numPlotRows,numPlotCols,i)
+        plotField = rot90(fields{i}(:,:,t));
+        opengl neverselect
+        if ~isempty(midnightInd)
+            plotField = cat(2, plotField(:,midnightInd+1:end), plotField(:,1:midnightInd));
+        end
+        polarplot3d(plotField, 'RadialRange', plotRadius, 'TickSpacing', 90, 'InterpMethod', 'spline');
+        view(2);
+        %grid off;
+        axis off;
+        colorbar('northoutside')
+        caxis(axisLim(i,:))
+    end
+    
+    frame = getframe(figHandle);
+    writeVideo(writerObj,frame);
+end
+close(writerObj);
+
+end
+
+function [valAtSatLoc] = interpSatellite(lon, lat, altGrid, modelTime, modelField, satLon, satLat, satAlt, satTime, interpOption)
 
 if satTime < modelTime(1) || satTime > modelTime(end)
     valAtSatLoc = nan(1);
@@ -356,30 +489,32 @@ if isempty(j)
     j = 1;
 end
 
-if satLat < min(lat)
-    jNext = 0;
-else jNext = j + 1; 
-end
-if i == length(lon)
-    iNext = 1;
-elseif satLon < min(lon)
-    iNext = length(lon);
-else iNext = i + 1;
-end
+if interpOption == 1
+    if satLat < min(lat)
+        jNext = 0;
+    else jNext = j + 1; 
+    end
+    if i == length(lon)
+        iNext = 1;
+    elseif satLon < min(lon)
+        iNext = length(lon);
+    else iNext = i + 1;
+    end
 
-if jNext == 0
-    interpLon = [lon; lon; lon; lon];
-    interpLat = ones(size(interpLon)) * min(lat);
-    lonInd = (1:length(lon))'; latInd = ones(size(lonInd))*1;
-elseif jNext == length(lat) + 1
-    interpLon = [lon; lon; lon; lon];
-    interpLat = ones(size(interpLon)) * max(lat);
-    lonInd = (1:length(lon))'; latInd = ones(size(lonInd))*length(lat);
-else
-    interpLon = repmat([lon(i); lon(i); lon(iNext); lon(iNext)], 4, 1);
-    interpLat = repmat([lat(j); lat(jNext); lat(jNext); lat(j)], 4, 1);
-    lonInd = [i;i;iNext;iNext];
-    latInd = [j;jNext;jNext;j];
+    if jNext == 0
+        interpLon = [lon; lon; lon; lon];
+        interpLat = ones(size(interpLon)) * min(lat);
+        lonInd = (1:length(lon))'; latInd = ones(size(lonInd))*1;
+    elseif jNext == length(lat) + 1
+        interpLon = [lon; lon; lon; lon];
+        interpLat = ones(size(interpLon)) * max(lat);
+        lonInd = (1:length(lon))'; latInd = ones(size(lonInd))*length(lat);
+    else
+        interpLon = repmat([lon(i); lon(i); lon(iNext); lon(iNext)], 4, 1);
+        interpLat = repmat([lat(j); lat(jNext); lat(jNext); lat(j)], 4, 1);
+        lonInd = [i;i;iNext;iNext];
+        latInd = [j;jNext;jNext;j];
+    end
 end
 
 nearestTime = find(modelTime <= satTime, 1, 'last');
@@ -394,40 +529,44 @@ for n = 1:2
         t = nearestTime;
     else t = nextTime;
     end
-    tInd = ones(size(lonInd)) * t;
     
     if satAlt < altGrid(i,j,1,t) || satAlt > altGrid(i,j,end,t)
         valAtSatLoc = nan(1);
         return
     end
     
-    k = find(altGrid(i,j,:,t) <= satAlt, 1, 'last'); % Toimiiko
+    k = find(altGrid(i,j,:,t) <= satAlt, 1, 'last');
     
-    nlev = size(altGrid, 3);
-    interpAlt = [];
-    interpField = [];
-    for m = -1:2
-        if k + m < 1 || k + m > nlev
-            k_Ind = ones(size(lonInd)) * k;
-            km_Ind = ones(size(lonInd)) * (k-m);
-            linInd1 = sub2ind(size(altGrid), lonInd, latInd, k_Ind, tInd);
-            linInd2 = sub2ind(size(altGrid), lonInd, latInd, km_Ind, tInd);
-            extrapAlt = 2 * altGrid(linInd1) - altGrid(linInd2);
-            extrapField = modelField(linInd1).^2 ./ modelField(linInd2);
-            interpAlt = [interpAlt; extrapAlt];
-            interpField = [interpField; extrapField];
-        else
-            km_Ind = ones(size(lonInd)) * (k+m);
-            linInd = sub2ind(size(altGrid), lonInd, latInd, km_Ind, tInd);
-            interpAlt = [interpAlt; altGrid(linInd)];
-            interpField = [interpField; modelField(linInd)];
+    if interpOption == 1
+        tInd = ones(size(lonInd)) * t;
+        nlev = size(altGrid, 3);
+        interpAlt = [];
+        interpField = [];
+        for m = -1:2
+            if k + m < 1 || k + m > nlev
+                k_Ind = ones(size(lonInd)) * k;
+                km_Ind = ones(size(lonInd)) * (k-m);
+                linInd1 = sub2ind(size(altGrid), lonInd, latInd, k_Ind, tInd);
+                linInd2 = sub2ind(size(altGrid), lonInd, latInd, km_Ind, tInd);
+                extrapAlt = 2 * altGrid(linInd1) - altGrid(linInd2);
+                extrapField = modelField(linInd1).^2 ./ modelField(linInd2);
+                interpAlt = [interpAlt; extrapAlt];
+                interpField = [interpField; extrapField];
+            else
+                km_Ind = ones(size(lonInd)) * (k+m);
+                linInd = sub2ind(size(altGrid), lonInd, latInd, km_Ind, tInd);
+                interpAlt = [interpAlt; altGrid(linInd)];
+                interpField = [interpField; modelField(linInd)];
+            end
         end
+
+        tiegcmCoord = geod2ecef(interpLat, interpLon, interpAlt) / 1E6;
+        satCoord = geod2ecef(satLat, satLon, satAlt) / 1E6;
+
+        vals(n) = griddatan(tiegcmCoord, interpField, satCoord, 'linear');
+    else
+        vals(n) = modelField(i,j,k,t);
     end
-    
-    tiegcmCoord = geod2ecef(interpLat, interpLon, interpAlt) / 1E6;
-    satCoord = geod2ecef(satLat, satLon, satAlt) / 1E6;
-    
-    vals(n) = griddatan(tiegcmCoord, interpField, satCoord, 'linear');
 end
 
 tInterp = modelTime([nearestTime; nextTime]);
