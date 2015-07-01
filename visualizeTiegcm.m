@@ -218,12 +218,12 @@ hold off;
 
 tiegcm10minDatenums = datenums;
 stormBegin = datenum('2010-04-05 07:00:00');
-stormEnd = datenum('2010-04-05 23:59:00');
+stormEnd = datenum('2010-04-05 23:50:00');
 % 
 % plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, tiegcmAlt, {'QJOULE','NO','WN','VN'}, ...
 %     goceDatenums, goceSolarTime, goceLat, goceAlt, stormBegin, stormEnd)
 
-plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, lev, tiegcmAlt, {'QJOULE_INTEG','DEN'}, ...
+plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, lev, tiegcmAlt, {'QJOULE_INTEG','EFLUX','WN','DEN'}, ...
     goceDatenums, goceLon, goceLat, goceAlt, stormBegin, stormEnd, 270)
 
 end
@@ -344,6 +344,20 @@ function plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, le
 
 fields = cell(length(fieldNames),1);
 tiegcmFiles = dir(tiegcmFileNames);
+
+newFieldNames = fieldNames;
+plotFieldNames = fieldNames;
+for i = 1:length(fieldNames)
+    if strcmpi(fieldNames{i},'QJOULE_INTEG')
+        newFieldNames = [newFieldNames, {'UI_ExB', 'VI_ExB'}];
+        ionDriftInd = length(newFieldNames) - 1;
+    elseif strcmpi(fieldNames{i},'WN')
+        newFieldNames = [newFieldNames, {'UN', 'VN'}];
+        windInd = length(newFieldNames) - 1;
+    end
+end
+fieldNames = newFieldNames;
+
 for i = 1:length(fieldNames)
     
     temporaryField = double(ncread(tiegcmFiles(1).name, fieldNames{i}));
@@ -369,7 +383,7 @@ for i = 1:length(fieldNames)
     fields{i} = temporaryField;
 end
 
-endLat = 30;
+endLat = 40;
 if endLat > 0
     latInd = lat > endLat;
 else
@@ -423,12 +437,26 @@ for i = 1:length(fieldNames)
         fields{i} = fields{i}(:,latInd,:);
     end
     
+    if i > length(plotFieldNames)
+        fields{i} = 10 * (fields{i} / 500E2);
+    end
+    
+    if strcmpi(fieldNames{i}, 'WN')
+        fields{i} = fields{i} / 100;
+    end
+%     if strcmpi(fieldNames{i}, 'DEN')
+%         fields{i} = (fields{i} ./ repmat(fields{i}(:,:,1),[1,1,length(tiegcm10minDatenums)]) - 1) * 100;
+%     end
+    
     axisLim(i,:) = [min(fields{i}(:)), max(fields{i}(:))];
+    %fields{i}(1,1:10,1) = ones(1,10)*axisLim(i,2);
+    
 end
 
 [~,beginInd] = min(abs(tiegcm10minDatenums - stormBegin));
 [~,endInd] = min(abs(tiegcm10minDatenums - stormEnd));
-numPlotRows = ceil(length(fieldNames)/2);
+numPlotRows = ceil(length(plotFieldNames)/2);
+
 if length(fieldNames) == 1
     numPlotCols = 1;
 else
@@ -447,30 +475,121 @@ for t = beginInd:endInd
     lst = hourNow + lon/15;
     lst(lst < 0) = lst(lst < 0) + 24;
     lst(lst >= 24) = lst(lst >= 24) - 24;
-    plotAngle = lst*2*pi/24;
+    plotAngle = (lst*2*pi/24)';
     midnightInd = find(abs(diff(lst)) > 12);
+    if ~isempty(midnightInd)
+        plotAngle = [plotAngle(midnightInd+1:end), plotAngle(1:midnightInd)];
+    end
     
     
-    for i = 1:length(fieldNames)
-        subplot(numPlotRows,numPlotCols,i)
+    for i = 1:length(plotFieldNames)
+        hAx = subplot(numPlotRows,numPlotCols,i);
         plotField = rot90(fields{i}(:,:,t));
+        
         opengl neverselect
         if ~isempty(midnightInd)
-            plotField = cat(2, plotField(:,midnightInd+1:end), plotField(:,1:midnightInd));
+            plotField = cat(2, plotField(:,midnightInd+1:end), plotField(:,1:midnightInd));           
         end
-        polarplot3d(plotField, 'RadialRange', plotRadius, 'TickSpacing', 90, 'InterpMethod', 'spline');
+        plotDist = 90-latToPlot;
+        polarplot3d(plotField, 'RadialRange', plotDist, 'TickSpacing', 45, 'InterpMethod', 'spline', 'MeshScale', [0.5 1.0],...
+            'PolarGrid', {1 1});
         view(2);
+        shading interp;
         %grid off;
         axis off;
-        colorbar('northoutside')
+        if numPlotRows == 1; cbarLoc = 'northoutside'; else cbarLoc = 'eastoutside'; end
+        colorbar(cbarLoc)
         caxis(axisLim(i,:))
+        fieldLongName = ncreadatt(tiegcmFiles(1).name, fieldNames{i}, 'long_name');
+        fieldUnit = ncreadatt(tiegcmFiles(1).name, fieldNames{i}, 'units');
+        if strcmpi(fieldNames{i}, 'WN')
+            fieldUnit = 'm/s';
+            velocityFieldName = ' and Neutral Wind';
+        elseif strcmpi(fieldNames{i}, 'QJOULE_INTEG')
+            velocityFieldName = ' and E x B';
+        else
+            velocityFieldName = [];
+        end
+        title([fieldLongName, ' [', fieldUnit, ']', velocityFieldName], 'fontsize', 14)
+        set(gca,'FontSize',14)
+        
+        if strcmpi(fieldNames{i}, 'QJOULE_INTEG')
+            uMat = rot90(fields{ionDriftInd}(:,:,t));
+            vMat = rot90(fields{ionDriftInd+1}(:,:,t));
+        elseif strcmpi(fieldNames{i}, 'WN')
+            uMat = rot90(fields{windInd}(:,:,t));
+            vMat = rot90(fields{windInd+1}(:,:,t));
+        end
+        if strcmpi(fieldNames{i}, 'QJOULE_INTEG') || strcmpi(fieldNames{i}, 'WN')
+            lonWind = 1:4:size(uMat,2);
+            latWind = 1:2:size(uMat,1);
+            uMat = uMat(latWind,lonWind); vMat = vMat(latWind,lonWind);
+            vertVel = zeros(size(uMat));
+            
+            plotHeight = ones(size(uMat)) * axisLim(i,2);
+            [theta, rho] = meshgrid(plotAngle(lonWind), plotDist(latWind)');
+            [plotX, plotY] = pol2cart(theta, rho);
+            uRotated = uMat.*cos(theta) - vMat.*sin(theta);
+            vRotated = uMat.*sin(theta) + vMat.*cos(theta);
+            rotatedWind = [uRotated(:), vRotated(:), zeros(size(uRotated(:)))];
+            zDir = repmat([0,0,1], size(rotatedWind,1),1);
+            finalWind = cross(zDir, rotatedWind);
+            uFinal = reshape(finalWind(:,1), size(uMat)); vFinal = reshape(finalWind(:,2), size(vMat));
+            
+            hold all;
+            quiver3(hAx, plotX, plotY, plotHeight, uFinal, vFinal, vertVel, 0, 'Color', 'r', 'lineWidth', 1.0);
+            %quiverscale(10, 0, hAx);
+            hold off;
+        end
     end
+    
+    supertitle = ['UT ', datestr(tiegcm10minDatenums(t),'HH:MM')];
+    [~,h] = suplabel(supertitle  ,'t');
+    set(h,'FontSize',16)
     
     frame = getframe(figHandle);
     writeVideo(writerObj,frame);
 end
 close(writerObj);
 
+end
+
+function quiverscale(px,py,H)
+%QUIVERSCALE creates a scale at the bottom of the quiver plot, 
+%which plots the longest vector of the data set(px,py) and displays 
+%the vector's corresponding magnitude. The H input argument is the 
+%handle to the quiver plot axes.
+%
+%Please note that the QUIVERSCALE function returns 
+%accurate results only when the vectors are plotted 
+%to actual scale (e.g.  QUIVER(U,V,S), where S=0).
+%
+%Vincent Hodges 02/03/98
+
+h=get(H,'position');
+h2=h;
+h1=h(2)/4;
+h(2)=h(2)+h1;
+h(4)=h(4)-h1;
+set(gca,'position',h);
+hlim=get(gca,'xlim');
+h2(end)=h2(end)/20;
+h2(2)=h2(2)/3;
+ax=axes('position',h2);
+hlim(1)=0;
+set(ax,'xlim',hlim);
+
+xsq=px.^2;
+ysq=py.^2;
+arrowmag=max(unique(sqrt([xsq+ysq])));
+size1=prod(size(arrowmag));
+arrowmag2=reshape(arrowmag,size1,1);
+X=zeros(size1,1);
+Y=1:size1;
+null=zeros(size1,1);
+quiver(X,Y,arrowmag2,null,0);
+set(ax,'xlim',hlim);
+set(ax,'ytick',[]);
 end
 
 function [valAtSatLoc] = interpSatellite(lon, lat, altGrid, modelTime, modelField, satLon, satLat, satAlt, satTime, interpOption)
