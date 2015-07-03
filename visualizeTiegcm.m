@@ -49,12 +49,34 @@ for i = 1:length(tiegcmFiles)
     end
 end
 
+amieFile = 'timegcm_amie_dres_v2_apr5_qamie.nc';
+amieJoule = [];
+if exist(amieFile,'file')
+    modelYear = 2010;
+    modelTimes = double(ncread(amieFile, 'mtime'));
+    modelDatenums = repmat(datenum(num2str(modelYear),'yyyy'), 1, size(modelTimes,2));
+    amieDatenums = (modelDatenums + modelTimes(1,:) + modelTimes(2,:)/24 + modelTimes(3,:)/1440 - 1)';
+    
+    jouleHeatingInteg = double(ncread(amieFile, 'QAMIE'));
+    jouleHeatingInteg = reshape(jouleHeatingInteg, size(jouleHeatingInteg,1), ...
+                                size(jouleHeatingInteg,2), size(jouleHeatingInteg,4));
+    for j = 1:size(jouleHeatingInteg,3)
+        jhThisTime = 0;
+        for k = 1:length(lat)
+            ringArea = computeRingArea(lat(k), resolution);
+            jhThisLat = 1E-12 * ringArea * sum(jouleHeatingInteg(:,k,j)) / length(lon);
+            jhThisTime = jhThisTime + jhThisLat;
+        end
+        amieJoule = [amieJoule; jhThisTime];
+    end
+end
+
 jhInfs = jouleHeating >= 1E36;
 jhNoInfs = jouleHeating(~jhInfs);
 dateNumsNoInfs = datenums(~jhInfs);
 jouleHeating = interp1(dateNumsNoInfs, jhNoInfs, datenums, 'linear', 'extrap');
-t1 = datenum('2010-04-04');
-t2 = datenum('2010-04-09');
+t1 = datenum('2010-04-4');
+t2 = datenum('2010-04-10');
 
 load('goceVariables.mat', 'densityNoBg', 'latitude', 'timestampsDensityDatenum');
 goceTimestamps = timestampsDensityDatenum;
@@ -90,7 +112,12 @@ hold all;
 plot(datenums, hemisphericPower, 'r')
 datetick('x', 'dd/mm');
 xlim([t1 t2])
-legend('Joule Heating', 'Energy Flux');
+% if ~isempty(amieJoule)
+%     hAx(2) = plot(amieDatenums, amieJoule, 'k--');
+%     legend('Weimer JH', 'R&R HP', 'AMIE JH');
+% else
+    legend('Weimer JH', 'R&R HP');
+%end
 ylabel('Power [GW]');
 hold off;
 
@@ -117,7 +144,8 @@ end
 
 function [] = plotSurfs(timeseriesFig, hAx, datenums, tiegcmFileNames)
 
-load('goceVariables.mat', 'latitude', 'magneticLatitude', 'longitude', 'altitude', 'solarTime', 'densityNoBg', 'timestampsDensityDatenum');
+load('goceVariables.mat', 'latitude', 'magneticLatitude', 'longitude', 'altitude', 'solarTime', ...
+    'densityNoBg', 'timestampsDensityDatenum', 'crwindEast', 'crwindNorth');
 ind = (timestampsDensityDatenum >= datenums(1) & timestampsDensityDatenum <= datenums(end));
 goceDatenums = timestampsDensityDatenum(ind);
 
@@ -126,6 +154,8 @@ goceLon = longitude(ind);
 goceLat = latitude(ind);
 goceAlt = altitude(ind);
 goceSolarTime = solarTime(ind);
+goceU = crwindEast(ind);
+goceV = crwindNorth(ind);
 
 tiegcmTime = (datenums - datenums(1)) * 86400;
 tiegcmFiles = dir(tiegcmFileNames);
@@ -145,11 +175,11 @@ tiegcmAlt = tiegcmAlt / 100;
 %tiegcmTime = tiegcmTime(2:end);
 
 if ~exist('tiegcmDens.mat', 'file')
-    tiegcmDens = zeros(length(lon), length(lat), length(lev), length(datenums));
+    amieDens = zeros(length(lon), length(lat), length(lev), length(datenums));
     k = 1;
     for i = 1:length(tiegcmFiles)
         mtimes = double(ncread(tiegcmFiles(i).name, 'mtime')); numTimes = size(mtimes,2);
-        tiegcmDens(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(i).name, 'DEN'));
+        amieDens(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(i).name, 'DEN'));
         k = k + numTimes;
     end
     %tiegcmDens(:,:,:,1) = [];
@@ -165,9 +195,9 @@ if ~exist('tiegcmDens.mat', 'file')
                         'Completed in ' );
 
     for i = 1:length(goceTimestamps)
-        tiegcmGoceInterp(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, tiegcmDens,...
+        tiegcmGoceInterp(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, amieDens,...
                                                 goceLon(i), goceLat(i), goceAlt(i), goceTimestamps(i), 1);
-        tiegcmGoce270km(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, tiegcmDens,...
+        tiegcmGoce270km(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, amieDens,...
                                                 goceLon(i), goceLat(i), 270E3, goceTimestamps(i), 1);
         if mod(i, 500) == 0
             p.progress;
@@ -219,12 +249,12 @@ hold off;
 tiegcm10minDatenums = datenums;
 stormBegin = datenum('2010-04-05 07:00:00');
 stormEnd = datenum('2010-04-05 23:50:00');
-% 
-% plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, tiegcmAlt, {'QJOULE','NO','WN','VN'}, ...
+
+% plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, tiegcmAlt, {'QJOULE','NO_COOL','WN','VN'}, ...
 %     goceDatenums, goceSolarTime, goceLat, goceAlt, stormBegin, stormEnd)
 
-plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, lev, tiegcmAlt, {'QJOULE_INTEG','EFLUX','WN','DEN'}, ...
-    goceDatenums, goceLon, goceLat, goceAlt, stormBegin, stormEnd, 270)
+plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, lev, tiegcmAlt, {'QJOULE_INTEG','AMIE_QJOULE','DEN','AMIE_DEN'}, ...
+    goceDatenums, goceLon, goceLat, goceAlt, goceU, goceV, stormBegin, stormEnd, 270)
 
 end
 
@@ -234,20 +264,40 @@ function plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, ti
 fields = cell(length(fieldNames),1);
 tiegcmFiles = dir(tiegcmFileNames);
 for i = 1:length(fieldNames)
-    temporaryField = zeros(size(tiegcmAlt));
-    k = 1;
-    for j = 1:length(tiegcmFiles)
-        mtimes = double(ncread(tiegcmFiles(j).name, 'mtime')); numTimes = size(mtimes,2);
-        temporaryField(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(j).name, fieldNames{i}));
-        k = k + numTimes;
+    if ~isempty(strfind(fieldNames{i},'AMIE'))
+        if exist('timegcm_amie_dres_v2_apr5_qamie.nc','file') && ...
+            exist('timegcm_amie_dres_v2_RHO_apr5_2010.nc','file')
+            if ~isempty(strfind(fieldNames{i},'QJOULE'))
+                temporaryField = double(ncread('timegcm_amie_dres_v2_apr5_qamie.nc', 'QAMIE'));
+                amieAlt = double(ncread('timegcm_amie_dres_v2_apr5_qamie.nc', 'Z'))/100;
+            elseif ~isempty(strfind(fieldNames{i},'DEN'))
+                timegcmAlt = double(ncread('timegcm_amie_dres_v2_RHO_apr5_2010.nc', 'Z'))*1000;
+                temporaryField = double(ncread('timegcm_amie_dres_v2_RHO_apr5_2010.nc', 'RHO'));
+                temporaryField(:,:,:,end) = [];
+            end
+            if size(temporaryField,4) ~= size(tiegcmAlt,4)
+                error('TIEGCM and AMIE results must contain the same number of time steps!')
+            end
+        else
+            error('AMIE Files do not exist!')
+        end
+    else
+        temporaryField = zeros(size(tiegcmAlt));
+        k = 1;
+        for j = 1:length(tiegcmFiles)
+            mtimes = double(ncread(tiegcmFiles(j).name, 'mtime')); numTimes = size(mtimes,2);
+            temporaryField(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(j).name, fieldNames{i}));
+            k = k + numTimes;
+        end
     end
+
     if any(temporaryField(:,:,end,:) >= 1e35)
         temporaryField(:,:,end,:) = temporaryField(:,:,end-1,:);
     end
-    if strcmpi(fieldNames{i}, 'DEN') || strcmpi(fieldNames{i}, 'O_N2')
+    if ~isempty(strfind(fieldNames{i}, 'DEN')) || ~isempty(strfind(fieldNames{i}, 'O_N2'))
         temporaryField = log(temporaryField);
     end
-    if strcmpi(fieldNames{i}, 'VN') || strcmpi(fieldNames{i}, 'WN')
+    if ~isempty(strfind(fieldNames{i}, 'VN')) || ~isempty(strfind(fieldNames{i}, 'WN'))
         temporaryField = temporaryField / 100;
     end
     
@@ -288,16 +338,24 @@ writerObj.FrameRate = 1;
 open(writerObj);
 
 for t = beginInd:endInd
-    altSlice = tiegcmAlt(plotLonInd(t),:,:,t);
-    altSlice = reshape(altSlice,size(tiegcmAlt,2),size(tiegcmAlt,3));
-    altSlice = flipud(altSlice') / 1E3;
-    latForGeopHeight = repmat(lat, 1, length(altSlice(1:4:end,1)));
-    geopHeight = altSlice(1:4:end,:)';
-    
     for i = 1:length(fieldNames)
+        
+        if ~isempty(strfind(fieldNames{i},'AMIE_QJOULE'))
+            alt = amieAlt;
+        elseif ~isempty(strfind(fieldNames{i},'AMIE_DEN'))
+            alt = timegcmAlt;
+        else
+            alt = tiegcmAlt;
+        end
+        altSlice = alt(plotLonInd(t),:,:,t);
+        altSlice = reshape(altSlice,size(alt,2),size(alt,3));
+        altSlice = flipud(altSlice') / 1E3;
+        latForGeopHeight = repmat(lat, 1, length(altSlice(1:4:end,1)));
+        geopHeight = altSlice(1:4:end,:)';
+        
         subplot(numPlotRows,2,i)
         fieldSlice = fields{i}(plotLonInd(t),:,:,t);
-        fieldSlice = reshape(fieldSlice,size(tiegcmAlt,2),size(tiegcmAlt,3));
+        fieldSlice = reshape(fieldSlice,size(alt,2),size(alt,3));
         fieldSlice = flipud(fieldSlice');
         surf(latGrid, altSlice, fieldSlice, 'linestyle', 'none', 'edgecolor', 'none')
         view(2);
@@ -340,10 +398,22 @@ close(writerObj);
 end
 
 function plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, lev, tiegcmAlt, fieldNames, ...
-    goceDatenums, goceLon, goceLat, goceAlt, stormBegin, stormEnd, plotAlt)
+    goceDatenums, goceLon, goceLat, goceAlt, goceU, goceV, stormBegin, stormEnd, plotAlt)
 
 fields = cell(length(fieldNames),1);
 tiegcmFiles = dir(tiegcmFileNames);
+
+windPlot = 'DEN';
+wnFound = 0;
+for i = 1:length(fieldNames)
+    if strcmpi(fieldNames{i},'WN')
+        wnFound = 1;
+        break;
+    end
+end
+if wnFound == 1
+    windPlot = 'WN';
+end
 
 newFieldNames = fieldNames;
 plotFieldNames = fieldNames;
@@ -351,7 +421,7 @@ for i = 1:length(fieldNames)
     if strcmpi(fieldNames{i},'QJOULE_INTEG')
         newFieldNames = [newFieldNames, {'UI_ExB', 'VI_ExB'}];
         ionDriftInd = length(newFieldNames) - 1;
-    elseif strcmpi(fieldNames{i},'WN')
+    elseif strcmpi(fieldNames{i},windPlot)
         newFieldNames = [newFieldNames, {'UN', 'VN'}];
         windInd = length(newFieldNames) - 1;
     end
@@ -360,21 +430,44 @@ fieldNames = newFieldNames;
 
 for i = 1:length(fieldNames)
     
-    temporaryField = double(ncread(tiegcmFiles(1).name, fieldNames{i}));
-    if length(size(temporaryField)) == 3
-        temporaryField = zeros(size(tiegcmAlt,1),size(tiegcmAlt,2),size(tiegcmAlt,4));
-    else
-        temporaryField = zeros(size(tiegcmAlt));
-    end
-    k = 1;
-    for j = 1:length(tiegcmFiles)
-        mtimes = double(ncread(tiegcmFiles(j).name, 'mtime')); numTimes = size(mtimes,2);
-        if length(size(temporaryField)) == 3
-            temporaryField(:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(j).name, fieldNames{i}));
+    if ~isempty(strfind(fieldNames{i},'AMIE'))
+        if exist('timegcm_amie_dres_v2_apr5_qamie.nc','file') && ...
+            exist('timegcm_amie_dres_v2_RHO_apr5_2010.nc','file')
+            if ~isempty(strfind(fieldNames{i},'QJOULE'))
+                temporaryField = double(ncread('timegcm_amie_dres_v2_apr5_qamie.nc', 'QAMIE'));
+                temporaryField = reshape(temporaryField, size(temporaryField,1), size(temporaryField,2),...
+                                            size(temporaryField,4));
+            elseif ~isempty(strfind(fieldNames{i},'DEN'))
+                timegcmAlt = double(ncread('timegcm_amie_dres_v2_RHO_apr5_2010.nc', 'Z'))*1000;
+                temporaryField = double(ncread('timegcm_amie_dres_v2_RHO_apr5_2010.nc', 'Z'));
+                temporaryField(:,:,:,end) = [];
+                timegcmAlt(:,:,:,end) = [];
+                temporaryField(end,:,:,:) = [];
+                timegcmAlt(end,:,:,:) = [];
+                if size(temporaryField,4) ~= size(tiegcmAlt,4)
+                    error('TIEGCM and AMIE results must contain the same number of time steps!')
+                end
+            end
         else
-            temporaryField(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(j).name, fieldNames{i}));
+            error('AMIE Files do not exist!')
         end
-        k = k + numTimes;
+    else
+        temporaryField = double(ncread(tiegcmFiles(1).name, fieldNames{i}));
+        if length(size(temporaryField)) == 3
+            temporaryField = zeros(size(tiegcmAlt,1),size(tiegcmAlt,2),size(tiegcmAlt,4));
+        else
+            temporaryField = zeros(size(tiegcmAlt));
+        end
+        k = 1;
+        for j = 1:length(tiegcmFiles)
+            mtimes = double(ncread(tiegcmFiles(j).name, 'mtime')); numTimes = size(mtimes,2);
+            if length(size(temporaryField)) == 3
+                temporaryField(:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(j).name, fieldNames{i}));
+            else
+                temporaryField(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(j).name, fieldNames{i}));
+            end
+            k = k + numTimes;
+        end
     end
 %     if length(size(temporaryField)) == 4 && any(temporaryField(:,:,end,:) >= 1e35)
 %         temporaryField(:,:,end,:) = temporaryField(:,:,end-1,:);
@@ -403,20 +496,27 @@ for i = 1:length(fieldNames)
     if length(size(fields{i})) == 4
         interpolatedField = zeros(length(lon), length(latToPlot), length(tiegcm10minDatenums));
         fourDimField = fields{i};
-        nlev = length(lev);
+        
         
         targetCount = length(tiegcm10minDatenums);
         barWidth = 50;
+        progressString = ['Interpolating ', fieldNames{i}, ', ETA '];
         p = TimedProgressBar( targetCount, barWidth, ...
-                        'Interpolating Surfs, ETA ', ...
+                        progressString, ...
                         '. Now at ', ...
                         'Completed in ' );
+        if ~isempty(strfind(fieldNames{i},'AMIE_DEN'))
+            alt = timegcmAlt;
+        else
+            alt = tiegcmAlt;
+        end
+        nlev = size(alt,3);
         
         parfor t = 1:length(tiegcm10minDatenums)
             tempField = zeros(length(lon), length(latToPlot));
             for latIter = 1:size(latGrid,1)
                 for lonIter = 1:size(lonGrid,2)
-                    altCol = tiegcmAlt(lonIter,latIter,:,t);
+                    altCol = alt(lonIter,latIter,:,t);
                     levelBelow = find(altCol < plotAlt*1E3, 1, 'last');
                     if isempty(levelBelow) || levelBelow == nlev
                         tempField(lonIter, latIter) = nan(1);
@@ -432,13 +532,16 @@ for i = 1:length(fieldNames)
             p.progress;
         end
         p.stop;
+        interpolatedField(isnan(interpolatedField)) = 0;
         fields{i} = interpolatedField;
     else
         fields{i} = fields{i}(:,latInd,:);
     end
     
     if i > length(plotFieldNames)
-        fields{i} = 10 * (fields{i} / 500E2);
+        scaleSpeed = 500; % m/s
+        scaleFac = 10;
+        fields{i} = scaleFac * (fields{i} / (scaleSpeed*100));
     end
     
     if strcmpi(fieldNames{i}, 'WN')
@@ -449,6 +552,9 @@ for i = 1:length(fieldNames)
 %     end
     
     axisLim(i,:) = [min(fields{i}(:)), max(fields{i}(:))];
+    if strcmpi(fieldNames{i}, 'QJOULE_INTEG')
+        weimerJouleInd = i;
+    end
     %fields{i}(1,1:10,1) = ones(1,10)*axisLim(i,2);
     
 end
@@ -499,11 +605,29 @@ for t = beginInd:endInd
         axis off;
         if numPlotRows == 1; cbarLoc = 'northoutside'; else cbarLoc = 'eastoutside'; end
         colorbar(cbarLoc)
-        caxis(axisLim(i,:))
-        fieldLongName = ncreadatt(tiegcmFiles(1).name, fieldNames{i}, 'long_name');
-        fieldUnit = ncreadatt(tiegcmFiles(1).name, fieldNames{i}, 'units');
+        if strcmpi(fieldNames{i}, 'AMIE_QJOULE')
+            caxis(axisLim(weimerJouleInd,:))
+        else
+            caxis(axisLim(i,:))
+        end
+        
+        if isempty(strfind(fieldNames{i},'AMIE'))
+            fieldLongName = ncreadatt(tiegcmFiles(1).name, fieldNames{i}, 'long_name');
+            fieldUnit = ncreadatt(tiegcmFiles(1).name, fieldNames{i}, 'units');
+        else
+            if strcmpi(fieldNames{i}, 'AMIE_QJOULE')
+                fieldLongName = 'AMIE Joule Heating';
+                fieldUnit = 'mW/m^2';
+            elseif strcmpi(fieldNames{i}, 'AMIE_DEN')
+                fieldLongName = 'TIMEGCM/AMIE density';
+                fieldUnit = 'g/cm^3';
+            end
+        end
+        
         if strcmpi(fieldNames{i}, 'WN')
             fieldUnit = 'm/s';
+            velocityFieldName = ' and Neutral Wind';
+        elseif strcmpi(fieldNames{i}, windPlot)
             velocityFieldName = ' and Neutral Wind';
         elseif strcmpi(fieldNames{i}, 'QJOULE_INTEG')
             velocityFieldName = ' and E x B';
@@ -516,11 +640,11 @@ for t = beginInd:endInd
         if strcmpi(fieldNames{i}, 'QJOULE_INTEG')
             uMat = rot90(fields{ionDriftInd}(:,:,t));
             vMat = rot90(fields{ionDriftInd+1}(:,:,t));
-        elseif strcmpi(fieldNames{i}, 'WN')
+        elseif strcmpi(fieldNames{i}, windPlot)
             uMat = rot90(fields{windInd}(:,:,t));
             vMat = rot90(fields{windInd+1}(:,:,t));
         end
-        if strcmpi(fieldNames{i}, 'QJOULE_INTEG') || strcmpi(fieldNames{i}, 'WN')
+        if strcmpi(fieldNames{i}, 'QJOULE_INTEG') || strcmpi(fieldNames{i}, windPlot)
             lonWind = 1:4:size(uMat,2);
             latWind = 1:2:size(uMat,1);
             uMat = uMat(latWind,lonWind); vMat = vMat(latWind,lonWind);
@@ -537,8 +661,46 @@ for t = beginInd:endInd
             uFinal = reshape(finalWind(:,1), size(uMat)); vFinal = reshape(finalWind(:,2), size(vMat));
             
             hold all;
+            
             quiver3(hAx, plotX, plotY, plotHeight, uFinal, vFinal, vertVel, 0, 'Color', 'r', 'lineWidth', 1.0);
-            %quiverscale(10, 0, hAx);
+            if strcmpi(fieldNames{i}, windPlot)
+                fiveMin = 5/1440;
+                td = tiegcm10minDatenums;
+                goceInd = (goceDatenums >= td(t)-fiveMin & goceDatenums < td(t)+fiveMin) & goceLat > min(latToPlot);
+                
+                if any(goceInd)
+                    nearestLats = goceLat(goceInd);
+                    nearestLons = goceLon(goceInd);
+                    nearestU = scaleFac * goceU(goceInd) / scaleSpeed;
+                    nearestV = scaleFac * goceV(goceInd) / scaleSpeed;
+                    consInd = [1:3:length(nearestLats)];
+                    nearestLats = nearestLats(consInd);
+                    nearestLons = nearestLons(consInd);
+                    nearestU = nearestU(consInd);
+                    nearestV = nearestV(consInd);
+                    
+                    goceLst = hourNow + nearestLons/15;
+                    goceLst(goceLst < 0) = goceLst(goceLst < 0) + 24;
+                    goceLst(goceLst >= 24) = goceLst(goceLst >= 24) - 24;
+                    theta = goceLst*2*pi/24;
+                    goceDist = 90 - nearestLats;
+                    
+                    [goceX, goceY] = pol2cart(theta, goceDist);
+                    uRotated = nearestU.*cos(theta) - nearestV.*sin(theta);
+                    vRotated = nearestU.*sin(theta) + nearestV.*cos(theta);
+                    
+                    rotatedWind = [uRotated(:), vRotated(:), zeros(size(uRotated(:)))];
+                    zDir = repmat([0,0,1], size(rotatedWind,1),1);
+                    finalWind = cross(zDir, rotatedWind);
+                    uFinal = reshape(finalWind(:,1), size(nearestU)); vFinal = reshape(finalWind(:,2), size(nearestV));
+                    vertVel = zeros(length(uFinal),1);
+                    plotHeight = ones(size(goceX)) * axisLim(i,2);
+                    
+                    quiver3(hAx, goceX, goceY, plotHeight, uFinal, vFinal, vertVel, 0, 'Color', 'g', 'lineWidth', 1.5);
+                    
+                    quiverscale(10, 0, hAx, scaleFac, scaleSpeed);
+                end
+            end
             hold off;
         end
     end
@@ -554,7 +716,7 @@ close(writerObj);
 
 end
 
-function quiverscale(px,py,H)
+function quiverscale(px,py,H,scaleFac,scaleSpeed)
 %QUIVERSCALE creates a scale at the bottom of the quiver plot, 
 %which plots the longest vector of the data set(px,py) and displays 
 %the vector's corresponding magnitude. The H input argument is the 
@@ -589,7 +751,16 @@ Y=1:size1;
 null=zeros(size1,1);
 quiver(X,Y,arrowmag2,null,0);
 set(ax,'xlim',hlim);
+xTicks = [0 scaleFac];
+xTickLabels = {'',num2str(scaleSpeed)};
 set(ax,'ytick',[]);
+set(ax,'xtick',xTicks);
+set(ax,'xtickLabel',xTickLabels);
+figColor = get(gcf,'color');
+set(ax,'XColor',figColor,'YColor',figColor)
+set(ax,'color', 'none')
+
+
 end
 
 function [valAtSatLoc] = interpSatellite(lon, lat, altGrid, modelTime, modelField, satLon, satLat, satAlt, satTime, interpOption)
