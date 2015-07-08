@@ -75,8 +75,8 @@ jhInfs = jouleHeating >= 1E36;
 jhNoInfs = jouleHeating(~jhInfs);
 dateNumsNoInfs = datenums(~jhInfs);
 jouleHeating = interp1(dateNumsNoInfs, jhNoInfs, datenums, 'linear', 'extrap');
-t1 = datenum('2010-04-4');
-t2 = datenum('2010-04-10');
+t1 = datenum('2010-04-05');
+t2 = datenum('2010-04-06');
 
 load('goceVariables.mat', 'densityNoBg', 'latitude', 'timestampsDensityDatenum');
 goceTimestamps = timestampsDensityDatenum;
@@ -112,12 +112,12 @@ hold all;
 plot(datenums, hemisphericPower, 'r')
 datetick('x', 'dd/mm');
 xlim([t1 t2])
-% if ~isempty(amieJoule)
-%     hAx(2) = plot(amieDatenums, amieJoule, 'k--');
-%     legend('Weimer JH', 'R&R HP', 'AMIE JH');
-% else
+if ~isempty(amieJoule)
+    hAx(2) = plot(amieDatenums, amieJoule, 'k--');
+    legend('Weimer JH', 'R&R HP', 'AMIE JH');
+else
     legend('Weimer JH', 'R&R HP');
-%end
+end
 ylabel('Power [GW]');
 hold off;
 
@@ -175,11 +175,11 @@ tiegcmAlt = tiegcmAlt / 100;
 %tiegcmTime = tiegcmTime(2:end);
 
 if ~exist('tiegcmDens.mat', 'file')
-    amieDens = zeros(length(lon), length(lat), length(lev), length(datenums));
+    tiegcmDens = zeros(length(lon), length(lat), length(lev), length(datenums));
     k = 1;
     for i = 1:length(tiegcmFiles)
         mtimes = double(ncread(tiegcmFiles(i).name, 'mtime')); numTimes = size(mtimes,2);
-        amieDens(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(i).name, 'DEN'));
+        tiegcmDens(:,:,:,k:k+numTimes-1) = double(ncread(tiegcmFiles(i).name, 'DEN'));
         k = k + numTimes;
     end
     %tiegcmDens(:,:,:,1) = [];
@@ -195,9 +195,9 @@ if ~exist('tiegcmDens.mat', 'file')
                         'Completed in ' );
 
     for i = 1:length(goceTimestamps)
-        tiegcmGoceInterp(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, amieDens,...
+        tiegcmGoceInterp(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, tiegcmDens,...
                                                 goceLon(i), goceLat(i), goceAlt(i), goceTimestamps(i), 1);
-        tiegcmGoce270km(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, amieDens,...
+        tiegcmGoce270km(i) = interpSatellite(lon, lat, tiegcmAlt, tiegcmTime, tiegcmDens,...
                                                 goceLon(i), goceLat(i), 270E3, goceTimestamps(i), 1);
         if mod(i, 500) == 0
             p.progress;
@@ -213,9 +213,54 @@ if ~exist('tiegcmDens.mat', 'file')
     tNoNans = goceTimestamps(~isnan(tiegcmGoce270km));
     tiegcmGoce270km = interp1(tNoNans, tgNoNans, goceTimestamps, 'nearest', 'extrap');
     
-    tiegcmDatenums = goceDatenums;
+    if exist('timegcm_dres.s_apr2010_amie_rho.nc', 'file')
+        amieDens = ncread('timegcm_dres.s_apr2010_amie_rho.nc','RHO');
+        timegcmAlt = ncread('timegcm_dres.s_apr2010_amie_rho.nc','ZG') * 1000;
+        modelYear = 2010;
+        modelTimes = double(ncread('timegcm_dres.s_apr2010_amie_rho.nc', 'mtime'));
+        modelDatenums = repmat(datenum(num2str(modelYear),'yyyy'), 1, size(modelTimes,2));
+        modelDatenums = modelDatenums + modelTimes(1,:) + modelTimes(2,:)/24 + modelTimes(3,:)/1440 - 1;
+        timegcmTime = (modelDatenums - datenums(1)) * 86400;
+        
+%         amieDens(:,:,:,end) = [];
+%         timegcmAlt(:,:,:,end) = [];
+        amieDens(end,:,:,:) = [];
+        timegcmAlt(end,:,:,:) = [];
+%         zeroCube = zeros(size(timegcmAlt,1), size(timegcmAlt,2), size(timegcmAlt,3));
+%         amieDens = cat(4, zeroCube, amieDens);
+%         timegcmAlt = cat(4, zeroCube, timegcmAlt);
+        
+        amieGoce270km = nan(size(goceTimestamps));
+        targetCount = round(length(goceTimestamps) / 500);
+        barWidth = 50;
+        warning('off', 'MATLAB:qhullmx:InternalWarning');
+        p = TimedProgressBar( targetCount, barWidth, ...
+                            'Interpolating GOCE/AMIE, ETA ', ...
+                            '. Now at ', ...
+                            'Completed in ' );
 
-    save('tiegcmDens.mat', 'tiegcmGoceInterp', '-v7.3')
+        for i = 1:length(goceTimestamps)
+            amieGoce270km(i) = interpSatellite(lon, lat, timegcmAlt, timegcmTime, amieDens,...
+                                                    goceLon(i), goceLat(i), 270E3, goceTimestamps(i), 1);
+            if mod(i, 500) == 0
+                p.progress;
+            end
+        end
+        p.stop;
+        
+        tgNoNans = amieGoce270km(~isnan(amieGoce270km));
+        tNoNans = goceTimestamps(~isnan(amieGoce270km));
+        amieGoce270km = interp1(tNoNans, tgNoNans, goceTimestamps, 'nearest', 'extrap');
+        
+        save('tiegcmDens.mat', 'amieGoce270km', '-v7.3')       
+    end
+    
+    tiegcmDatenums = goceDatenums;
+    if exist('amieDens', 'var')
+        save('tiegcmDens.mat', 'tiegcmGoceInterp', '-append')
+    else
+        save('tiegcmDens.mat', 'tiegcmGoceInterp', '-v7.3')
+    end
     save('tiegcmDens.mat', 'tiegcmGoce270km', '-append')
     save('tiegcmDens.mat', 'tiegcmDatenums', '-append')
 end
@@ -223,8 +268,8 @@ end
 load tiegcmDens.mat
 tiegcmPlot = smooth(tiegcmGoce270km * 1e14, 540);
 tiegcmPlot = tiegcmPlot(ismember(tiegcmDatenums, goceDatenums));
-t1 = datenum('2010-04-04');
-t2 = datenum('2010-04-09');
+t1 = datenum('2010-04-05');
+t2 = datenum('2010-04-06');
 firstInd = find(goceDatenums <= t1, 1, 'last');
 calmDens = tiegcmPlot(firstInd);
 %tiegcmPlot = ((tiegcmPlot / calmDens) - 1) * 100;
@@ -239,16 +284,20 @@ figure(timeseriesFig);
 hold all;
 subplot(2,1,1)
 plot(goceDatenums(orbAverInd), tiegcmPlot, 'linewidth', 2.0)
-%plot(goceDatenums, tiegcmPlot, 'linewidth', 2.0)
-%datetick('x', 'dd/mm');
-%xlim([t1 t2])
-legend('1.23 x GOCE', 'TIEGCM')
+if exist('amieGoce270km','var')
+    timegcmPlot = smooth(amieGoce270km * 1e14, 540);
+    timegcmPlot = timegcmPlot(orbAverInd);
+    plot(goceDatenums(orbAverInd), timegcmPlot, 'linewidth', 2.0)
+    legend('1.23 x GOCE', 'TIEGCM', 'TIMEGCM/AMIE')
+else
+    legend('1.23 x GOCE', 'TIEGCM')
+end
 
 hold off;
 
 tiegcm10minDatenums = datenums;
 stormBegin = datenum('2010-04-05 07:00:00');
-stormEnd = datenum('2010-04-05 23:50:00');
+stormEnd = datenum('2010-04-05 12:00:00');
 
 % plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, tiegcmAlt, {'QJOULE','NO_COOL','WN','VN'}, ...
 %     goceDatenums, goceSolarTime, goceLat, goceAlt, stormBegin, stormEnd)
@@ -266,13 +315,13 @@ tiegcmFiles = dir(tiegcmFileNames);
 for i = 1:length(fieldNames)
     if ~isempty(strfind(fieldNames{i},'AMIE'))
         if exist('timegcm_amie_dres_v2_apr5_qamie.nc','file') && ...
-            exist('timegcm_amie_dres_v2_RHO_apr5_2010.nc','file')
+            exist('timegcm_dres.s_apr2010_amie_rho.nc','file')
             if ~isempty(strfind(fieldNames{i},'QJOULE'))
                 temporaryField = double(ncread('timegcm_amie_dres_v2_apr5_qamie.nc', 'QAMIE'));
                 amieAlt = double(ncread('timegcm_amie_dres_v2_apr5_qamie.nc', 'Z'))/100;
             elseif ~isempty(strfind(fieldNames{i},'DEN'))
-                timegcmAlt = double(ncread('timegcm_amie_dres_v2_RHO_apr5_2010.nc', 'Z'))*1000;
-                temporaryField = double(ncread('timegcm_amie_dres_v2_RHO_apr5_2010.nc', 'RHO'));
+                timegcmAlt = double(ncread('timegcm_dres.s_apr2010_amie_rho.nc', 'Z'))*1000;
+                temporaryField = double(ncread('timegcm_dres.s_apr2010_amie_rho.nc', 'RHO'));
                 temporaryField(:,:,:,end) = [];
             end
             if size(temporaryField,4) ~= size(tiegcmAlt,4)
@@ -432,18 +481,21 @@ for i = 1:length(fieldNames)
     
     if ~isempty(strfind(fieldNames{i},'AMIE'))
         if exist('timegcm_amie_dres_v2_apr5_qamie.nc','file') && ...
-            exist('timegcm_amie_dres_v2_RHO_apr5_2010.nc','file')
+            exist('timegcm_dres.s_apr2010_amie_rho.nc','file')
             if ~isempty(strfind(fieldNames{i},'QJOULE'))
                 temporaryField = double(ncread('timegcm_amie_dres_v2_apr5_qamie.nc', 'QAMIE'));
                 temporaryField = reshape(temporaryField, size(temporaryField,1), size(temporaryField,2),...
                                             size(temporaryField,4));
             elseif ~isempty(strfind(fieldNames{i},'DEN'))
-                timegcmAlt = double(ncread('timegcm_amie_dres_v2_RHO_apr5_2010.nc', 'Z'))*1000;
-                temporaryField = double(ncread('timegcm_amie_dres_v2_RHO_apr5_2010.nc', 'Z'));
+                timegcmAlt = double(ncread('timegcm_dres.s_apr2010_amie_rho.nc', 'ZG'))*1000;
+                temporaryField = double(ncread('timegcm_dres.s_apr2010_amie_rho.nc', 'RHO'));
                 temporaryField(:,:,:,end) = [];
                 timegcmAlt(:,:,:,end) = [];
                 temporaryField(end,:,:,:) = [];
                 timegcmAlt(end,:,:,:) = [];
+                zeroCube = zeros(size(timegcmAlt,1), size(timegcmAlt,2), size(timegcmAlt,3));
+                temporaryField = cat(4, zeroCube, temporaryField);
+                timegcmAlt = cat(4, zeroCube, timegcmAlt);
                 if size(temporaryField,4) ~= size(tiegcmAlt,4)
                     error('TIEGCM and AMIE results must contain the same number of time steps!')
                 end
@@ -517,7 +569,7 @@ for i = 1:length(fieldNames)
             for latIter = 1:size(latGrid,1)
                 for lonIter = 1:size(lonGrid,2)
                     altCol = alt(lonIter,latIter,:,t);
-                    levelBelow = find(altCol < plotAlt*1E3, 1, 'last');
+                    levelBelow = find(altCol < plotAlt*1E3 & altCol > 0, 1, 'last');
                     if isempty(levelBelow) || levelBelow == nlev
                         tempField(lonIter, latIter) = nan(1);
                     else
@@ -554,6 +606,8 @@ for i = 1:length(fieldNames)
     axisLim(i,:) = [min(fields{i}(:)), max(fields{i}(:))];
     if strcmpi(fieldNames{i}, 'QJOULE_INTEG')
         weimerJouleInd = i;
+    elseif strcmpi(fieldNames{i}, 'DEN')
+        denInd = i;
     end
     %fields{i}(1,1:10,1) = ones(1,10)*axisLim(i,2);
     
@@ -607,6 +661,8 @@ for t = beginInd:endInd
         colorbar(cbarLoc)
         if strcmpi(fieldNames{i}, 'AMIE_QJOULE')
             caxis(axisLim(weimerJouleInd,:))
+        elseif strcmpi(fieldNames{i}, 'AMIE_DEN')
+            caxis(axisLim(denInd,:))
         else
             caxis(axisLim(i,:))
         end
@@ -640,11 +696,20 @@ for t = beginInd:endInd
         if strcmpi(fieldNames{i}, 'QJOULE_INTEG')
             uMat = rot90(fields{ionDriftInd}(:,:,t));
             vMat = rot90(fields{ionDriftInd+1}(:,:,t));
+%             uMat = zeros(size(uMat));
+%             uMat(9,1:100) = ones(1, length(uMat(9,1:100))) * 5;
+%             vMat = uMat;
         elseif strcmpi(fieldNames{i}, windPlot)
             uMat = rot90(fields{windInd}(:,:,t));
             vMat = rot90(fields{windInd+1}(:,:,t));
+%             vMat = zeros(size(uMat));
+%             uMat = ones(size(vMat)) * 6;
         end
         if strcmpi(fieldNames{i}, 'QJOULE_INTEG') || strcmpi(fieldNames{i}, windPlot)
+            if ~isempty(midnightInd)
+                uMat = cat(2, uMat(:,midnightInd+1:end), uMat(:,1:midnightInd));  
+                vMat = cat(2, vMat(:,midnightInd+1:end), vMat(:,1:midnightInd)); 
+            end
             lonWind = 1:4:size(uMat,2);
             latWind = 1:2:size(uMat,1);
             uMat = uMat(latWind,lonWind); vMat = vMat(latWind,lonWind);
@@ -652,6 +717,7 @@ for t = beginInd:endInd
             
             plotHeight = ones(size(uMat)) * axisLim(i,2);
             [theta, rho] = meshgrid(plotAngle(lonWind), plotDist(latWind)');
+            rho = flipud(rho);
             [plotX, plotY] = pol2cart(theta, rho);
             uRotated = uMat.*cos(theta) - vMat.*sin(theta);
             vRotated = uMat.*sin(theta) + vMat.*cos(theta);
@@ -696,10 +762,9 @@ for t = beginInd:endInd
                     vertVel = zeros(length(uFinal),1);
                     plotHeight = ones(size(goceX)) * axisLim(i,2);
                     
-                    quiver3(hAx, goceX, goceY, plotHeight, uFinal, vFinal, vertVel, 0, 'Color', 'g', 'lineWidth', 1.5);
-                    
-                    quiverscale(10, 0, hAx, scaleFac, scaleSpeed);
+                    quiver3(hAx, goceX, goceY, plotHeight, uFinal, vFinal, vertVel, 0, 'Color', 'k', 'lineWidth', 1.5);                  
                 end
+                quiverscale(10, 0, hAx, scaleFac, scaleSpeed);
             end
             hold off;
         end
@@ -820,12 +885,13 @@ for n = 1:2
     else t = nextTime;
     end
     
-    if satAlt < altGrid(i,j,1,t) || satAlt > altGrid(i,j,end,t)
+    if satAlt < altGrid(i,j,1,t) || satAlt > altGrid(i,j,end-1,t)
         valAtSatLoc = nan(1);
         return
     end
     
-    k = find(altGrid(i,j,:,t) <= satAlt, 1, 'last');
+    altCol = altGrid(i,j,:,t);
+    k = find(altCol(1:end-1) <= satAlt, 1, 'last');
     
     if interpOption == 1
         tInd = ones(size(lonInd)) * t;
@@ -833,7 +899,7 @@ for n = 1:2
         interpAlt = [];
         interpField = [];
         for m = -1:2
-            if k + m < 1 || k + m > nlev
+            if k + m < 1 || k + m > nlev-1
                 k_Ind = ones(size(lonInd)) * k;
                 km_Ind = ones(size(lonInd)) * (k-m);
                 linInd1 = sub2ind(size(altGrid), lonInd, latInd, k_Ind, tInd);
@@ -852,8 +918,7 @@ for n = 1:2
 
         tiegcmCoord = geod2ecef(interpLat, interpLon, interpAlt) / 1E6;
         satCoord = geod2ecef(satLat, satLon, satAlt) / 1E6;
-
-        vals(n) = griddatan(tiegcmCoord, interpField, satCoord, 'linear');
+        vals(n) = griddatan(double(tiegcmCoord), double(interpField), satCoord, 'linear');
     else
         vals(n) = modelField(i,j,k,t);
     end
