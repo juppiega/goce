@@ -213,47 +213,47 @@ if ~exist('tiegcmDens.mat', 'file')
     tNoNans = goceTimestamps(~isnan(tiegcmGoce270km));
     tiegcmGoce270km = interp1(tNoNans, tgNoNans, goceTimestamps, 'nearest', 'extrap');
     
-    if exist('timegcm_dres.s_apr2010_amie_rho.nc', 'file')
-        amieDens = ncread('timegcm_dres.s_apr2010_amie_rho.nc','RHO');
-        timegcmAlt = ncread('timegcm_dres.s_apr2010_amie_rho.nc','ZG') * 1000;
-        modelYear = 2010;
-        modelTimes = double(ncread('timegcm_dres.s_apr2010_amie_rho.nc', 'mtime'));
-        modelDatenums = repmat(datenum(num2str(modelYear),'yyyy'), 1, size(modelTimes,2));
-        modelDatenums = modelDatenums + modelTimes(1,:) + modelTimes(2,:)/24 + modelTimes(3,:)/1440 - 1;
-        timegcmTime = (modelDatenums - datenums(1)) * 86400;
-        
-%         amieDens(:,:,:,end) = [];
-%         timegcmAlt(:,:,:,end) = [];
-        amieDens(end,:,:,:) = [];
-        timegcmAlt(end,:,:,:) = [];
-%         zeroCube = zeros(size(timegcmAlt,1), size(timegcmAlt,2), size(timegcmAlt,3));
-%         amieDens = cat(4, zeroCube, amieDens);
-%         timegcmAlt = cat(4, zeroCube, timegcmAlt);
-        
-        amieGoce270km = nan(size(goceTimestamps));
-        targetCount = round(length(goceTimestamps) / 500);
-        barWidth = 50;
-        warning('off', 'MATLAB:qhullmx:InternalWarning');
-        p = TimedProgressBar( targetCount, barWidth, ...
-                            'Interpolating GOCE/AMIE, ETA ', ...
-                            '. Now at ', ...
-                            'Completed in ' );
-
-        for i = 1:length(goceTimestamps)
-            amieGoce270km(i) = interpSatellite(lon, lat, timegcmAlt, timegcmTime, amieDens,...
-                                                    goceLon(i), goceLat(i), 270E3, goceTimestamps(i), 1);
-            if mod(i, 500) == 0
-                p.progress;
-            end
-        end
-        p.stop;
-        
-        tgNoNans = amieGoce270km(~isnan(amieGoce270km));
-        tNoNans = goceTimestamps(~isnan(amieGoce270km));
-        amieGoce270km = interp1(tNoNans, tgNoNans, goceTimestamps, 'nearest', 'extrap');
-        
-        save('tiegcmDens.mat', 'amieGoce270km', '-v7.3')       
-    end
+%     if exist('timegcm_dres.s_apr2010_amie_rho.nc', 'file')
+%         amieDens = ncread('timegcm_dres.s_apr2010_amie_rho.nc','RHO');
+%         timegcmAlt = ncread('timegcm_dres.s_apr2010_amie_rho.nc','ZG') * 1000;
+%         modelYear = 2010;
+%         modelTimes = double(ncread('timegcm_dres.s_apr2010_amie_rho.nc', 'mtime'));
+%         modelDatenums = repmat(datenum(num2str(modelYear),'yyyy'), 1, size(modelTimes,2));
+%         modelDatenums = modelDatenums + modelTimes(1,:) + modelTimes(2,:)/24 + modelTimes(3,:)/1440 - 1;
+%         timegcmTime = (modelDatenums - datenums(1)) * 86400;
+%         
+% %         amieDens(:,:,:,end) = [];
+% %         timegcmAlt(:,:,:,end) = [];
+%         amieDens(end,:,:,:) = [];
+%         timegcmAlt(end,:,:,:) = [];
+% %         zeroCube = zeros(size(timegcmAlt,1), size(timegcmAlt,2), size(timegcmAlt,3));
+% %         amieDens = cat(4, zeroCube, amieDens);
+% %         timegcmAlt = cat(4, zeroCube, timegcmAlt);
+%         
+%         amieGoce270km = nan(size(goceTimestamps));
+%         targetCount = round(length(goceTimestamps) / 500);
+%         barWidth = 50;
+%         warning('off', 'MATLAB:qhullmx:InternalWarning');
+%         p = TimedProgressBar( targetCount, barWidth, ...
+%                             'Interpolating GOCE/AMIE, ETA ', ...
+%                             '. Now at ', ...
+%                             'Completed in ' );
+% 
+%         for i = 1:length(goceTimestamps)
+%             amieGoce270km(i) = interpSatellite(lon, lat, timegcmAlt, timegcmTime, amieDens,...
+%                                                     goceLon(i), goceLat(i), 270E3, goceTimestamps(i), 1);
+%             if mod(i, 500) == 0
+%                 p.progress;
+%             end
+%         end
+%         p.stop;
+%         
+%         tgNoNans = amieGoce270km(~isnan(amieGoce270km));
+%         tNoNans = goceTimestamps(~isnan(amieGoce270km));
+%         amieGoce270km = interp1(tNoNans, tgNoNans, goceTimestamps, 'nearest', 'extrap');
+%         
+%         save('tiegcmDens.mat', 'amieGoce270km', '-v7.3')       
+%     end
     
     tiegcmDatenums = goceDatenums;
     if exist('amieDens', 'var')
@@ -302,8 +302,8 @@ stormEnd = datenum('2010-04-05 12:00:00');
 % plotLonCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, tiegcmAlt, {'QJOULE','NO_COOL','WN','VN'}, ...
 %     goceDatenums, goceSolarTime, goceLat, goceAlt, stormBegin, stormEnd)
 
-plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, lev, tiegcmAlt, {'QJOULE_INTEG','AMIE_QJOULE','DEN','AMIE_DEN'}, ...
-    goceDatenums, goceLon, goceLat, goceAlt, goceU, goceV, stormBegin, stormEnd, 270)
+% plotAltCrossSections(tiegcmFileNames, tiegcm10minDatenums, lon, lat, lev, tiegcmAlt, {'QJOULE_INTEG','AMIE_QJOULE','DEN','AMIE_DEN'}, ...
+%     goceDatenums, goceLon, goceLat, goceAlt, goceU, goceV, stormBegin, stormEnd, 270)
 
 end
 
@@ -825,111 +825,6 @@ figColor = get(gcf,'color');
 set(ax,'XColor',figColor,'YColor',figColor)
 set(ax,'color', 'none')
 
-
-end
-
-function [valAtSatLoc] = interpSatellite(lon, lat, altGrid, modelTime, modelField, satLon, satLat, satAlt, satTime, interpOption)
-
-if satTime < modelTime(1) || satTime > modelTime(end)
-    valAtSatLoc = nan(1);
-    return
-end
-
-i = find(lon <= satLon, 1, 'last');
-j = find(lat <= satLat, 1, 'last');
-if isempty(i)
-    i = 1;
-end
-if isempty(j)
-    j = 1;
-end
-
-if interpOption == 1
-    if satLat < min(lat)
-        jNext = 0;
-    else jNext = j + 1; 
-    end
-    if i == length(lon)
-        iNext = 1;
-    elseif satLon < min(lon)
-        iNext = length(lon);
-    else iNext = i + 1;
-    end
-
-    if jNext == 0
-        interpLon = [lon; lon; lon; lon];
-        interpLat = ones(size(interpLon)) * min(lat);
-        lonInd = (1:length(lon))'; latInd = ones(size(lonInd))*1;
-    elseif jNext == length(lat) + 1
-        interpLon = [lon; lon; lon; lon];
-        interpLat = ones(size(interpLon)) * max(lat);
-        lonInd = (1:length(lon))'; latInd = ones(size(lonInd))*length(lat);
-    else
-        interpLon = repmat([lon(i); lon(i); lon(iNext); lon(iNext)], 4, 1);
-        interpLat = repmat([lat(j); lat(jNext); lat(jNext); lat(j)], 4, 1);
-        lonInd = [i;i;iNext;iNext];
-        latInd = [j;jNext;jNext;j];
-    end
-end
-
-nearestTime = find(modelTime <= satTime, 1, 'last');
-if nearestTime == length(modelTime)
-    nextTime = nearestTime;
-else nextTime = nearestTime + 1;
-end
-
-vals = zeros(2,1);
-for n = 1:2
-    if n == 1
-        t = nearestTime;
-    else t = nextTime;
-    end
-    
-    if satAlt < altGrid(i,j,1,t) || satAlt > altGrid(i,j,end-1,t)
-        valAtSatLoc = nan(1);
-        return
-    end
-    
-    altCol = altGrid(i,j,:,t);
-    k = find(altCol(1:end-1) <= satAlt, 1, 'last');
-    
-    if interpOption == 1
-        tInd = ones(size(lonInd)) * t;
-        nlev = size(altGrid, 3);
-        interpAlt = [];
-        interpField = [];
-        for m = -1:2
-            if k + m < 1 || k + m > nlev-1
-                k_Ind = ones(size(lonInd)) * k;
-                km_Ind = ones(size(lonInd)) * (k-m);
-                linInd1 = sub2ind(size(altGrid), lonInd, latInd, k_Ind, tInd);
-                linInd2 = sub2ind(size(altGrid), lonInd, latInd, km_Ind, tInd);
-                extrapAlt = 2 * altGrid(linInd1) - altGrid(linInd2);
-                extrapField = modelField(linInd1).^2 ./ modelField(linInd2);
-                interpAlt = [interpAlt; extrapAlt];
-                interpField = [interpField; extrapField];
-            else
-                km_Ind = ones(size(lonInd)) * (k+m);
-                linInd = sub2ind(size(altGrid), lonInd, latInd, km_Ind, tInd);
-                interpAlt = [interpAlt; altGrid(linInd)];
-                interpField = [interpField; modelField(linInd)];
-            end
-        end
-
-        tiegcmCoord = geod2ecef(interpLat, interpLon, interpAlt) / 1E6;
-        satCoord = geod2ecef(satLat, satLon, satAlt) / 1E6;
-        vals(n) = griddatan(double(tiegcmCoord), double(interpField), satCoord, 'linear');
-    else
-        vals(n) = modelField(i,j,k,t);
-    end
-end
-
-tInterp = modelTime([nearestTime; nextTime]);
-if nearestTime ~= nextTime
-    valAtSatLoc = interp1(tInterp, vals, satTime);
-else
-    valAtSatLoc = vals(1);
-end
 
 end
 
