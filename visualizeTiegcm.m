@@ -255,19 +255,19 @@ if ~exist('tiegcmDens.mat', 'file')
 %         save('tiegcmDens.mat', 'amieGoce270km', '-v7.3')       
 %     end
     
-    tiegcmDatenums = goceDatenums;
+    tiegcmGoceDatenums = goceDatenums;
     if exist('amieDens', 'var')
         save('tiegcmDens.mat', 'tiegcmGoceInterp', '-append')
     else
         save('tiegcmDens.mat', 'tiegcmGoceInterp', '-v7.3')
     end
     save('tiegcmDens.mat', 'tiegcmGoce270km', '-append')
-    save('tiegcmDens.mat', 'tiegcmDatenums', '-append')
+    save('tiegcmDens.mat', 'tiegcmGoceDatenums', '-append')
 end
 
 load tiegcmDens.mat
 tiegcmPlot = smooth(tiegcmGoce270km * 1e14, 540);
-tiegcmPlot = tiegcmPlot(ismember(tiegcmDatenums, goceDatenums));
+tiegcmPlot = tiegcmPlot(ismember(tiegcmGoceDatenums, goceDatenums));
 t1 = datenum('2010-04-05');
 t2 = datenum('2010-04-06');
 firstInd = find(goceDatenums <= t1, 1, 'last');

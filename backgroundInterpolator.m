@@ -1,4 +1,4 @@
-function [] = backgrounInterpolator(filenames)
+function [] = backgroundInterpolator(filenames)
 
 tiegcmOldFiles = {};
 load('goceVariables.mat', 'latitude', 'longitude', 'altitude', 'timestampsDensityDatenum');
@@ -14,8 +14,8 @@ while 1
         if exist('tiegcmDens.mat', 'file')
             load tiegcmDens
         else
-            tiegcmDatenums = []; tiegcmGoce270km = []; tiegcmGoceInterp = [];
-            save('tiegcmDens.mat', 'tiegcmDatenums', '-v7.3')
+            tiegcmGoceDatenums = []; tiegcmGoce270km = []; tiegcmGoceInterp = [];
+            save('tiegcmDens.mat', 'tiegcmGoceDatenums', '-v7.3')
             save('tiegcmDens.mat', 'tiegcmGoce270km', '-append')
             save('tiegcmDens.mat', 'tiegcmGoceInterp', '-append')
             load tiegcmDens
@@ -26,7 +26,7 @@ while 1
         lon = ncread(newFileNames(1).name, 'lon');
         for i = 1:length(newFileNames)
             thisFileDatenums = giveTiegcmDatenums(newFileNames(i).name);
-            if isempty(tiegcmDatenums) || interpolateThisFile(thisFileDatenums, tiegcmDatenums, timestampsDensityDatenum)
+            if interpolateThisFile(thisFileDatenums, tiegcmGoceDatenums, timestampsDensityDatenum)
                 
                 ind = (timestampsDensityDatenum >= thisFileDatenums(1) & timestampsDensityDatenum <= thisFileDatenums(end));
                 goceDatenums = timestampsDensityDatenum(ind);
@@ -39,38 +39,62 @@ while 1
                 tiegcmGoce270kmThisFile = nan(size(goceDatenums));
                 warning('off', 'MATLAB:qhullmx:InternalWarning');
                 fprintf('Interpolating new file: %s\n', newFileNames(i).name)
+                %showInterval = round(length(goceDatenums) / 5);
 
                 for j = 1:length(goceDatenums)
                     tiegcmGoceInterpThisFile(j) = interpSatellite(lon, lat, tiegcmAlt, thisFileDatenums, tiegcmDens,...
                                                             goceLon(j), goceLat(j), goceAlt(j), goceDatenums(j), 1);
                     tiegcmGoce270kmThisFile(j) = interpSatellite(lon, lat, tiegcmAlt, thisFileDatenums, tiegcmDens,...
                                                             goceLon(j), goceLat(j), 270E3, goceDatenums(j), 1);
-                    if mod(j, 1000) == 0
+                    if j == 1 || mod(j, 1000) == 0 || j == length(goceDatenums)
                         fprintf('%d %s %s\n', j, ' / ', num2str(length(goceDatenums)))
                     end
                 end
                 
-                tgNoNans = tiegcmGoceInterpThisFile(~isnan(tiegcmGoceInterpThisFile));
-                tNoNans = goceDatenums(~isnan(tiegcmGoceInterpThisFile));
-                tiegcmGoceInterpThisFile = interp1(tNoNans, tgNoNans, goceDatenums, 'nearest', 'extrap');
-
-                tgNoNans = tiegcmGoce270kmThisFile(~isnan(tiegcmGoce270kmThisFile));
-                tNoNans = goceDatenums(~isnan(tiegcmGoce270kmThisFile));
-                tiegcmGoce270kmThisFile = interp1(tNoNans, tgNoNans, goceDatenums, 'nearest', 'extrap');
+                notNan = ~isnan(tiegcmGoceInterpThisFile);
+                if length(find(notNan)) > 1
+                    tgNoNans = tiegcmGoceInterpThisFile(notNan);
+                    tNoNans = goceDatenums(notNan);
+                    tiegcmGoceInterpThisFile = interp1(tNoNans, tgNoNans, goceDatenums, 'nearest', 'extrap');
+                elseif length(find(notNan)) == 1 && length(goceDatenums) > 1
+                    tgNoNan = tiegcmGoceInterpThisFile(notNan);
+                    tiegcmGoceInterpThisFile(~notNan) = ones(length(~notNan),1) * tgNoNan;
+                elseif length(find(notNan)) == 0
+                    [~,nearInd] = min(abs(tiegcmGoceDatenums - goceDatenums));
+                    tiegcmGoceInterpThisFile(~notNan) = ones(length(~notNan),1) * tiegcmGoceInterp(nearInd);
+                elseif length(goceDatenums) == 0
+                    continue;
+                end
                 
-                tiegcmDatenums = [tiegcmDatenums; goceDatenums];
+                notNan = ~isnan(tiegcmGoce270kmThisFile);
+                if length(find(notNan)) > 1
+                    tgNoNans = tiegcmGoce270kmThisFile(notNan);
+                    tNoNans = goceDatenums(notNan);
+                    tiegcmGoce270kmThisFile = interp1(tNoNans, tgNoNans, goceDatenums, 'nearest', 'extrap');
+                elseif length(find(notNan)) == 1 && length(goceDatenums) > 1
+                    tgNoNan = tiegcmGoce270kmThisFile(notNan);
+                    tiegcmGoce270kmThisFile(~notNan) = ones(length(~notNan),1) * tgNoNan;
+                elseif length(find(notNan)) == 0
+                    [~,nearInd] = min(abs(tiegcmGoceDatenums - goceDatenums));
+                    tiegcmGoce270kmThisFile(~notNan) = ones(length(~notNan),1) * tiegcmGoce270km(nearInd);
+                elseif length(goceDatenums) == 0
+                    continue;
+                end
+                
+                tiegcmGoceDatenums = [tiegcmGoceDatenums; goceDatenums];
                 tiegcmGoce270km = [tiegcmGoce270km; tiegcmGoce270kmThisFile];
                 tiegcmGoceInterp = [tiegcmGoceInterp; tiegcmGoceInterpThisFile];
 
-                [tiegcmDatenums, uniqueInd] = unique(tiegcmDatenums);
+                [tiegcmGoceDatenums, uniqueInd] = unique(tiegcmGoceDatenums);
                 tiegcmGoce270km = tiegcmGoce270km(uniqueInd);
                 tiegcmGoceInterp = tiegcmGoceInterp(uniqueInd);
             end
         end
-        save('tiegcmDens.mat','tiegcmDatenums','-append')
+        save('tiegcmDens.mat','tiegcmGoceDatenums','-append')
         save('tiegcmDens.mat','tiegcmGoce270km','-append')
         save('tiegcmDens.mat','tiegcmGoceInterp','-append')
         tiegcmOldFiles = tiegcmCurrentFiles;
+        copyfile('tiegcmDens.mat','backup_tiegcmDens.mat');
     end
     pause(5);
 end
@@ -79,8 +103,7 @@ end
 
 function interpolateThisFile = interpolateThisFile(thisFileDatenums, tiegcmDatenums, goceDatenums)
 
-if thisFileDatenums(end) > tiegcmDatenums(end) + eps(tiegcmDatenums(end)) || ...
-   thisFileDatenums(1) < tiegcmDatenums(1) - eps(tiegcmDatenums(1))
+if isempty(tiegcmDatenums)
     interpolateThisFile = true;
     return
 end
@@ -90,6 +113,10 @@ goceTimestamps = round((goceDatenums(ind) - tiegcmDatenums(1)) * 86400);
 tiegcmTimestamps = round((tiegcmDatenums - tiegcmDatenums(1)) * 86400);
 fileTimestamps = round((thisFileDatenums - tiegcmDatenums(1)) * 86400);
 
+goceNotInterpolated = goceTimestamps(~ismember(goceTimestamps, tiegcmTimestamps));
+if any(goceNotInterpolated >= fileTimestamps(1) & goceNotInterpolated <= fileTimestamps(end))
+    interpolateThisFile = true;
+end
 
 end
 
