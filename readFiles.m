@@ -57,7 +57,7 @@ end
 
 fprintf('%s\n', 'Saving results to "goceVariables.mat" file')
 
-save('goceVariables.mat', 'ae', '-v7.3')
+save('goceVariables.mat', 'ae', '-v7')
 save('goceVariables.mat', 'aeIntegrals', '-append')
 save('goceVariables.mat', 'ap', '-append')
 save('goceVariables.mat', 'absB', '-append')

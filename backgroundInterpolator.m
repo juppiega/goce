@@ -15,7 +15,7 @@ while 1
             load tiegcmDens
         else
             tiegcmGoceDatenums = []; tiegcmGoce270km = []; tiegcmGoceInterp = [];
-            save('tiegcmDens.mat', 'tiegcmGoceDatenums', '-v7.3')
+            save('tiegcmDens.mat', 'tiegcmGoceDatenums', '-v7')
             save('tiegcmDens.mat', 'tiegcmGoce270km', '-append')
             save('tiegcmDens.mat', 'tiegcmGoceInterp', '-append')
             load tiegcmDens

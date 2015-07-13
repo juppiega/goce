@@ -252,14 +252,14 @@ if ~exist('tiegcmDens.mat', 'file')
 %         tNoNans = goceTimestamps(~isnan(amieGoce270km));
 %         amieGoce270km = interp1(tNoNans, tgNoNans, goceTimestamps, 'nearest', 'extrap');
 %         
-%         save('tiegcmDens.mat', 'amieGoce270km', '-v7.3')       
+%         save('tiegcmDens.mat', 'amieGoce270km', '-v7')       
 %     end
     
     tiegcmGoceDatenums = goceDatenums;
     if exist('amieDens', 'var')
         save('tiegcmDens.mat', 'tiegcmGoceInterp', '-append')
     else
-        save('tiegcmDens.mat', 'tiegcmGoceInterp', '-v7.3')
+        save('tiegcmDens.mat', 'tiegcmGoceInterp', '-v7')
     end
     save('tiegcmDens.mat', 'tiegcmGoce270km', '-append')
     save('tiegcmDens.mat', 'tiegcmGoceDatenums', '-append')
