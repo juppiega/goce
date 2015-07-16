@@ -538,7 +538,7 @@ for i = northernInterval
     
     lagsAllIntervalLats = zeros(length(densityInterval), 1);
     for k = densityInterval
-        maxCrossCorr = giveMaxCrossCorrelation(interpolatedDensity(:,k), ae);
+        maxCrossCorr = giveMaxCrossCorrelation(interpolatedDensity(:,k), ae, 60);
         allLatitudesAeLag(k) = maxCrossCorr;
         lagsAllIntervalLats(k - min(densityInterval) + 1) = maxCrossCorr;
     end
@@ -568,7 +568,7 @@ for i = southernInterval
     
     lagsAllIntervalLats = zeros(length(densityInterval), 1);
     for k = densityInterval
-        maxCrossCorr = giveMaxCrossCorrelation(interpolatedDensity(:,k), ae);
+        maxCrossCorr = giveMaxCrossCorrelation(interpolatedDensity(:,k), ae, 60);
         allLatitudesAeLag(k) = maxCrossCorr;
         lagsAllIntervalLats(k - min(densityInterval) + 1) = maxCrossCorr;
     end
@@ -639,17 +639,33 @@ maxNorthRelDiff = max(northRelDiff);
 maxEquatorRelDiff = max(equatorRelDiff);
 maxSouthRelDiff = max(southRelDiff);
 
-northRelDiffForXcorr = interp1(northTimestamps, northRelDiff, timestamps1min, 'nearest', 0);
-equatorRelDiffForXcorr = interp1(equatorTimestamps, equatorRelDiff, timestamps1min, 'nearest', 0);
-southRelDiffForXcorr = interp1(southTimestamps, southRelDiff, timestamps1min, 'nearest', 0);
-
-northLag = giveMaxCrossCorrelation(northRelDiffForXcorr, ae);
-equatorLag = giveMaxCrossCorrelation(equatorRelDiffForXcorr, ae);
-southLag = giveMaxCrossCorrelation(southRelDiffForXcorr, ae);
-
 [northEfoldingTimeRisingLimb, equatorEfoldingTimeRisingLimb, southEfoldingTimeRisingLimb, northEfoldingTimeFallingLimb, equatorEfoldingTimeFallingLimb,...
- southEfoldingTimeFallingLimb] = giveEfoldingTimes(northTimestamps, equatorTimestamps, southTimestamps, northernDensity, equatorDensity, southernDensity,...
- northCalmMean, equatorCalmMean, southCalmMean, meanNorthAbsDiff, meanEquatorAbsDiff, meanSouthAbsDiff, timestamps1min, densityType, timeOfDay);
+ southEfoldingTimeFallingLimb, northRisingBegin, equatorRisingBegin, southRisingBegin] = giveEfoldingTimes(northTimestamps, equatorTimestamps, southTimestamps, northernDensity, equatorDensity, southernDensity,timestamps1min);
+
+northDensForXcorr = interp1(northTimestamps, northernDensity, timestamps1min, 'linear', mean([northernDensity(1), northernDensity(end)]));
+equatorDensForXcorr = interp1(equatorTimestamps, equatorDensity, timestamps1min, 'linear', mean([equatorDensity(1), equatorDensity(end)]));
+southDensForXcorr = interp1(southTimestamps, southernDensity, timestamps1min, 'linear', mean([southernDensity(1), southernDensity(end)]));
+
+northDensForXcorr = limitToDay(northDensForXcorr, timestamps1min, northRisingBegin);
+equatorDensForXcorr = limitToDay(equatorDensForXcorr, timestamps1min, equatorRisingBegin);
+southDensForXcorr = limitToDay(southDensForXcorr, timestamps1min, southRisingBegin);
+northDensForXcorr = deleteDescendingParts(northDensForXcorr);
+equatorDensForXcorr = deleteDescendingParts(equatorDensForXcorr);
+southDensForXcorr = deleteDescendingParts(southDensForXcorr);
+
+aeSmooth = deleteDescendingParts(smooth(ae, 91));
+aeNorth = limitToDay(aeSmooth, timestamps1min, northRisingBegin);
+northLag = giveMaxCrossCorrelation(northDensForXcorr, aeNorth, 60);
+aeEq = limitToDay(aeSmooth, timestamps1min, equatorRisingBegin);
+equatorLag = giveMaxCrossCorrelation(equatorDensForXcorr, aeEq, 60);
+aeSouth = limitToDay(aeSmooth, timestamps1min, southRisingBegin);
+southLag = giveMaxCrossCorrelation(southDensForXcorr, aeSouth, 60);
+
+if northLag < eps
+    t = limitToDay(timestamps1min, timestamps1min, northRisingBegin);
+    t = (t-t(1))/3600;
+    plotyy(t, northDensForXcorr, t, aeNorth)
+end
 
 [rowNum, ~] = size(results);
 emptyCells = cellfun(@isempty,results);
@@ -769,9 +785,24 @@ end
 
 end
 
+function value = limitToDay(value, timestamps, ind)
+
+[~,dayBeforeInd] = min(abs(timestamps - timestamps(ind) + 86400));
+[~,dayAfterInd] = min(abs(timestamps - timestamps(ind) - 2*86400));
+value = value(dayBeforeInd:dayAfterInd);
+
+end
+
+function value = deleteDescendingParts(value)
+
+dVal = diff(value);
+dVal = [dVal; dVal(end)];
+value(dVal < 0) = 0;
+
+end
+
 function [northEfoldingTimeRisingLimb, equatorEfoldingTimeRisingLimb, southEfoldingTimeRisingLimb, northEfoldingTimeFallingLimb, equatorEfoldingTimeFallingLimb,...
- southEfoldingTimeFallingLimb] = giveEfoldingTimes(northTimestamps, equatorTimestamps, southTimestamps, northernDensity, equatorDensity, southernDensity, ...
- northCalmMean, equatorCalmMean, southCalmMean, meanNorthAbsDiff, meanEquatorAbsDiff, meanSouthAbsDiff, timestamps1min, densityType, timeOfDay)
+ southEfoldingTimeFallingLimb, northRisingBegin, equatorRisingBegin, southRisingBegin] = giveEfoldingTimes(northTimestamps, equatorTimestamps, southTimestamps, northernDensity, equatorDensity, southernDensity, timestamps1min)
 %
 
 northernDensity = interp1(northTimestamps, northernDensity, timestamps1min, 'linear', 0);
@@ -791,62 +822,47 @@ southernDensityNoBg = smooth(southernDensity, smoothRange);
 [equatorRisingBegin, equatorRisingEnd, equatorFallingBegin, equatorFallingEnd] = findRisingAndFallingLimbs(equatorDensityNoBg);
 [southRisingBegin, southRisingEnd, southFallingBegin, southFallingEnd] = findRisingAndFallingLimbs(southernDensityNoBg);
 
-northRisingBeginTime = timestamps1min(northRisingBegin);
-equatorRisingBeginTime = timestamps1min(equatorRisingBegin);
-southRisingBeginTime = timestamps1min(southRisingBegin);
+northEfoldingTimeRisingLimb = computeEfold(timestamps1min, northRisingBegin, northRisingEnd, northernDensityNoBg);
+equatorEfoldingTimeRisingLimb = computeEfold(timestamps1min, equatorRisingBegin, equatorRisingEnd, equatorDensityNoBg);
+southEfoldingTimeRisingLimb = computeEfold(timestamps1min, southRisingBegin, southRisingEnd, southernDensityNoBg);
 
-northRisingBeginDensity = northernDensityNoBg(northRisingBegin);
-equatorRisingBeginDensity = equatorDensityNoBg(equatorRisingBegin);
-southRisingBeginDensity = southernDensityNoBg(southRisingBegin);
+northEfoldingTimeFallingLimb = computeEfold(timestamps1min, northFallingBegin, northFallingEnd, northernDensityNoBg);
+equatorEfoldingTimeFallingLimb = computeEfold(timestamps1min, equatorFallingBegin, equatorFallingEnd, equatorDensityNoBg);
+southEfoldingTimeFallingLimb = computeEfold(timestamps1min, southFallingBegin, southFallingEnd, southernDensityNoBg);
 
-northRisingEndTime = timestamps1min(northRisingEnd);
-equatorRisingEndTime = timestamps1min(equatorRisingEnd);
-southRisingEndTime = timestamps1min(equatorRisingEnd);
+end
 
-northRisingEndDensity = northernDensityNoBg(northRisingEnd);
-equatorRisingEndDensity = equatorDensityNoBg(equatorRisingEnd);
-southRisingEndDensity = southernDensityNoBg(southRisingEnd);
+function efoldTime = computeEfold(timestamps1min, beginInd, endInd, densityNoBg)
 
-northFallingBeginTime = timestamps1min(northFallingBegin);
-equatorFallingBeginTime = timestamps1min(equatorFallingBegin);
-southFallingBeginTime = timestamps1min(southFallingBegin);
+e = 2.71828183;
+ind = beginInd:endInd; 
+modifTime = (timestamps1min(ind) - timestamps1min(beginInd)) / 3600;
+% startB = sign(densityNoBg(endInd) - densityNoBg(beginInd)) * 1/20;
+% startC = min([densityNoBg(beginInd), densityNoBg(endInd)])*0.9;
+% startA = densityNoBg(beginInd) - startC;
+% startVals = fitoptions('Method','NonlinearLeastSquares', 'StartPoint', [startA, startB, startC]);
+% expFit = fittype('a*exp(b*t)+c', 'independent', 't', 'coefficients', {'a','b','c'}, 'options', startVals);
+% f = fit(modifTime, densityNoBg(ind), expFit);
+% 
+% efoldTime = abs(1/f.b);
 
-northFallingBeginDensity = northernDensityNoBg(northFallingBegin);
-equatorFallingBeginDensity = equatorDensityNoBg(equatorFallingBegin);
-southFallingBeginDensity = southernDensityNoBg(southFallingBegin);
+signMult = sign(densityNoBg(endInd) - densityNoBg(beginInd));
+valDiff = abs(densityNoBg(endInd) - densityNoBg(beginInd));
+if signMult > 0
+    targetVal = densityNoBg(beginInd) + (1-1/e) * valDiff;
+else
+    targetVal = densityNoBg(endInd) + 1/e * valDiff;
+end
+[~,timeInd] = min(abs(densityNoBg(ind) - targetVal));
+timeInd = timeInd(1);
+efoldTime = modifTime(timeInd);
 
-northFallingEndTime = timestamps1min(northFallingEnd);
-equatorFallingEndTime = timestamps1min(equatorFallingEnd);
-southFallingEndTime = timestamps1min(equatorFallingEnd);
-
-northFallingEndDensity = northernDensityNoBg(northFallingEnd);
-equatorFallingEndDensity = equatorDensityNoBg(equatorFallingEnd);
-southFallingEndDensity = southernDensityNoBg(southFallingEnd);
-
-secondsInHour = 60 * 60;
-
-northEfoldingTimeRisingLimb = (northRisingEndTime - northRisingBeginTime) / log(northRisingEndDensity / northRisingBeginDensity) / secondsInHour; 
-equatorEfoldingTimeRisingLimb = (equatorRisingEndTime - equatorRisingBeginTime) / log(equatorRisingEndDensity / equatorRisingBeginDensity) / secondsInHour;
-southEfoldingTimeRisingLimb = (southRisingEndTime - southRisingBeginTime) / log(southRisingEndDensity / southRisingBeginDensity) / secondsInHour;
-
-northEfoldingTimeFallingLimb = (northFallingEndTime - northFallingBeginTime) / log(northFallingBeginDensity / northFallingEndDensity) / secondsInHour;
-equatorEfoldingTimeFallingLimb = (equatorFallingEndTime - equatorFallingBeginTime) / log(equatorFallingBeginDensity / equatorFallingEndDensity) / secondsInHour;
-southEfoldingTimeFallingLimb = (southFallingEndTime - southFallingBeginTime) / log(southFallingBeginDensity / southFallingEndDensity) / secondsInHour;
-    
-%     % If any of times are negative (peakBegin/EndDensity > meanDensity),
-%     % set other values to zero, too. 
-%     if ~isempty(find([northEfoldingTimeRisingLimb equatorEfoldingTimeRisingLimb southEfoldingTimeRisingLimb] < 0, 1))
-%         northEfoldingTimeRisingLimb = 0;
-%         equatorEfoldingTimeRisingLimb = 0;
-%         southEfoldingTimeRisingLimb = 0;
-%     end
-%     
-%     if ~isempty(find([northEfoldingTimeFallingLimb equatorEfoldingTimeFallingLimb southEfoldingTimeFallingLimb] < 0, 1))
-%         northEfoldingTimeFallingLimb = 0;
-%         equatorEfoldingTimeFallingLimb = 0;
-%         southEfoldingTimeFallingLimb = 0;
-%     end
-
+%if efoldTime > 100
+%     plot(modifTime, densityNoBg(ind));
+%     hold all;
+%     line([efoldTime, efoldTime], get(gca,'ylim'), 'color', 'k')
+%     hold off
+%end
 
 end
 
@@ -877,8 +893,12 @@ risingIndices = ismember(1:length(dValueRising), risingIndices);
 edgeArray = diff([0 risingIndices 0]);
 indexLimitsAboveZero = [find(edgeArray > 0)' (find(edgeArray < 0)-1)'];
 
-[~, risingBegin, risingEnd] = findLargestSum(dValueRising, indexLimitsAboveZero);
-risingEnd = risingEnd + 1;
+[~, risingBeginApprox, risingEndApprox] = findLargestSum(dValueRising, indexLimitsAboveZero);
+risingEndApprox = risingEndApprox + 1;
+[~,risingBegin] = min(value(risingBeginApprox:risingEndApprox));
+[~,risingEnd] = max(value(risingBeginApprox:risingEndApprox));
+risingBegin = risingBegin + risingBeginApprox - 1;
+risingEnd = risingEnd + risingBeginApprox - 1;
 
 dValueFalling = dValue;
 fallingIndices = find(dValueFalling < threshold);
@@ -887,8 +907,12 @@ fallingIndices(1:risingEnd - 1) = 0;
 edgeArray = diff([0 fallingIndices 0]);
 indexLimitsBelowZero = [find(edgeArray > 0)' (find(edgeArray < 0)-1)'];
 
-[~, fallingBegin, fallingEnd] = findLargestSum(-1 * dValueFalling, indexLimitsBelowZero);
-fallingEnd = fallingEnd + 1;
+[~, fallingBeginApprox, fallingEndApprox] = findLargestSum(-1 * dValueFalling, indexLimitsBelowZero);
+fallingEndApprox = fallingEndApprox + 1;
+[~,fallingBegin] = max(value(fallingBeginApprox:fallingEndApprox));
+[~,fallingEnd] = min(value(fallingBeginApprox:fallingEndApprox));
+fallingBegin = fallingBegin + fallingBeginApprox - 1;
+fallingEnd = fallingEnd + fallingBeginApprox - 1;
 
 % figure;
 % plot(1:length(value), value);
@@ -921,14 +945,13 @@ end
 
 end
 
-function [densityIndexTimelag] = giveMaxCrossCorrelation(density, geomIndex)
+function [densityIndexTimelag] = giveMaxCrossCorrelation(density, geomIndex, indicesInHour)
 % plotCrossCorrelation(averagedDensityNoBg, ae)
 
-maxLag = 60 * 24;
+maxLag = round(indicesInHour * 10.5);
 [correlations, lags] = xcorr(density, geomIndex, maxLag, 'coeff');
-correlations = correlations(lags > 0);
-lags = lags(lags > 0);
-indicesInHour = 60;
+correlations = correlations(lags >= 0);
+lags = lags(lags >= 0);
 densityIndexTimelag = lags(correlations == max(correlations)) / indicesInHour;
 
 end

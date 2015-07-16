@@ -41,7 +41,7 @@ aeAll = ae;
  morningMsisDensity, morningJbDensity, morningDtmDensity, eveningDtmDensity, eveningMsisDensity, eveningJbDensity, morningTiegcmDensity, eveningTiegcmDensity, morningTimestamps10s, eveningTimestamps10s, timestamps1minFixed, timestampsEpsilon, timestamps3h, timestamps3hFixed,...
  morningMagneticLatitude, eveningMagneticLatitude, timestamps10sFixed, timestamps1min, timestampsAbsB, akasofuEpsilon, timestampsDensityDatenum, winds, intervalsOfInterest);
 
-%predictedStormDensity = ones(size(timestamps10sFixed));
+predictedStormDensity = ones(size(timestamps10sFixed));
 
 if ~exist('predictedStormDensity', 'var')
     
