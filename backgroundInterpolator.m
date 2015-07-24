@@ -1,24 +1,22 @@
-function [] = backgroundInterpolator(filenames)
+function [] = backgroundInterpolator(filenames, numEntries)
 
 tiegcmOldFiles = {};
 load('goceVariables.mat', 'latitude', 'longitude', 'altitude', 'timestampsDensityDatenum');
 
-if strcmpi(pause('query'), 'off')
-    pause on;
-end
+%if strcmpi(pause('query'), 'off')
+%    pause on;
+%end
 
 while 1
     tiegcmCurrentFiles = dir(filenames);
-    newFiles = findNewFiles(tiegcmCurrentFiles, tiegcmOldFiles);
+    newFiles = findNewFiles(tiegcmCurrentFiles, tiegcmOldFiles, numEntries);
     if any(newFiles)
         if exist('tiegcmDens.mat', 'file')
-            load tiegcmDens
+            load('-v7', 'tiegcmDens.mat')
+            matExists = true;
         else
-            tiegcmGoceDatenums = []; tiegcmGoce270km = []; tiegcmGoceInterp = [];
-            save('tiegcmDens.mat', 'tiegcmGoceDatenums', '-v7')
-            save('tiegcmDens.mat', 'tiegcmGoce270km', '-append')
-            save('tiegcmDens.mat', 'tiegcmGoceInterp', '-append')
-            load tiegcmDens
+            tiegcmGoceDatenums = []; tiegcmGoce270km = []; tiegcmGoceInterp = []; 
+            matExists = false;
         end
 
         newFileNames = tiegcmCurrentFiles(newFiles);
@@ -37,8 +35,9 @@ while 1
                 tiegcmDens = double(ncread(newFileNames(i).name, 'DEN'));
                 tiegcmGoceInterpThisFile = nan(size(goceDatenums));
                 tiegcmGoce270kmThisFile = nan(size(goceDatenums));
-                warning('off', 'MATLAB:qhullmx:InternalWarning');
+                %warning('off', 'MATLAB:qhullmx:InternalWarning');
                 fprintf('Interpolating new file: %s\n', newFileNames(i).name)
+                fflush(stdout);
                 %showInterval = round(length(goceDatenums) / 5);
 
                 for j = 1:length(goceDatenums)
@@ -48,6 +47,7 @@ while 1
                                                             goceLon(j), goceLat(j), 270E3, goceDatenums(j), 1);
                     if j == 1 || mod(j, 1000) == 0 || j == length(goceDatenums)
                         fprintf('%d %s %s\n', j, ' / ', num2str(length(goceDatenums)))
+                        fflush(stdout);
                     end
                 end
                 
@@ -90,11 +90,18 @@ while 1
                 tiegcmGoceInterp = tiegcmGoceInterp(uniqueInd);
             end
         end
-        save('tiegcmDens.mat','tiegcmGoceDatenums','-append')
-        save('tiegcmDens.mat','tiegcmGoce270km','-append')
-        save('tiegcmDens.mat','tiegcmGoceInterp','-append')
+        
+        if matExists
+            save('-append','tiegcmDens.mat','tiegcmGoceDatenums')
+        else
+            save('-v7','tiegcmDens.mat','tiegcmGoceDatenums')
+        end
+        save('-append','tiegcmDens.mat','tiegcmGoce270km')
+        save('-append','tiegcmDens.mat','tiegcmGoceInterp')
         tiegcmOldFiles = tiegcmCurrentFiles;
         copyfile('tiegcmDens.mat','backup_tiegcmDens.mat');
+        fprintf('New variables and backup written.\n')
+        fflush(stdout);
     end
     pause(5);
 end
@@ -120,7 +127,7 @@ end
 
 end
 
-function [newFiles] = findNewFiles(tiegcmCurrentFiles, tiegcmOldFiles)
+function [newFiles] = findNewFiles(tiegcmCurrentFiles, tiegcmOldFiles, numEntries)
 
 oldFileNames = cell(length(tiegcmOldFiles), 1);
 for i = 1:length(tiegcmOldFiles)
@@ -131,7 +138,14 @@ newFiles = false(length(tiegcmCurrentFiles),1);
 for i = 1:length(tiegcmCurrentFiles)
     oldsContainThisFile = any(ismember(oldFileNames, tiegcmCurrentFiles(i).name));
     if ~oldsContainThisFile
-        newFiles(i) = true;
+        try
+            modelTimes = ncread(tiegcmCurrentFiles(i).name, 'mtime');
+            if size(modelTimes,2) == numEntries
+                newFiles(i) = true;
+            end
+        catch
+            newFiles(i) = false;
+        end
     end
 end
 

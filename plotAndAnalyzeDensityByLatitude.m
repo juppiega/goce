@@ -16,14 +16,14 @@ end
 
 [limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps10s, magneticLatitude);
 
-[crossingTimes, goceDensityByLatitude, msisDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestampsAeInt, timestamps10s, magneticLatitude, ...
+[crossingTimes, goceDensityByLatitude, msisDensityByLatitude, jbDensityByLatitude, dtmDensityByLatitude, aeProxyDensityByLatitude, tiegcmDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestampsAeInt, timestamps10s, magneticLatitude, ...
     correctedDensity, msisDensity, jbDensity, dtmDensity, tiegcmDensity, aeProxyDensity, goceV, goceU, hwmV, hwmU, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay);
 
 if plotFigures ~= 0
-    analyzeLagByLatitude(timestamps1min, ae, goceDensityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay, 'Goce');
+    analyzeLagByLatitude(timestamps1min, ae, goceDensityByLatitude, crossingTimes, minAllowedLatitude, maxAllowedLatitude, timeOfDay, 'DTM');
 end
 
-results = plotAndAnalyzeByHemisphere(firstDatenum, goceDensityByLatitude, ae, crossingTimes, timestamps1min, timeOfDay, oneDegreeStep, plotFigures, 'Goce', results);
+results = plotAndAnalyzeByHemisphere(firstDatenum, goceDensityByLatitude, ae, crossingTimes, timestamps1min, timeOfDay, oneDegreeStep, plotFigures, 'DTM', results);
 
 end
 
@@ -381,7 +381,7 @@ limitedLatitude = limitedLatitude(newIndices);
 
 end
 
-function [crossingTimes, goceDensityByLatitude, msisDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestamps1min, timestamps10s, magneticLatitude, ...
+function [crossingTimes, goceDensityByLatitude, msisDensityByLatitude, jbDensityByLatitude, dtmDensityByLatitude, aeProxyDensityByLatitude, tiegcmDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestamps1min, timestamps10s, magneticLatitude, ...
     correctedDensity, msisDensity, jbDensity, dtmDensity, tiegcmDensity, aeProxyDensity, goceV, goceU, hwmV, hwmU, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay)
 %
 
@@ -392,6 +392,7 @@ if plotFigures == 0
     jbInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, jbDensity);
     dtmInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, dtmDensity);
     aeProxyInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, aeProxyDensity);
+    tiegcmInterpolant = scatteredInterpolant(timestamps10s, magneticLatitude, tiegcmDensity);
     for i = 1:length(oneDegreeStep)
         crossingTimes(:,i) = latitudeCrossingTimes(limitedLatitude, limitedTimestamps, oneDegreeStep(i));    
         goceDensityByLatitude(:,i) = goceInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
@@ -399,6 +400,7 @@ if plotFigures == 0
         jbDensityByLatitude(:,i) = jbInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
         dtmDensityByLatitude(:,i) = dtmInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
         aeProxyDensityByLatitude(:,i) = aeProxyInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
+        tiegcmDensityByLatitude(:,i) = tiegcmInterpolant(crossingTimes(:,i), ones(size(crossingTimes(:,i))) * oneDegreeStep(i));
     end
 else
     oneQuarterDegreeStep = minAllowedLatitude:0.25:maxAllowedLatitude;
@@ -639,8 +641,12 @@ maxNorthRelDiff = max(northRelDiff);
 maxEquatorRelDiff = max(equatorRelDiff);
 maxSouthRelDiff = max(southRelDiff);
 
-[northEfoldingTimeRisingLimb, equatorEfoldingTimeRisingLimb, southEfoldingTimeRisingLimb, northEfoldingTimeFallingLimb, equatorEfoldingTimeFallingLimb,...
- southEfoldingTimeFallingLimb, northRisingBegin, equatorRisingBegin, southRisingBegin] = giveEfoldingTimes(northTimestamps, equatorTimestamps, southTimestamps, northernDensity, equatorDensity, southernDensity,timestamps1min);
+% [northEfoldingTimeRisingLimb, equatorEfoldingTimeRisingLimb, southEfoldingTimeRisingLimb, northEfoldingTimeFallingLimb, equatorEfoldingTimeFallingLimb,...
+%  southEfoldingTimeFallingLimb, northRisingBegin, equatorRisingBegin, southRisingBegin] = giveEfoldingTimes(northTimestamps, equatorTimestamps, southTimestamps, northernDensity, equatorDensity, southernDensity,timestamps1min);
+
+[northEfoldingTimeRisingLimb, northEfoldingTimeFallingLimb, northRisingBegin] = giveEfoldingTimes(northTimestamps, northernDensity, timestamps1min);
+[equatorEfoldingTimeRisingLimb, equatorEfoldingTimeFallingLimb, equatorRisingBegin] = giveEfoldingTimes(equatorTimestamps, equatorDensity, timestamps1min);
+[southEfoldingTimeRisingLimb, southEfoldingTimeFallingLimb, southRisingBegin] = giveEfoldingTimes(southTimestamps, southernDensity, timestamps1min);
 
 northDensForXcorr = interp1(northTimestamps, northernDensity, timestamps1min, 'linear', mean([northernDensity(1), northernDensity(end)]));
 equatorDensForXcorr = interp1(equatorTimestamps, equatorDensity, timestamps1min, 'linear', mean([equatorDensity(1), equatorDensity(end)]));
@@ -661,11 +667,11 @@ equatorLag = giveMaxCrossCorrelation(equatorDensForXcorr, aeEq, 60);
 aeSouth = limitToDay(aeSmooth, timestamps1min, southRisingBegin);
 southLag = giveMaxCrossCorrelation(southDensForXcorr, aeSouth, 60);
 
-if northLag < eps
-    t = limitToDay(timestamps1min, timestamps1min, northRisingBegin);
-    t = (t-t(1))/3600;
-    plotyy(t, northDensForXcorr, t, aeNorth)
-end
+% if northLag < eps
+%     t = limitToDay(timestamps1min, timestamps1min, northRisingBegin);
+%     t = (t-t(1))/3600;
+%     plotyy(t, northDensForXcorr, t, aeNorth)
+% end
 
 [rowNum, ~] = size(results);
 emptyCells = cellfun(@isempty,results);
@@ -798,150 +804,6 @@ function value = deleteDescendingParts(value)
 dVal = diff(value);
 dVal = [dVal; dVal(end)];
 value(dVal < 0) = 0;
-
-end
-
-function [northEfoldingTimeRisingLimb, equatorEfoldingTimeRisingLimb, southEfoldingTimeRisingLimb, northEfoldingTimeFallingLimb, equatorEfoldingTimeFallingLimb,...
- southEfoldingTimeFallingLimb, northRisingBegin, equatorRisingBegin, southRisingBegin] = giveEfoldingTimes(northTimestamps, equatorTimestamps, southTimestamps, northernDensity, equatorDensity, southernDensity, timestamps1min)
-%
-
-northernDensity = interp1(northTimestamps, northernDensity, timestamps1min, 'linear', 0);
-equatorDensity = interp1(equatorTimestamps, equatorDensity, timestamps1min, 'linear', 0);
-southernDensity = interp1(southTimestamps, southernDensity, timestamps1min, 'linear', 0);
-
-northernDensity = removeLeadingAndTrailingZeros(northernDensity);
-equatorDensity = removeLeadingAndTrailingZeros(equatorDensity);
-southernDensity = removeLeadingAndTrailingZeros(southernDensity);
-
-smoothRange = 630;
-northernDensityNoBg = smooth(northernDensity, smoothRange);
-equatorDensityNoBg = smooth(equatorDensity, smoothRange);
-southernDensityNoBg = smooth(southernDensity, smoothRange);
-
-[northRisingBegin, northRisingEnd, northFallingBegin, northFallingEnd] = findRisingAndFallingLimbs(northernDensityNoBg);
-[equatorRisingBegin, equatorRisingEnd, equatorFallingBegin, equatorFallingEnd] = findRisingAndFallingLimbs(equatorDensityNoBg);
-[southRisingBegin, southRisingEnd, southFallingBegin, southFallingEnd] = findRisingAndFallingLimbs(southernDensityNoBg);
-
-northEfoldingTimeRisingLimb = computeEfold(timestamps1min, northRisingBegin, northRisingEnd, northernDensityNoBg);
-equatorEfoldingTimeRisingLimb = computeEfold(timestamps1min, equatorRisingBegin, equatorRisingEnd, equatorDensityNoBg);
-southEfoldingTimeRisingLimb = computeEfold(timestamps1min, southRisingBegin, southRisingEnd, southernDensityNoBg);
-
-northEfoldingTimeFallingLimb = computeEfold(timestamps1min, northFallingBegin, northFallingEnd, northernDensityNoBg);
-equatorEfoldingTimeFallingLimb = computeEfold(timestamps1min, equatorFallingBegin, equatorFallingEnd, equatorDensityNoBg);
-southEfoldingTimeFallingLimb = computeEfold(timestamps1min, southFallingBegin, southFallingEnd, southernDensityNoBg);
-
-end
-
-function efoldTime = computeEfold(timestamps1min, beginInd, endInd, densityNoBg)
-
-e = 2.71828183;
-ind = beginInd:endInd; 
-modifTime = (timestamps1min(ind) - timestamps1min(beginInd)) / 3600;
-% startB = sign(densityNoBg(endInd) - densityNoBg(beginInd)) * 1/20;
-% startC = min([densityNoBg(beginInd), densityNoBg(endInd)])*0.9;
-% startA = densityNoBg(beginInd) - startC;
-% startVals = fitoptions('Method','NonlinearLeastSquares', 'StartPoint', [startA, startB, startC]);
-% expFit = fittype('a*exp(b*t)+c', 'independent', 't', 'coefficients', {'a','b','c'}, 'options', startVals);
-% f = fit(modifTime, densityNoBg(ind), expFit);
-% 
-% efoldTime = abs(1/f.b);
-
-signMult = sign(densityNoBg(endInd) - densityNoBg(beginInd));
-valDiff = abs(densityNoBg(endInd) - densityNoBg(beginInd));
-if signMult > 0
-    targetVal = densityNoBg(beginInd) + (1-1/e) * valDiff;
-else
-    targetVal = densityNoBg(endInd) + 1/e * valDiff;
-end
-[~,timeInd] = min(abs(densityNoBg(ind) - targetVal));
-timeInd = timeInd(1);
-efoldTime = modifTime(timeInd);
-
-%if efoldTime > 100
-%     plot(modifTime, densityNoBg(ind));
-%     hold all;
-%     line([efoldTime, efoldTime], get(gca,'ylim'), 'color', 'k')
-%     hold off
-%end
-
-end
-
-function value = removeLeadingAndTrailingZeros(value)
-%
-
-firstNonZero = find(value > 0, 1, 'first');
-firstNonZeroValue = value(firstNonZero);
-lastNonZero = find(value > 0, 1, 'last');
-lastNonZeroValue = value(lastNonZero);
-
-value(1:firstNonZero) = firstNonZeroValue;
-value(lastNonZero:end) = lastNonZeroValue;
-
-end
-
-function [risingBegin, risingEnd, fallingBegin, fallingEnd] = findRisingAndFallingLimbs(value)
-%
-
-dValue = diff(value);
-dValue = smooth(dValue, 720);
-threshold = 0;
-[~, peakApproxBegin, peakApproxEnd] = limitToNearPeak(value, 'noSmooth', 'median');
-
-dValueRising = dValue(1:peakApproxEnd - 1);
-risingIndices = find(dValueRising > threshold);
-risingIndices = ismember(1:length(dValueRising), risingIndices);
-edgeArray = diff([0 risingIndices 0]);
-indexLimitsAboveZero = [find(edgeArray > 0)' (find(edgeArray < 0)-1)'];
-
-[~, risingBeginApprox, risingEndApprox] = findLargestSum(dValueRising, indexLimitsAboveZero);
-risingEndApprox = risingEndApprox + 1;
-[~,risingBegin] = min(value(risingBeginApprox:risingEndApprox));
-[~,risingEnd] = max(value(risingBeginApprox:risingEndApprox));
-risingBegin = risingBegin + risingBeginApprox - 1;
-risingEnd = risingEnd + risingBeginApprox - 1;
-
-dValueFalling = dValue;
-fallingIndices = find(dValueFalling < threshold);
-fallingIndices = ismember(1:length(dValueFalling), fallingIndices);
-fallingIndices(1:risingEnd - 1) = 0;
-edgeArray = diff([0 fallingIndices 0]);
-indexLimitsBelowZero = [find(edgeArray > 0)' (find(edgeArray < 0)-1)'];
-
-[~, fallingBeginApprox, fallingEndApprox] = findLargestSum(-1 * dValueFalling, indexLimitsBelowZero);
-fallingEndApprox = fallingEndApprox + 1;
-[~,fallingBegin] = max(value(fallingBeginApprox:fallingEndApprox));
-[~,fallingEnd] = min(value(fallingBeginApprox:fallingEndApprox));
-fallingBegin = fallingBegin + fallingBeginApprox - 1;
-fallingEnd = fallingEnd + fallingBeginApprox - 1;
-
-% figure;
-% plot(1:length(value), value);
-% ylims = get(gca, 'ylim');
-% line([risingBegin risingBegin], [ylims(1) ylims(2)], 'LineStyle', '--')
-% line([risingEnd risingEnd], [ylims(1) ylims(2)], 'LineStyle', '--')
-% line([fallingBegin fallingBegin], [ylims(1) ylims(2)], 'LineStyle', '--')
-% line([fallingEnd fallingEnd], [ylims(1) ylims(2)], 'LineStyle', '--')
-
-end
-
-function [largestSum, largestSumBeginIndex, largestSumEndIndex] = findLargestSum(value, indices)
-%
-
-intervalBegin = indices(:,1);
-intervalEnd = indices(:,2);
-
-largestSum = 0;
-
-for i = 1:length(intervalBegin)
-    intervalIndices = intervalBegin(i):intervalEnd(i);
-    intervalSum = sum(value(intervalIndices));
-    
-    if intervalSum > largestSum
-        largestSumBeginIndex = intervalBegin(i);
-        largestSumEndIndex = intervalEnd(i);
-        largestSum = intervalSum;
-    end
-end
 
 end
 
