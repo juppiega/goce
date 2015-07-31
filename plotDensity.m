@@ -1,6 +1,6 @@
 FILENAME = 'tiegcm_dres.sec_goce_spinup.nc';
 original = 'TGCM.tiegcm1.95_dres.p_whi2008_weimer_imf.nc';
-varname = 'OP';
+varname = 'TE';
 % Read var
 varMyInit = ncread(FILENAME, varname);
 if strcmpi(varname,'OP')
