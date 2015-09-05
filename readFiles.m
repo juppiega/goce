@@ -819,6 +819,9 @@ F30 = interp1(F10datenum + 1, F30, timestampsDensityDatenum, 'linear', 100);
 M10 = interp1(indexDatenums + 2, M10, timestampsDensityDatenum, 'linear', 100);
 M81A = interp1(indexDatenums + 2, M81A, timestampsDensityDatenum, 'linear', 100);
 
+Y10 = interp1(indexDatenums + 5, Y10, timestampsDensityDatenum, 'linear', 100);
+Y81A = interp1(indexDatenums + 5, Y81A, timestampsDensityDatenum, 'linear', 100);
+
 goceData.F10 = interp1(F10datenum + 1, F10, timestampsDensityDatenum, 'previous', 100);
 goceData.F81A = interp1(F10datenum, F81A, timestampsDensityDatenum, 'previous', 100);
 
@@ -1054,22 +1057,22 @@ for i = modelingIndices
 end
 p.stop;
 
-hwmU = nan(size(density));
-hwmV = nan(size(density));
+hwmU = ones(size(density));
+hwmV = ones(size(density));
 
-p = TimedProgressBar( targetCount, barWidth, ...
-                    'Running HWM07, ETA ', ...
-                    '. Now at ', ...
-                    'Completed in ' );
-                
-parfor i = modelingIndices
-    [hwmU(i), hwmV(i)] = hwm07_mex(obsYear(i), doyDecimal(i), altitudeInKm(i), latitude(i), longitude(i), apNow(i));
-    
-    if mod(i, 10000) == 0
-     p.progress;
-    end
-end
-p.stop;
+% p = TimedProgressBar( targetCount, barWidth, ...
+%                     'Running HWM07, ETA ', ...
+%                     '. Now at ', ...
+%                     'Completed in ' );
+%                 
+% parfor i = modelingIndices
+%     [hwmU(i), hwmV(i)] = hwm07_mex(obsYear(i), doyDecimal(i), altitudeInKm(i), latitude(i), longitude(i), apNow(i));
+%     
+%     if mod(i, 10000) == 0
+%      p.progress;
+%     end
+% end
+% p.stop;
 
 dtm2013DensityVariableAlt = dtm2013DensityVariableAlt * power(10, 14);
 dtm2013Density270km = dtm2013Density270km * power(10, 14);
