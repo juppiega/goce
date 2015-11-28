@@ -23,10 +23,10 @@ tic;
  timestamps10sFixed, timestamps1min, timestamps1minFixed, timestampsDensityDatenum, doy, timestampsAbsB, timestampsEpsilon, firstDatenum, absDensityError, ...
  absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = readDensityFile(timestampsAeDatenum, timestampsAbsBDatenum, timestampsEpsilonDatenum);
 
-goceData = struct('density', density, 'timestamps', timestampsDensityDatenum, 'latitude', latitude, 'longitude', longitude,...
+goceData = struct('density', density * 1E-11, 'densityError', absDensityError * 1E-11, 'timestamps', timestampsDensityDatenum, 'latitude', latitude, 'longitude', longitude,...
                   'altitude', altitude, 'solarTime', solarTime);
 
-[champData, graceData, de2Data, aeData] = computeOtherDensities();
+[champData, graceData, de2Data, aeData, aerosData] = computeOtherDensities();
 
 [tiegcmDensityVariableAlt, tiegcmDensity270km] = readTiegcmFile(timestampsDensityDatenum);
 
@@ -510,7 +510,7 @@ timestampsEpsilon = round((timestampsEpsilonDatenum - firstDatenum) * secondsInD
 
 end
 
-function [champData, graceData, de2Data, aeData] = computeOtherDensities()
+function [champData, graceData, de2Data, aeCData, aeEData, aerosData] = computeOtherDensities()
 
 fprintf('%s\n', 'Began reading CHAMP files')
 
@@ -518,6 +518,7 @@ champFiles1 = dir('champ/Density_3deg_0*');
 champFiles2 = dir('champ/Density_10_*');
 
 champDensity = [];
+champError = [];
 champTimestamps = [];
 champLatitude = [];
 champLongitude = [];
@@ -529,6 +530,7 @@ for i = 1:length(champFiles1)
     thisFileTimestamps = datenum(yearVec) + Doy.data + Sec.data/86400 - 1;
     champTimestamps = [champTimestamps; thisFileTimestamps];
     champDensity = [champDensity; Density.data];
+    champError = [champError; U_rho.data];
     champLatitude = [champLatitude; Lat.data];
     champLongitude = [champLongitude; Lon.data];
     champAltitude = [champAltitude; Height.data];
@@ -545,13 +547,16 @@ for i = 1:length(champFiles2)
     champAltitude = [champAltitude; loop.height'];
     champLst = [champLst; loop.slt'];
 end
+champ2010Error = ones(length(champTimestamps)-length(champError),1) * mean(champError);
+champError = [champError; champ2010Error]; % !!!!!!!!!!!!!!!!!!!!!
 [champTimestamps, order] = unique(champTimestamps);
 champDensity = champDensity(order);
+champError = champError(order);
 champLatitude = champLatitude(order);
 champLongitude = champLongitude(order);
 champAltitude = champAltitude(order);
 champLst = champLst(order);
-champData = struct('density', champDensity, 'timestamps', champTimestamps, 'latitude', champLatitude, 'longitude', champLongitude,...
+champData = struct('density', champDensity, 'densityError', champError, 'timestamps', champTimestamps, 'latitude', champLatitude, 'longitude', champLongitude,...
                   'altitude', champAltitude, 'solarTime', champLst);
 
 fprintf('%s\n', 'Began reading GRACE files')
@@ -559,6 +564,7 @@ graceFiles1 = dir('grace/Density_graceA_3deg_0*');
 graceFiles2 = dir('grace/Density_graceA_10_*');
 
 graceDensity = [];
+graceError = [];
 graceTimestamps = [];
 graceLatitude = [];
 graceLongitude = [];
@@ -570,6 +576,7 @@ for i = 1:length(graceFiles1)
     thisFileTimestamps = datenum(yearVec) + Doy.data + Sec.data/86400 - 1;
     graceTimestamps = [graceTimestamps; thisFileTimestamps];
     graceDensity = [graceDensity; Density.data];
+    graceError = [graceError; U_rho.data];
     graceLatitude = [graceLatitude; Lat.data];
     graceLongitude = [graceLongitude; Lon.data];
     graceAltitude = [graceAltitude; Height.data];
@@ -585,6 +592,7 @@ for i = 1:length(graceFiles2)
     thisFileTimestamps = datenum(yearVec) + loop.GPSdoy' + loop.GPSsec'/86400 - 1;
     graceTimestamps = [graceTimestamps; thisFileTimestamps];
     graceDensity = [graceDensity; loop.Dstar'];
+    graceError = [graceError; Derror.U_rho'];
     graceLatitude = [graceLatitude; loop.lat'];
     graceLongitude = [graceLongitude; loop.lon'];
     graceAltitude = [graceAltitude; loop.height'];
@@ -592,16 +600,21 @@ for i = 1:length(graceFiles2)
 end
 [graceTimestamps, order] = unique(graceTimestamps);
 graceDensity = graceDensity(order);
+graceError = graceError(order);
 graceLatitude = graceLatitude(order);
 graceLongitude = graceLongitude(order);
 graceAltitude = graceAltitude(order);
 graceLst = graceLst(order);
-graceData = struct('density', graceDensity, 'timestamps', graceTimestamps, 'latitude', graceLatitude, 'longitude', graceLongitude,...
+graceData = struct('density', graceDensity, 'densityError', graceError, 'timestamps', graceTimestamps, 'latitude', graceLatitude, 'longitude', graceLongitude,...
                   'altitude', graceAltitude, 'solarTime', graceLst);
 
 fprintf('%s\n', 'Began reading DE-2 files')       
 de2Files = dir('ae_de2_3*');
-de2Density = [];
+de2N2 = []; N2timestamps = [];
+de2O = []; Otimestamps = [];
+de2He = []; HEtimestamps = [];
+de2Ar = []; ARtimestamps = [];
+de2N = []; Ntimestamps = [];
 de2Timestamps = [];
 de2Latitude = [];
 de2Longitude = [];
@@ -621,116 +634,133 @@ for i = 1:length(de2Files)
     lst(lst < 0) = lst(lst < 0) + 24;
     de2Lst = [de2Lst; lst];
     
-    N2 = data{10}; N2(N2 > 1E30) = 0;
-    O = data{11}; O(O > 1E30) = 0;
-    He = data{12}; He(He > 1E30) = 0;
-    Ar = data{13}; Ar(Ar > 1E30) = 0;
-    N = data{14}; N(N > 1E30) = 0;
-    thisFileDens = (28*N2 + 16*O + 4*He + 40*Ar + 14*N) * 1.661E-21; % kg/m3
-    lowAlt = data{7} < 300; highAlt = ~lowAlt;
-    acceptedVals = false(length(O),1);
-    acceptedVals(lowAlt) = O(lowAlt) > 0 & N2(lowAlt) > 0;
-    acceptedVals(highAlt) = O(highAlt) > 0 & He(highAlt) > 0;
-    thisFileDens(~acceptedVals) = 0;
-    de2Density = [de2Density; thisFileDens];
+    N2 = data{10}; N2timestamps = [N2timestamps; thisFileTimestamps(N2 < 1E30)]; N2(N2 > 1E30) = []; de2N2 = [de2N2; N2];
+    O = data{11}; Otimestamps = [Otimestamps; thisFileTimestamps(O < 1E30)]; O(O > 1E30) = []; de2O = [de2O; O];
+    He = data{12}; HEtimestamps = [HEtimestamps; thisFileTimestamps(He < 1E30)]; He(He > 1E30) = []; de2He = [de2He; He];
+    Ar = data{13}; ARtimestamps = [ARtimestamps; thisFileTimestamps(Ar < 1E30)]; Ar(Ar > 1E30) = []; de2Ar = [de2Ar; Ar];
+    N = data{14}; Ntimestamps = [Ntimestamps; thisFileTimestamps(N < 1E30)]; N(N > 1E30) = []; de2N = [de2N; N];
 end
 [de2Timestamps, order] = unique(de2Timestamps);
-de2Density = de2Density(order);
 de2Latitude = de2Latitude(order);
 de2Longitude = de2Longitude(order);
 de2Altitude = de2Altitude(order);
 de2Lst = de2Lst(order);
 
-nonZeroTimes = de2Density > 0;
-de2Timestamps = de2Timestamps(nonZeroTimes);
-de2Density = de2Density(nonZeroTimes);
-de2Latitude = de2Latitude(nonZeroTimes);
-de2Longitude = de2Longitude(nonZeroTimes);
-de2Altitude = de2Altitude(nonZeroTimes);
-de2Lst = de2Lst(nonZeroTimes);
-de2Data = struct('density', de2Density, 'timestamps', de2Timestamps, 'latitude', de2Latitude, 'longitude', de2Longitude,...
+de2Data = struct('N2', de2N2, 'O', de2O, 'He', de2He, 'N', de2N, 'Ar', Ar, ...
+                 'timestamps', de2Timestamps, 'N2Times', N2timestamps, 'OTimes', Otimestamps, 'HeTimes', HEtimestamps, 'NTimes', Ntimestamps, 'ArTimes', ARtimestamps,...
+                 'latitude', de2Latitude, 'longitude', de2Longitude,...
                   'altitude', de2Altitude, 'solarTime', de2Lst);
 
 fprintf('%s\n', 'Began reading AE-C/E files')
-aeFiles = [dir('ae_c_*'); dir('ae_e_2*')];
-aeDensity = [];
-fromNace = [];
-fromOss = [];
-aeTimestamps = [];
-aeLatitude = [];
-aeLongitude = [];
-aeLst = [];
-aeAltitude = [];
-for i = 1:length(aeFiles)
-    aeFile = fopen(aeFiles(i).name);
-    data = textscan(aeFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f','MultipleDelimsAsOne',1);
-    thisFileTimestamps = datenum([data{1}+1900, data{2}, data{3}, data{4}, data{5}, data{6}]);
-    utHour = data{4} + data{5}/60 + data{6}/3600;
-    lst = utHour + data{9} / 15;
+aeSatellite = 'c';
+for i = 1:2
+    if strcmp(aeSatellite,'c')
+        aeFiles = dir('ae_c_*');
+    else
+        aeFiles = dir('ae_e_2*');
+    end
+    
+    aeTimestamps = [];
+    
+    naceN2 = []; naceN2timestamps = [];
+    naceO = []; naceOtimestamps = [];
+    naceHe = []; naceHEtimestamps = [];
+    naceAr = []; naceARtimestamps = [];
+    naceN = []; naceNtimestamps = [];
+    
+    ossN2 = []; ossN2timestamps = [];
+    ossO = []; ossOtimestamps = [];
+    ossO2 = []; ossO2timestamps = [];
+    ossHe = []; ossHEtimestamps = [];
+    ossAr = []; ossARtimestamps = [];
+    ossN = []; ossNtimestamps = [];
+    
+    aeLatitude = [];
+    aeLongitude = [];
+    aeLst = [];
+    aeAltitude = [];
+    for j = 1:length(aeFiles)
+        aeFile = fopen(aeFiles(j).name);
+        data = textscan(aeFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f','MultipleDelimsAsOne',1);
+        thisFileTimestamps = datenum([data{1}+1900, data{2}, data{3}, data{4}, data{5}, data{6}]);
+        utHour = data{4} + data{5}/60 + data{6}/3600;
+        lst = utHour + data{9} / 15;
+        lst(lst >= 24) = lst(lst >= 24) - 24;
+        lst(lst < 0) = lst(lst < 0) + 24;
+
+        aeLst = [aeLst; lst];
+        aeTimestamps = [aeTimestamps; thisFileTimestamps];
+        aeAltitude = [aeAltitude; data{7}];
+        aeLatitude = [aeLatitude; data{8}];
+        aeLongitude = [aeLongitude; data{9}];
+        
+        % NACE
+        N2 = data{11}; naceN2timestamps = [naceN2timestamps; thisFileTimestamps(N2 < 1E30)]; N2(N2 > 1E30) = []; naceN2 = [naceN2; N2];
+        O = data{12}; naceOtimestamps = [naceOtimestamps; thisFileTimestamps(O < 1E30)]; O(O > 1E30) = []; naceO = [naceO; O];
+        He = data{13}; naceHEtimestamps = [naceHEtimestamps; thisFileTimestamps(He < 1E30)]; He(He > 1E30) = []; naceHe = [naceHe; He];
+        Ar = data{14}; naceARtimestamps = [naceARtimestamps; thisFileTimestamps(Ar < 1E30)]; Ar(Ar > 1E30) = []; naceAr = [naceAr; Ar];
+        N = data{15}; naceNtimestamps = [naceNtimestamps; thisFileTimestamps(N < 1E30)]; N(N > 1E30) = []; naceN = [naceN; N];
+        
+        % OSS
+        N2 = data{16}; ossN2timestamps = [ossN2timestamps; thisFileTimestamps(N2 < 1E30)]; N2(N2 > 1E30) = []; ossN2 = [ossN2; N2];
+        O2 = data{17}; ossO2timestamps = [ossO2timestamps; thisFileTimestamps(O2 < 1E30)]; O2(O2 > 1E30) = []; ossO2 = [ossO2; O2];
+        O = data{19}; ossOtimestamps = [ossOtimestamps; thisFileTimestamps(O < 1E30)]; O(O > 1E30) = []; ossO = [ossO; O];
+        He = data{18}; ossHEtimestamps = [ossHEtimestamps; thisFileTimestamps(He < 1E30)]; He(He > 1E30) = []; ossHe = [ossHe; He];
+        Ar = data{20}; ossARtimestamps = [ossARtimestamps; thisFileTimestamps(Ar < 1E30)]; Ar(Ar > 1E30) = []; ossAr = [ossAr; Ar];
+        N = data{21}; ossNtimestamps = [ossNtimestamps; thisFileTimestamps(N < 1E30)]; N(N > 1E30) = []; ossN = [ossN; N];
+    end
+    [aeTimestamps, order] = unique(aeTimestamps);
+    aeLatitude = aeLatitude(order);
+    aeLongitude = aeLongitude(order);
+    aeAltitude = aeAltitude(order);
+    aeLst = aeLst(order);
+    
+    naceData = struct('N2', naceN2, 'O', naceO, 'He', naceHe, 'Ar', naceAr, 'N', naceN, ...
+        'N2Times', naceN2timestamps, 'OTimes', naceOtimestamps, 'HeTimes', naceHEtimestamps, 'ArTimes', naceARtimestamps, 'NTimes', naceNtimestamps);
+    ossData = struct('N2', ossN2, 'O', ossO, 'O2', ossO2, 'He', ossHe, 'Ar', ossAr, 'N', ossN, ...
+        'N2Times', ossN2timestamps, 'OTimes', ossOtimestamps, 'O2Times', ossO2timestamps, 'HeTimes', ossHEtimestamps, 'ArTimes', ossARtimestamps, 'NTimes', ossNtimestamps);
+    
+    if strcmp(aeSatellite,'c')
+        aeCData = struct('timestamps', aeTimestamps, 'nace', naceData, 'oss', ossData, 'latitude', aeLatitude, 'longitude', aeLongitude,...
+                  'altitude', aeAltitude, 'solarTime', aeLst);
+        aeSatellite = 'e';
+    else
+        aeEData = struct('timestamps', aeTimestamps, 'nace', naceData, 'oss', ossData, 'latitude', aeLatitude, 'longitude', aeLongitude,...
+                  'altitude', aeAltitude, 'solarTime', aeLst);
+    end
+end
+
+fprintf('%s\n', 'Began reading AEROS files')
+for i = 1:4
+    if i == 1
+        aerosFile = fopen('aerosa_ar.asc');
+    elseif i == 2
+        aerosFile = fopen('aerosa_he.asc');
+    elseif i == 3
+        aerosFile = fopen('aerosa_n2.asc');
+    elseif i == 4
+        aerosFile = fopen('aerosa_o2.asc');
+    end
+    data = textscan(aerosFile, '%f %f %f %f %f %f %f %f','MultipleDelimsAsOne',1);
+    dataYear = 1900 + floor(data{1} / 1000);
+    dataDoy = mod(data{1}, 1000);
+    timestamps = datenum(repmat([dataYear,1,1,0,0,0], length(data{1}), 1)) + dataDoy - 1 + data{2}/86400;
+    utHour = data{2} / 3600;
+    lst = utHour + data{7} / 15;
     lst(lst >= 24) = lst(lst >= 24) - 24;
     lst(lst < 0) = lst(lst < 0) + 24;
-    
-    aeLst = [aeLst; lst];
-    aeTimestamps = [aeTimestamps; thisFileTimestamps];
-    aeAltitude = [aeAltitude; data{7}];
-    aeLatitude = [aeLatitude; data{8}];
-    aeLongitude = [aeLongitude; data{9}];
-    
-    N2 = data{11}; N2(N2 > 1E30) = 0;
-    O = data{12}; O(O > 1E30) = 0;
-    He = data{13}; He(He > 1E30) = 0;
-    Ar = data{14}; Ar(Ar > 1E30) = 0;
-    NO = data{15}; NO(NO > 1E30) = 0;
-    naceDens = (28*N2 + 16*O + 4*He + 40*Ar + 30*NO) * 1.661E-21; % kg/m3  
-    lowAlt = data{7} < 300; highAlt = ~lowAlt;
-    acceptedValsNace = false(length(O),1);
-    acceptedValsNace(lowAlt) = O(lowAlt) > 0 & N2(lowAlt) > 0;
-    acceptedValsNace(highAlt) = O(highAlt) > 0 & He(highAlt) > 0;
-    
-    naceInd = naceDens > 0;
-    
-    N2 = data{16}; N2(N2 > 1E30) = 0;
-    O2 = data{17}; O2(O2 > 1E30) = 0;
-    O = data{19}; O(O > 1E30) = 0;
-    He = data{18}; He(He > 1E30) = 0;
-    Ar = data{20}; Ar(Ar > 1E30) = 0;
-    N = data{21}; N(N > 1E30) = 0;
-    ossDens = (28*N2 + 32*O2 + 16*O + 4*He + 40*Ar + 14*N) * 1.661E-21; % kg/m3 
-    acceptedValsOss = false(length(O),1);
-    acceptedValsOss(lowAlt) = O(lowAlt) > 0 & N2(lowAlt) > 0;
-    acceptedValsOss(highAlt) = O(highAlt) > 0 & He(highAlt) > 0;
-    ossInd = ossDens > 0;
-    
-    thisFileDens = zeros(length(naceDens), 1);
-    thisFileDens(naceInd) = naceDens(naceInd);
-    thisFileDens(ossInd) = ossDens(ossInd); % OSS priority if both
-    acceptedVals = acceptedValsNace | acceptedValsOss;
-    thisFileDens(~acceptedVals) = 0;
-    
-    aeDensity = [aeDensity; thisFileDens];   
-    fromNace = [fromNace; naceInd];
-    fromOss = [fromOss; ossInd];
+    if i == 1
+        Ar = struct('timestamps', timestamps, 'density', data{3}, 'error', data{4}, 'alt', data{5}, 'lat', data{6}, 'lon', data{7}, 'solarTime', lst);
+    elseif i == 2
+        He = struct('timestamps', timestamps, 'density', data{3}, 'error', data{4}, 'alt', data{5}, 'lat', data{6}, 'lon', data{7}, 'solarTime', lst);
+    elseif i == 3
+        N2 = struct('timestamps', timestamps, 'density', data{3}, 'error', data{4}, 'alt', data{5}, 'lat', data{6}, 'lon', data{7}, 'solarTime', lst);
+    elseif i == 4
+        O2 = struct('timestamps', timestamps, 'density', data{3}, 'error', data{4}, 'alt', data{5}, 'lat', data{6}, 'lon', data{7}, 'solarTime', lst);
+    end
 end
-[aeTimestamps, order] = unique(aeTimestamps);
-aeDensity = aeDensity(order);
-aeLatitude = aeLatitude(order);
-aeLongitude = aeLongitude(order);
-aeAltitude = aeAltitude(order);
-aeLst = aeLst(order);
-fromNace = fromNace(order);
-fromOss = fromOss(order);
+aerosData = struct('Ar', Ar, 'He', He, 'N2', N2, 'O2', O2);
 
-nonZeroTimes = aeDensity > 0;
-aeTimestamps = aeTimestamps(nonZeroTimes);
-aeDensity = aeDensity(nonZeroTimes);
-aeLatitude = aeLatitude(nonZeroTimes);
-aeLongitude = aeLongitude(nonZeroTimes);
-aeAltitude = aeAltitude(nonZeroTimes);
-aeLst = aeLst(nonZeroTimes);
-fromNace = fromNace(nonZeroTimes);
-fromOss = fromOss(nonZeroTimes);
-aeData = struct('density', aeDensity, 'timestamps', aeTimestamps, 'latitude', aeLatitude, 'longitude', aeLongitude,...
-                  'altitude', aeAltitude, 'solarTime', aeLst, 'fromNace', fromNace, 'fromOss', fromOss);
 
 end
 
