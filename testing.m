@@ -1,105 +1,67 @@
-%%
+lat = -90:15:90;
+lst = 0:1:23;
+doy = 1:6:366;
 
-% Selects predictors using an F-test. Terms with signifigance at the 95%
-% level for over 95% of the latitude bins are approved for the model.
-load ftestsGoceFourierRobust
-format compact
+sec = 86400/2;
+lon = 0;
 
-ftests = vertcat(morningFtest, eveningFtest);
+alt = 130;
+F107 = 150;
+F107A = F107;
+Ap = 3;
 
-% Minimum value of F-tests if 95% of the lat. bins are taken into account
-fnums = quantile(ftests,0.1);
-% Sort for easy manual lookup using the variable explorer
-[fnums, order] = sort(fnums);
-predictorIndices = 1:length(fnums);
-predictorIndices = predictorIndices(order);
+meanT = 0;
+meanTgrad = 0;
+tempGrad = 0;
+divisor = (length(lst)*length(lat)*length(doy));
 
-% Critical value for 95 % confidence is 3.84 for F(1,~10^5);
-goodPredictors = predictorIndices(fnums > 2.71); 
-if exist('morningFits', 'var')
-    coefnames = morningFits{1}.CoefficientNames;
-else
-    coefnames = oneMorningFit.CoefficientNames;
-end
-% Print out significant predictors
-coefnames(goodPredictors)
-
-%%
-save('ftestsGoceFourierRobust.mat', 'morningFtest')
-save('ftestsGoceFourierRobust.mat', 'eveningFtest', '-append')
-oneMorningFit = morningFits{1};
-save('ftestsGoceFourierRobust.mat', 'oneMorningFit', '-append')
-
-%%
-doy1day = (1:365)';
-latitude = morningBins;
-morningDensities = zeros(length(doy1day), length(latitude));
-eveningDensities = zeros(length(doy1day), length(latitude));
-morningSolarTime = 7.0;
-eveningSolarTime = 19.0;
-seconds = 0 : 3 * 60 * 60 : 24 * 60 * 60 - 1;
-morningMsis270km = zeros(length(seconds), 1);
-morningMsisNoAp = zeros(length(seconds), 1);
-eveningMsis270km = zeros(length(seconds), 1);
-eveningMsisNoAp = zeros(length(seconds), 1);
-
-F107A = 107; % = 107
-F107 = 107;
-ApDaily = 27;
-apNow = 48;
-ap3h = 100;
-ap6h = 207;
-ap9h = 207;
-apAver12To33h = 7;
-apAver36To57h = 7;
-for i = 1:length(latitude)
-    for j = 1:length(doy1day)
-        for k = 1:length(seconds)
-            morningLongitude = 180 * (morningSolarTime - (seconds(k)/3600)) / 12;
-            eveningLongitude = 180 * (eveningSolarTime - (seconds(k)/3600)) / 12;
-            morningLongitude(morningLongitude < -180) = morningLongitude + 360;
-            eveningLongitude(eveningLongitude > 180) = eveningLongitude - 360;
-            
-            [~,~,~,~,~,morningMsis270km(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),morningLongitude,morningSolarTime,F107A,F107,...
-            ApDaily,apNow,ap3h,ap6h,ap9h,apAver12To33h,apAver36To57h);
-
-            [~,~,~,~,~,morningMsisNoAp(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),morningLongitude,morningSolarTime,F107A,F107,3);
-        
-            [~,~,~,~,~,eveningMsis270km(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),eveningLongitude,eveningSolarTime,F107A,F107,...
-            ApDaily,apNow,ap3h,ap6h,ap9h,apAver12To33h,apAver36To57h);
-
-            [~,~,~,~,~,eveningMsisNoAp(k),~,~,~,~,~]...
-            =nrlmsise_mex(doy1day(j),seconds(k),270,latitude(i),eveningLongitude,eveningSolarTime,F107A,F107,3);            
+for i = 1:length(lst)
+    for j = 1:length(lat)
+        for t = 1:length(doy)
+            [~,~,~,~,~,~,~,~,~,~,tempAt] = nrlmsise_mex(doy(t),sec,alt,lat(j),lon,lst(i),F107A,F107,3);
+            [~,~,~,~,~,~,~,~,~,~,tempBelow] = nrlmsise_mex(doy(t),sec,alt-0.5,lat(j),lon,lst(i),F107A,F107,3);
+            [~,~,~,~,~,~,~,~,~,~,tempAbove] = nrlmsise_mex(doy(t),sec,alt+0.5,lat(j),lon,lst(i),F107A,F107,3);
+            meanTgrad = meanTgrad + (tempAbove - tempBelow) / divisor;
+            meanT = meanT + tempAt / divisor;
         end
-        
-        morningResidue = mean(morningMsis270km - morningMsisNoAp);
-        eveningResidue = mean(eveningMsis270km - eveningMsisNoAp);
-        morningDensities(j,i) = morningResidue * 1e14;        
-        eveningDensities(j,i) = eveningResidue * 1e14;
-    end   
+    end
 end
 
-morningDensities = morningDensities' - min(morningDensities(:));
-morningDensities = morningDensities / max(morningDensities(:));
-eveningDensities = eveningDensities' - min(eveningDensities(:));
-eveningDensities = eveningDensities / max(eveningDensities(:));
+disp(meanTgrad)
+disp(meanT)
 
-[morningDoyGrid, morningLatGrid] = meshgrid(1:365, morningBins);
-[eveningDoyGrid, eveningLatGrid] = meshgrid(1:365, eveningBins);
+%%
 
+lat = -90:1:90;
+lon = -180:1:180;
+doy = 365;
+U = zeros(length(lat), length(lon));
+V = zeros(length(lat), length(lon));
+
+for i = 1:length(lon)
+    for j = 1:length(lat)
+        [U(j,i), V(j,i)] = hwm07_mex(2015, doy, 0, lat(j), lon(i), 0);
+    end
+end
+
+[X,Y] = meshgrid(lon, lat);
 figure;
-subplot(2,1,1)
-surf(morningDoyGrid, morningLatGrid, morningDensities)
-title('Morning Residue Grid')
+windSpeed = sqrt(U.^2 + V.^2);
+normU = U ./ windSpeed;
+normV = V ./ windSpeed;
+W = zeros(size(U));
+Z = max(windSpeed(:)) * ones(size(U));
+
+surf(X,Y,windSpeed, 'edgecolor', 'none')
 view(2);
-shading flat
+axis tight;
 colorbar;
-subplot(2,1,2)
-surf(eveningDoyGrid, eveningLatGrid, eveningDensities)
-title('Evening Residue Grid')
-view(2);
-shading flat
-colorbar;
+hold all;
+
+ind = 1:15:numel(X);
+quiver3(X(ind),Y(ind),Z(ind),normU(ind),normV(ind),W(ind),'color', 'k');
+
+%%
+
+
+

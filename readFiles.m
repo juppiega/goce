@@ -1,14 +1,14 @@
 function readFiles()
 %
 
-% poolobj = gcp('nocreate'); % If no pool, do not create new one.
-% if isempty(poolobj)
-%     parpool();
-% end
-
-if(matlabpool('size')==0)
-    matlabpool;
+poolobj = gcp('nocreate'); % If no pool, do not create new one.
+if isempty(poolobj)
+    parpool();
 end
+
+% if(matlabpool('size')==0)
+%     matlabpool;
+% end
 
 
 tic;
@@ -24,13 +24,10 @@ tic;
  absWindError, noiseAffected, eclipseAffected, isMorningPass, ionThrusterActive] = readDensityFile(timestampsAeDatenum, timestampsAbsBDatenum, timestampsEpsilonDatenum);
 
 goceData = struct('density', density * 1E-11, 'densityError', absDensityError * 1E-11, 'timestamps', timestampsDensityDatenum, 'latitude', latitude, 'longitude', longitude,...
-                  'altitude', altitude, 'solarTime', solarTime);
+                  'altitude', altitude/1000, 'solarTime', solarTime);
 
-if ~exist('ilData.mat', 'file') 
-    [champData, graceData, de2Data, aeCData, aeEData, aerosData] = computeOtherDensities();
-else
-    load('ilData.mat')
-end
+
+[champData, graceData, de2Data, aeCData, aeEData, aerosData] = computeOtherDensities();
 
 [tiegcmDensityVariableAlt, tiegcmDensity270km] = readTiegcmFile(timestampsDensityDatenum);
 
@@ -43,107 +40,187 @@ end
 [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, ap, timestamps3h, timestamps3hFixed, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData] =...
     giveApValsForMSIS(apGoce, amGoce, ap, timestampsAp, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData);
 
+if ~exist('goceVariables.mat', 'file')
 [densityNoBg, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, ...
-    dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, hwmU, hwmV, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData]  = ...
+    dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, hwmU, hwmV, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h]  = ...
     relateMsisToDensity(density, altitude, datenumToJulian, timestampsDensityDatenum, doy,...
     timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, am3h, amAver24h, dtc, ...
-    ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData);
-measuredDensity = density;
+    ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h);
 
-[morningTimestamps10s, eveningTimestamps10s, morningLatitude, eveningLatitude, morningDoy, eveningDoy] = ...
-    splitBySolarTime(timestamps10sFixed, latitude, doy, solarTime);
+    measuredDensity = density;
+    [morningTimestamps10s, eveningTimestamps10s, morningLatitude, eveningLatitude, morningDoy, eveningDoy] = ...
+        splitBySolarTime(timestamps10sFixed, latitude, doy, solarTime);
 
-[morningGrid, morningBins] = computeTimeCells(morningTimestamps10s, firstDatenum, morningLatitude);
-[eveningGrid, eveningBins] = computeTimeCells(eveningTimestamps10s, firstDatenum, eveningLatitude);
+    [morningGrid, morningBins] = computeTimeCells(morningTimestamps10s, firstDatenum, morningLatitude);
+    [eveningGrid, eveningBins] = computeTimeCells(eveningTimestamps10s, firstDatenum, eveningLatitude);
 
-%msisSimulatedResidue = msisDensity270km - msisDensity270kmNoAp;
+    %msisSimulatedResidue = msisDensity270km - msisDensity270kmNoAp;
 
-[morningFourierGrid, eveningFourierGrid, morningLatDoy, eveningLatDoy] = computeFourierGrids(morningGrid, morningBins, eveningGrid, ...
-    eveningBins, doy, morningLatitude, eveningLatitude, morningDoy, eveningDoy, timestamps10sFixed, densityIndex, aeIntegrals(:,9), median(F10));
+    [morningFourierGrid, eveningFourierGrid, morningLatDoy, eveningLatDoy] = computeFourierGrids(morningGrid, morningBins, eveningGrid, ...
+        eveningBins, doy, morningLatitude, eveningLatitude, morningDoy, eveningDoy, timestamps10sFixed, densityIndex, aeIntegrals(:,9), median(F10));
 
-[hwmU, hwmV] = computeCrossTrackWind(hwmU, hwmV, crwindEast, crwindNorth);
+    [hwmU, hwmV] = computeCrossTrackWind(hwmU, hwmV, crwindEast, crwindNorth);
+end
 
 if fclose('all') ~= 0
     display('File close unsuccesful - check if some of the files are reserved by another editor.')
 end
 
-save('ilData.mat', 'goceData')
-save('ilData.mat', 'champData', '-append')
-save('ilData.mat', 'graceData', '-append')
-save('ilData.mat', 'de2Data', '-append')
-save('ilData.mat', 'aeCData', '-append')
-save('ilData.mat', 'aeEData', '-append')
-save('ilData.mat', 'aerosData', '-append')
+if ~exist('ilData.mat', 'file') 
+    fprintf('%s\n', 'Arranging satellite data by variable')
+    [TempStruct, OStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData);
+    fprintf('%s\n', 'Saving results to "ilData.mat" file')
+    save('ilData.mat', 'TempStruct', '-v7.3')
+    save('ilData.mat', 'OStruct', '-append')
+    save('ilData.mat', 'rhoStruct', '-append')
+end
 
-fprintf('%s\n', 'Saving results to "goceVariables.mat" file')
-
-save('goceVariables.mat', 'ae', '-v7')
-save('goceVariables.mat', 'aeIntegrals', '-append')
-save('goceVariables.mat', 'ap', '-append')
-save('goceVariables.mat', 'absB', '-append')
-save('goceVariables.mat', 'vBz', '-append')
-save('goceVariables.mat', 'densityIndex', '-append')
-save('goceVariables.mat', 'densityIndex1min', '-append')
-save('goceVariables.mat', 'densityIndexNoBg', '-append')
-save('goceVariables.mat', 'averagedDensity', '-append')
-save('goceVariables.mat', 'averagedDensityNoBg', '-append')
-save('goceVariables.mat', 'density3h', '-append')
-save('goceVariables.mat', 'akasofuEpsilon', '-append')
-save('goceVariables.mat', 'epsilonQualityFlag', '-append')
-save('goceVariables.mat', 'longitude', '-append')
-save('goceVariables.mat', 'latitude', '-append')
-save('goceVariables.mat', 'altitude', '-append')
-save('goceVariables.mat', 'solarTime', '-append')
-save('goceVariables.mat', 'crwindEast', '-append')
-save('goceVariables.mat', 'crwindNorth', '-append')
-save('goceVariables.mat', 'crwindUp', '-append')
-save('goceVariables.mat', 'magneticLatitude', '-append')
-save('goceVariables.mat', 'magneticLongitude', '-append')
-save('goceVariables.mat', 'magneticLocalTime', '-append')
-save('goceVariables.mat', 'densityNoBg', '-append')
-save('goceVariables.mat', 'msisDensityVariableAlt', '-append')
-save('goceVariables.mat', 'msisDensity270km', '-append')
-save('goceVariables.mat', 'msisDensity270kmNoAp', '-append')
-save('goceVariables.mat', 'dtm2013Density270km', '-append')
-save('goceVariables.mat', 'dtm2013Density270kmNoAm', '-append')
-save('goceVariables.mat', 'dtm2013DensityVariableAlt', '-append')
-save('goceVariables.mat', 'jb2008Density270km', '-append')
-save('goceVariables.mat', 'jb2008Density270kmNoDtc', '-append')
-save('goceVariables.mat', 'jb2008DensityVariableAlt', '-append')
-save('goceVariables.mat', 'tiegcmDensity270km', '-append')
-save('goceVariables.mat', 'tiegcmDensityVariableAlt', '-append')
-save('goceVariables.mat', 'hwmU', '-append')
-save('goceVariables.mat', 'hwmV', '-append')
-save('goceVariables.mat', 'goceData', '-append')
-save('goceVariables.mat', 'champData', '-append')
-save('goceVariables.mat', 'graceData', '-append')
-save('goceVariables.mat', 'morningFourierGrid', '-append')
-save('goceVariables.mat', 'eveningFourierGrid', '-append')
-save('goceVariables.mat', 'morningLatDoy', '-append')
-save('goceVariables.mat', 'eveningLatDoy', '-append')
-save('goceVariables.mat', 'morningBins', '-append')
-save('goceVariables.mat', 'eveningBins', '-append')
-save('goceVariables.mat', 'measuredDensity', '-append')
-save('goceVariables.mat', 'absDensityError', '-append')
-save('goceVariables.mat', 'absWindError', '-append')
-save('goceVariables.mat', 'noiseAffected', '-append')
-save('goceVariables.mat', 'eclipseAffected', '-append')
-save('goceVariables.mat', 'isMorningPass', '-append')
-save('goceVariables.mat', 'ionThrusterActive', '-append')
-save('goceVariables.mat', 'timestamps10sFixed', '-append')
-save('goceVariables.mat', 'timestamps1min', '-append')
-save('goceVariables.mat', 'timestamps1minFixed', '-append')
-save('goceVariables.mat', 'timestamps3h', '-append')
-save('goceVariables.mat', 'timestamps3hFixed', '-append')
-save('goceVariables.mat', 'timestampsAbsB', '-append')
-save('goceVariables.mat', 'timestampsEpsilon', '-append')
-save('goceVariables.mat', 'firstDatenum', '-append')
-save('goceVariables.mat', 'timestampsDensityDatenum', '-append')
-save('goceVariables.mat', 'doy', '-append')
-save('goceVariables.mat', 'timestampsAeDatenum', '-append')
-save('goceVariables.mat', 'timestampsEpsilonDatenum', '-append')
+if ~exist('goceVariables.mat', 'file')
+    fprintf('%s\n', 'Saving results to "goceVariables.mat" file')
+    save('goceVariables.mat', 'ae', '-v7.3')
+    save('goceVariables.mat', 'aeIntegrals', '-append')
+    save('goceVariables.mat', 'ap', '-append')
+    save('goceVariables.mat', 'absB', '-append')
+    save('goceVariables.mat', 'vBz', '-append')
+    save('goceVariables.mat', 'densityIndex', '-append')
+    save('goceVariables.mat', 'densityIndex1min', '-append')
+    save('goceVariables.mat', 'densityIndexNoBg', '-append')
+    save('goceVariables.mat', 'averagedDensity', '-append')
+    save('goceVariables.mat', 'averagedDensityNoBg', '-append')
+    save('goceVariables.mat', 'density3h', '-append')
+    save('goceVariables.mat', 'akasofuEpsilon', '-append')
+    save('goceVariables.mat', 'epsilonQualityFlag', '-append')
+    save('goceVariables.mat', 'longitude', '-append')
+    save('goceVariables.mat', 'latitude', '-append')
+    save('goceVariables.mat', 'altitude', '-append')
+    save('goceVariables.mat', 'solarTime', '-append')
+    save('goceVariables.mat', 'crwindEast', '-append')
+    save('goceVariables.mat', 'crwindNorth', '-append')
+    save('goceVariables.mat', 'crwindUp', '-append')
+    save('goceVariables.mat', 'magneticLatitude', '-append')
+    save('goceVariables.mat', 'magneticLongitude', '-append')
+    save('goceVariables.mat', 'magneticLocalTime', '-append')
+    save('goceVariables.mat', 'densityNoBg', '-append')
+    save('goceVariables.mat', 'msisDensityVariableAlt', '-append')
+    save('goceVariables.mat', 'msisDensity270km', '-append')
+    save('goceVariables.mat', 'msisDensity270kmNoAp', '-append')
+    save('goceVariables.mat', 'dtm2013Density270km', '-append')
+    save('goceVariables.mat', 'dtm2013Density270kmNoAm', '-append')
+    save('goceVariables.mat', 'dtm2013DensityVariableAlt', '-append')
+    save('goceVariables.mat', 'jb2008Density270km', '-append')
+    save('goceVariables.mat', 'jb2008Density270kmNoDtc', '-append')
+    save('goceVariables.mat', 'jb2008DensityVariableAlt', '-append')
+    save('goceVariables.mat', 'tiegcmDensity270km', '-append')
+    save('goceVariables.mat', 'tiegcmDensityVariableAlt', '-append')
+    save('goceVariables.mat', 'hwmU', '-append')
+    save('goceVariables.mat', 'hwmV', '-append')
+    save('goceVariables.mat', 'morningFourierGrid', '-append')
+    save('goceVariables.mat', 'eveningFourierGrid', '-append')
+    save('goceVariables.mat', 'morningLatDoy', '-append')
+    save('goceVariables.mat', 'eveningLatDoy', '-append')
+    save('goceVariables.mat', 'morningBins', '-append')
+    save('goceVariables.mat', 'eveningBins', '-append')
+    save('goceVariables.mat', 'measuredDensity', '-append')
+    save('goceVariables.mat', 'absDensityError', '-append')
+    save('goceVariables.mat', 'absWindError', '-append')
+    save('goceVariables.mat', 'noiseAffected', '-append')
+    save('goceVariables.mat', 'eclipseAffected', '-append')
+    save('goceVariables.mat', 'isMorningPass', '-append')
+    save('goceVariables.mat', 'ionThrusterActive', '-append')
+    save('goceVariables.mat', 'timestamps10sFixed', '-append')
+    save('goceVariables.mat', 'timestamps1min', '-append')
+    save('goceVariables.mat', 'timestamps1minFixed', '-append')
+    save('goceVariables.mat', 'timestamps3h', '-append')
+    save('goceVariables.mat', 'timestamps3hFixed', '-append')
+    save('goceVariables.mat', 'timestampsAbsB', '-append')
+    save('goceVariables.mat', 'timestampsEpsilon', '-append')
+    save('goceVariables.mat', 'firstDatenum', '-append')
+    save('goceVariables.mat', 'timestampsDensityDatenum', '-append')
+    save('goceVariables.mat', 'doy', '-append')
+    save('goceVariables.mat', 'timestampsAeDatenum', '-append')
+    save('goceVariables.mat', 'timestampsEpsilonDatenum', '-append')
+end
 
 toc;
+end
+
+function [TempStruct, OStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData)
+
+TempStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
+                    'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
+
+[tempTime, order] = unique(aeCData.temp.TTimes); data = aeCData.temp.T(order); aeC = 1:length(data); TempStruct = fillPosAndInd(TempStruct, aeCData, tempTime(aeC));
+[t, order] = unique(aeEData.temp.TTimes); tempTime = [tempTime; t]; data = [data; aeEData.temp.T(order)]; aeE = aeC(end)+1 : length(data); TempStruct = fillPosAndInd(TempStruct, aeEData, tempTime(aeE));
+[t, order] = unique(de2Data.temp.TTimes); tempTime = [tempTime; t]; data = [data; de2Data.temp.T(order)]; de2 = aeE(end)+1 : length(data); TempStruct = fillPosAndInd(TempStruct, de2Data, tempTime(de2));
+TempStruct.data = data; TempStruct.timestamps = tempTime; TempStruct.aeC = aeC; TempStruct.aeE = aeE; TempStruct.de2 = de2;
+
+OStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
+                    'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
+
+[Otime, order] = unique(aeCData.oss.OTimes); data = aeCData.oss.O(order); aeC = 1:length(data); OStruct = fillPosAndInd(OStruct, aeCData, Otime(aeC));
+[t, order] = unique(aeEData.nace.OTimes); Otime = [Otime; t]; data = [data; aeEData.nace.O(order)]; aeENace = aeC(end)+1 : length(data); OStruct = fillPosAndInd(OStruct, aeEData, Otime(aeENace));
+[t, order] = unique(aeEData.oss.OTimes); Otime = [Otime; t]; data = [data; aeEData.oss.O(order)]; aeEOss = aeENace(end)+1 : length(data); OStruct = fillPosAndInd(OStruct, aeEData, Otime(aeEOss));
+[t, order] = unique(de2Data.dens.OTimes); Otime = [Otime; t]; data = [data; de2Data.dens.O(order)]; de2 = aeEOss(end)+1 : length(data); OStruct = fillPosAndInd(OStruct, de2Data, Otime(de2));
+OStruct.data = data; OStruct.timestamps = Otime; OStruct.aeC = aeC; OStruct.aeENace = aeENace; OStruct.aeEOss = aeEOss; OStruct.de2 = de2;
+
+rhoStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
+                    'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
+
+combStruct = [goceData; champData; graceData];
+rhoStruct.data = vertcat(combStruct.density);
+rhoStruct.timestamps = vertcat(combStruct.timestamps);
+rhoStruct.longitude = vertcat(combStruct.longitude);
+rhoStruct.latitude = vertcat(combStruct.latitude);
+rhoStruct.altitude = vertcat(combStruct.altitude);
+rhoStruct.solarTime = vertcat(combStruct.solarTime);
+rhoStruct.aeInt = vertcat(combStruct.aeInt);
+rhoStruct.F = vertcat(combStruct.F10);
+rhoStruct.FA = vertcat(combStruct.F81A);
+rhoStruct.apNow = vertcat(combStruct.apNow);
+rhoStruct.ap3h = vertcat(combStruct.ap3h);
+rhoStruct.ap6h = vertcat(combStruct.ap6h);
+rhoStruct.ap9h = vertcat(combStruct.ap9h);
+rhoStruct.ap12To33h = vertcat(combStruct.apAver12To33h);
+rhoStruct.ap36To57h = vertcat(combStruct.apAver36To57h);
+rhoStruct.Ap = vertcat(combStruct.ApDaily);
+k = length(goceData.timestamps); rhoStruct.goce = 1:k;
+rhoStruct.champ = k+1 : k + length(champData.timestamps); k = k + length(champData.timestamps);
+rhoStruct.grace = k+1 : k + length(graceData.timestamps);
+
+end
+
+function [fillStruct] = fillPosAndInd(fillStruct, satDataStruct, obsTimes)
+    [satTimes, order] = unique(satDataStruct.timestamps);
+    satLat = satDataStruct.latitude(order);
+    satLon = satDataStruct.longitude(order);
+    satLst = satDataStruct.solarTime(order);
+    satAlt = satDataStruct.altitude(order);
+    satAeInt = satDataStruct.aeInt(order,:);
+    satF = satDataStruct.F10(order);
+    satFA = satDataStruct.F81A(order);
+    satApNow = satDataStruct.apNow(order);
+    satAp3h = satDataStruct.ap3h(order);
+    satAp6h = satDataStruct.ap6h(order);
+    satAp9h = satDataStruct.ap9h(order);
+    satAp12To33h = satDataStruct.apAver12To33h(order);
+    satAp36To57h = satDataStruct.apAver36To57h(order);
+    satAp = satDataStruct.ApDaily(order);
+    
+    ind = ismember(satTimes, obsTimes);
+    fillStruct.latitude = [fillStruct.latitude; satLat(ind)];
+    fillStruct.longitude = [fillStruct.longitude; satLon(ind)];
+    fillStruct.solarTime = [fillStruct.solarTime; satLst(ind)];
+    fillStruct.altitude = [fillStruct.altitude; satAlt(ind)];
+    fillStruct.aeInt = [fillStruct.aeInt; satAeInt(ind, :)];
+    fillStruct.F = [fillStruct.F; satF(ind)];
+    fillStruct.FA = [fillStruct.FA; satFA(ind)];
+    fillStruct.apNow = [fillStruct.apNow; satApNow(ind)];
+    fillStruct.ap3h = [fillStruct.ap3h; satAp3h(ind)];
+    fillStruct.ap6h = [fillStruct.ap6h; satAp6h(ind)];
+    fillStruct.ap9h = [fillStruct.ap9h; satAp9h(ind)];
+    fillStruct.ap12To33h = [fillStruct.ap12To33h; satAp12To33h(ind)];
+    fillStruct.ap36To57h = [fillStruct.ap36To57h; satAp36To57h(ind)];
+    fillStruct.Ap = [fillStruct.Ap; satAp(ind)];
 end
 
 function [ae, timestampsAeDatenum] = readAeFiles()
@@ -153,7 +230,7 @@ fprintf('%s\n', 'Began reading AE files')
 ae = [];
 timestampsAeDatenum = [];
 
-aeFiles = dir('ae2*');
+aeFiles = [dir('ae2*'); dir('ae198*'); dir('ae1975'); dir('ae1978'); dir('ae1979')];
 parfor i = 1:length(aeFiles)
     aeFile = fopen(aeFiles(i).name);
     if aeFile == -1
@@ -162,10 +239,24 @@ parfor i = 1:length(aeFiles)
 
     aeData = textscan(aeFile, '%s %s %f %f %f %f %f', 'MultipleDelimsAsOne',1, 'HeaderLines',15);
 
-    ae = [ae; aeData{4}];
-    strVec = strcat(aeData{1}, aeData{2});
     timestampsAeDatenum = [timestampsAeDatenum; datenum(strcat(aeData{1}, aeData{2}), 'yyyy-mm-ddHH:MM:SS.FFF')];
+    ae = [ae; aeData{4}];
 end
+
+aeFiles = [dir('ae1972*'); dir('ae1973*'); dir('ae1974*')];
+parfor i = 1:length(aeFiles)
+    aeFile = fopen(aeFiles(i).name);
+    if aeFile == -1
+        error('aeFile open unsuccesful')
+    end
+    
+    aeData = textscan(aeFile, '%f %f %f %f %f %f %f %f', 'MultipleDelimsAsOne',1, 'HeaderLines',15);
+    yr = aeData{1}; mon = aeData{2}; d = aeData{3};
+    hh = floor(aeData{4} / 10000); minute = floor((aeData{4} - hh*10000) / 100); sec = aeData{4} - hh*10000 - minute*100;
+    timestampsAeDatenum = [timestampsAeDatenum; datenum([yr, mon, d, hh, minute, sec])];
+    ae = [ae; aeData{5}];
+end
+
 [timestampsAeDatenum, indicesToConserve, ~] = unique(timestampsAeDatenum);
 ae = ae(indicesToConserve);
 
@@ -619,7 +710,7 @@ graceData = struct('density', graceDensity, 'densityError', graceError, 'timesta
                   'altitude', graceAltitude, 'solarTime', graceLst);
 
 fprintf('%s\n', 'Began reading DE-2 files')       
-de2Files = dir('ae_de2_3*');
+de2Files = dir('ae_de2_*');
 de2N2 = []; N2timestamps = [];
 de2O = []; Otimestamps = [];
 de2He = []; HEtimestamps = [];
@@ -656,8 +747,11 @@ de2Longitude = de2Longitude(order);
 de2Altitude = de2Altitude(order);
 de2Lst = de2Lst(order);
 
-de2Data = struct('N2', de2N2, 'O', de2O, 'He', de2He, 'N', de2N, 'Ar', Ar, ...
-                 'timestamps', de2Timestamps, 'N2Times', N2timestamps, 'OTimes', Otimestamps, 'HeTimes', HEtimestamps, 'NTimes', Ntimestamps, 'ArTimes', ARtimestamps,...
+densities = struct('N2', de2N2, 'O', de2O, 'He', de2He, 'N', de2N, 'Ar', Ar, ...
+                 'N2Times', N2timestamps, 'OTimes', Otimestamps, 'HeTimes', HEtimestamps, 'NTimes', Ntimestamps, 'ArTimes', ARtimestamps);
+
+de2Data = struct('dens', densities, ...
+                 'timestamps', de2Timestamps, ...
                  'latitude', de2Latitude, 'longitude', de2Longitude,...
                   'altitude', de2Altitude, 'solarTime', de2Lst);
 
@@ -667,7 +761,7 @@ for i = 1:2
     if strcmp(aeSatellite,'c')
         aeFiles = dir('ae_c_*');
     else
-        aeFiles = dir('ae_e_2*');
+        aeFiles = dir('ae_e_*');
     end
     
     aeTimestamps = [];
@@ -676,7 +770,6 @@ for i = 1:2
     naceO = []; naceOtimestamps = [];
     naceHe = []; naceHEtimestamps = [];
     naceAr = []; naceARtimestamps = [];
-    naceN = []; naceNtimestamps = [];
     
     ossN2 = []; ossN2timestamps = [];
     ossO = []; ossOtimestamps = [];
@@ -691,7 +784,11 @@ for i = 1:2
     aeAltitude = [];
     for j = 1:length(aeFiles)
         aeFile = fopen(aeFiles(j).name);
-        data = textscan(aeFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f','MultipleDelimsAsOne',1);
+        if strcmp(aeSatellite,'c')
+            data = textscan(aeFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f','MultipleDelimsAsOne',1);
+        else
+            data = textscan(aeFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f','MultipleDelimsAsOne',1);
+        end
         thisFileTimestamps = datenum([data{1}+1900, data{2}, data{3}, data{4}, data{5}, data{6}]);
         utHour = data{4} + data{5}/60 + data{6}/3600;
         lst = utHour + data{9} / 15;
@@ -704,20 +801,36 @@ for i = 1:2
         aeLatitude = [aeLatitude; data{8}];
         aeLongitude = [aeLongitude; data{9}];
         
-        % NACE
-        N2 = data{11}; naceN2timestamps = [naceN2timestamps; thisFileTimestamps(N2 < 1E30)]; N2(N2 > 1E30) = []; naceN2 = [naceN2; N2];
-        O = data{12}; naceOtimestamps = [naceOtimestamps; thisFileTimestamps(O < 1E30)]; O(O > 1E30) = []; naceO = [naceO; O];
-        He = data{13}; naceHEtimestamps = [naceHEtimestamps; thisFileTimestamps(He < 1E30)]; He(He > 1E30) = []; naceHe = [naceHe; He];
-        Ar = data{14}; naceARtimestamps = [naceARtimestamps; thisFileTimestamps(Ar < 1E30)]; Ar(Ar > 1E30) = []; naceAr = [naceAr; Ar];
-        N = data{15}; naceNtimestamps = [naceNtimestamps; thisFileTimestamps(N < 1E30)]; N(N > 1E30) = []; naceN = [naceN; N];
-        
-        % OSS
-        N2 = data{16}; ossN2timestamps = [ossN2timestamps; thisFileTimestamps(N2 < 1E30)]; N2(N2 > 1E30) = []; ossN2 = [ossN2; N2];
-        O2 = data{17}; ossO2timestamps = [ossO2timestamps; thisFileTimestamps(O2 < 1E30)]; O2(O2 > 1E30) = []; ossO2 = [ossO2; O2];
-        O = data{19}; ossOtimestamps = [ossOtimestamps; thisFileTimestamps(O < 1E30)]; O(O > 1E30) = []; ossO = [ossO; O];
-        He = data{18}; ossHEtimestamps = [ossHEtimestamps; thisFileTimestamps(He < 1E30)]; He(He > 1E30) = []; ossHe = [ossHe; He];
-        Ar = data{20}; ossARtimestamps = [ossARtimestamps; thisFileTimestamps(Ar < 1E30)]; Ar(Ar > 1E30) = []; ossAr = [ossAr; Ar];
-        N = data{21}; ossNtimestamps = [ossNtimestamps; thisFileTimestamps(N < 1E30)]; N(N > 1E30) = []; ossN = [ossN; N];
+        if strcmp(aeSatellite,'c')
+            % NACE
+            N2 = data{11}; naceN2timestamps = [naceN2timestamps; thisFileTimestamps(N2 < 1E30)]; N2(N2 > 1E30) = []; naceN2 = [naceN2; N2];
+            O = data{12}; naceOtimestamps = [naceOtimestamps; thisFileTimestamps(O < 1E30)]; O(O > 1E30) = []; naceO = [naceO; O];
+            He = data{13}; naceHEtimestamps = [naceHEtimestamps; thisFileTimestamps(He < 1E30)]; He(He > 1E30) = []; naceHe = [naceHe; He];
+            Ar = data{14}; naceARtimestamps = [naceARtimestamps; thisFileTimestamps(Ar < 1E30)]; Ar(Ar > 1E30) = []; naceAr = [naceAr; Ar];
+
+            % OSS
+            N2 = data{16}; ossN2timestamps = [ossN2timestamps; thisFileTimestamps(N2 < 1E30)]; N2(N2 > 1E30) = []; ossN2 = [ossN2; N2];
+            O2 = data{17}; ossO2timestamps = [ossO2timestamps; thisFileTimestamps(O2 < 1E30)]; O2(O2 > 1E30) = []; ossO2 = [ossO2; O2];
+            He = data{18}; ossHEtimestamps = [ossHEtimestamps; thisFileTimestamps(He < 1E30)]; He(He > 1E30) = []; ossHe = [ossHe; He];
+            O = data{19}; ossOtimestamps = [ossOtimestamps; thisFileTimestamps(O < 1E30)]; O(O > 1E30) = []; ossO = [ossO; O];
+            Ar = data{20}; ossARtimestamps = [ossARtimestamps; thisFileTimestamps(Ar < 1E30)]; Ar(Ar > 1E30) = []; ossAr = [ossAr; Ar];
+            N = data{21}; ossNtimestamps = [ossNtimestamps; thisFileTimestamps(N < 1E30)]; N(N > 1E30) = []; ossN = [ossN; N];
+        else
+            % NACE
+            N2 = data{10}; naceN2timestamps = [naceN2timestamps; thisFileTimestamps(N2 < 1E30)]; N2(N2 > 1E30) = []; naceN2 = [naceN2; N2];
+            O = data{11}; naceOtimestamps = [naceOtimestamps; thisFileTimestamps(O < 1E30)]; O(O > 1E30) = []; naceO = [naceO; O];
+            He = data{12}; naceHEtimestamps = [naceHEtimestamps; thisFileTimestamps(He < 1E30)]; He(He > 1E30) = []; naceHe = [naceHe; He];
+            Ar = data{13}; naceARtimestamps = [naceARtimestamps; thisFileTimestamps(Ar < 1E30)]; Ar(Ar > 1E30) = []; naceAr = [naceAr; Ar];
+
+            % OSS
+            N2 = data{15}; ossN2timestamps = [ossN2timestamps; thisFileTimestamps(N2 < 1E30)]; N2(N2 > 1E30) = []; ossN2 = [ossN2; N2];
+            O2 = data{16}; ossO2timestamps = [ossO2timestamps; thisFileTimestamps(O2 < 1E30)]; O2(O2 > 1E30) = []; ossO2 = [ossO2; O2];
+            He = data{17}; ossHEtimestamps = [ossHEtimestamps; thisFileTimestamps(He < 1E30)]; He(He > 1E30) = []; ossHe = [ossHe; He];
+            O = data{18}; ossOtimestamps = [ossOtimestamps; thisFileTimestamps(O < 1E30)]; O(O > 1E30) = []; ossO = [ossO; O];
+            Ar = data{19}; ossARtimestamps = [ossARtimestamps; thisFileTimestamps(Ar < 1E30)]; Ar(Ar > 1E30) = []; ossAr = [ossAr; Ar];
+            N = data{20}; ossNtimestamps = [ossNtimestamps; thisFileTimestamps(N < 1E30)]; N(N > 1E30) = []; ossN = [ossN; N];
+
+        end
     end
     [aeTimestamps, order] = unique(aeTimestamps);
     aeLatitude = aeLatitude(order);
@@ -725,8 +838,8 @@ for i = 1:2
     aeAltitude = aeAltitude(order);
     aeLst = aeLst(order);
     
-    naceData = struct('N2', naceN2, 'O', naceO, 'He', naceHe, 'Ar', naceAr, 'N', naceN, ...
-        'N2Times', naceN2timestamps, 'OTimes', naceOtimestamps, 'HeTimes', naceHEtimestamps, 'ArTimes', naceARtimestamps, 'NTimes', naceNtimestamps);
+    naceData = struct('N2', naceN2, 'O', naceO, 'He', naceHe, 'Ar', naceAr, ...
+        'N2Times', naceN2timestamps, 'OTimes', naceOtimestamps, 'HeTimes', naceHEtimestamps, 'ArTimes', naceARtimestamps);
     ossData = struct('N2', ossN2, 'O', ossO, 'O2', ossO2, 'He', ossHe, 'Ar', ossAr, 'N', ossN, ...
         'N2Times', ossN2timestamps, 'OTimes', ossOtimestamps, 'O2Times', ossO2timestamps, 'HeTimes', ossHEtimestamps, 'ArTimes', ossARtimestamps, 'NTimes', ossNtimestamps);
     
@@ -740,7 +853,89 @@ for i = 1:2
     end
 end
 
+fprintf('%s\n', 'Began reading Temperature files')
+aeSatellite = 'c';
+for i = 1:3
+    if strcmp(aeSatellite,'c')
+        aeFiles = dir('aeTemp/ae_c_*');
+    elseif strcmp(aeSatellite,'e')
+        aeFiles = dir('aeTemp/ae_e_*');
+    else
+        aeFiles = dir('aeTemp/ae_de2_*');
+    end
+    
+    tempTimes = [];
+    allTimes = [];
+    lat = [];
+    alt = [];
+    lon = [];
+    temp = [];
+    lstAllFiles = [];
+    
+    for j = 1:length(aeFiles)
+        aeFile = fopen(['aeTemp/',aeFiles(j).name]);
+        data = textscan(aeFile, '%f %f %f %f %f %f %f %f %f %f','MultipleDelimsAsOne',1);
+        thisFileTimestamps = datenum([data{1}+1900, data{2}, data{3}, data{4}, data{5}, data{6}]);
+        utHour = data{4} + data{5}/60 + data{6}/3600;
+        lst = utHour + data{9} / 15;
+        lst(lst >= 24) = lst(lst >= 24) - 24;
+        lst(lst < 0) = lst(lst < 0) + 24;
+        
+        lstAllFiles = [lstAllFiles; lst];
+        allTimes = [allTimes; thisFileTimestamps];
+        alt = [alt; data{7}];
+        lat = [lat; data{8}];
+        lon = [lon; data{9}];
+        
+        T = data{10}; tempTimes = [tempTimes; thisFileTimestamps(T < 1E30)]; T(T > 1E30) = []; temp = [temp; T];
+    end
+    
+    if strcmp(aeSatellite,'c')
+        dataStruct = aeCData;
+    elseif strcmp(aeSatellite,'e')
+        dataStruct = aeEData;
+    else
+        dataStruct = de2Data;
+    end
+    
+    allTimes = [allTimes; dataStruct.timestamps];
+    lat = [lat; dataStruct.latitude];
+    lon = [lon; dataStruct.longitude];
+    alt = [alt; dataStruct.altitude];
+    lstAllFiles = [lstAllFiles; dataStruct.solarTime];
+    
+    [allTimes, order] = unique(allTimes);
+    lat = lat(order);
+    alt = alt(order);
+    lon = lon(order);
+    lstAllFiles = lstAllFiles(order);
+    
+    tempData = struct('T', temp, 'TTimes', tempTimes);
+    
+    dataStruct.timestamps = allTimes;
+    dataStruct.latitude = lat;
+    dataStruct.longitude = lon;
+    dataStruct.altitude = alt;
+    dataStruct.solarTime = lstAllFiles;
+    dataStruct.temp = tempData;
+    
+    if strcmp(aeSatellite,'c')
+        aeCData = dataStruct;
+        aeSatellite = 'e';
+    elseif strcmp(aeSatellite,'e')
+        aeEData = dataStruct;
+        aeSatellite = 'de2';
+    else
+        de2Data = dataStruct;
+    end
+end
+
 fprintf('%s\n', 'Began reading AEROS files')
+aerosTimestamps = [];
+aerosAlt = [];
+aerosLat = [];
+aerosLon = [];
+aerosLst = [];
 for i = 1:4
     if i == 1
         aerosFile = fopen('aerosa_ar.asc');
@@ -761,17 +956,29 @@ for i = 1:4
     lst(lst >= 24) = lst(lst >= 24) - 24;
     lst(lst < 0) = lst(lst < 0) + 24;
     if i == 1
-        Ar = struct('timestamps', timestamps, 'density', data{3}, 'error', data{4}, 'alt', data{5}, 'lat', data{6}, 'lon', data{7}, 'solarTime', lst);
+        ArTimes = timestamps; ArDens = data{3}; ArErr = data{4};
     elseif i == 2
-        He = struct('timestamps', timestamps, 'density', data{3}, 'error', data{4}, 'alt', data{5}, 'lat', data{6}, 'lon', data{7}, 'solarTime', lst);
+        HeTimes = timestamps; HeDens = data{3}; HeErr = data{4};
     elseif i == 3
-        N2 = struct('timestamps', timestamps, 'density', data{3}, 'error', data{4}, 'alt', data{5}, 'lat', data{6}, 'lon', data{7}, 'solarTime', lst);
+        N2Times = timestamps; N2Dens = data{3}; N2Err = data{4};
     elseif i == 4
-        O2 = struct('timestamps', timestamps, 'density', data{3}, 'error', data{4}, 'alt', data{5}, 'lat', data{6}, 'lon', data{7}, 'solarTime', lst);
+        O2Times = timestamps; O2Dens = data{3}; O2Err = data{4};
     end
+    aerosTimestamps = [aerosTimestamps; timestamps];
+    aerosAlt = [aerosAlt; data{5}];
+    aerosLat = [aerosLat; data{6}];
+    aerosLon = [aerosLon; data{7}];
+    aerosLst = [aerosLst; lst];
 end
-aerosData = struct('Ar', Ar, 'He', He, 'N2', N2, 'O2', O2);
-
+[aerosTimestamps, order] = unique(aerosTimestamps);
+aerosAlt = aerosAlt(order);
+aerosLat = aerosLat(order);
+aerosLon = aerosLon(order);
+aerosLst = aerosLst(order);
+densities = struct('N2', N2Dens, 'Ar', ArDens, 'He', HeDens, 'O2', O2Dens,...
+                   'N2Times', N2Times, 'ArTimes', ArTimes, 'HeTimes', HeTimes, 'O2Times', O2Times,...
+                   'N2Err', N2Err, 'ArErr', ArErr, 'HeErr', HeErr, 'O2Err', O2Err);
+aerosData = struct('timestamps', aerosTimestamps, 'dens', densities, 'latitude', aerosLat, 'longitude', aerosLon, 'solarTime', aerosLst, 'altitude', aerosAlt);
 
 end
 
@@ -823,10 +1030,7 @@ aeIntGrace = zeros(length(graceData.timestamps), length(lags));
 aeIntDe2 = zeros(length(de2Data.timestamps), length(lags));
 aeIntAEC = zeros(length(aeCData.timestamps), length(lags));
 aeIntAEE = zeros(length(aeEData.timestamps), length(lags));
-aeIntAerosAr = zeros(length(aerosData.Ar.timestamps), length(lags));
-aeIntAerosHe = zeros(length(aerosData.He.timestamps), length(lags));
-aeIntAerosN2 = zeros(length(aerosData.N2.timestamps), length(lags));
-aeIntAerosO2 = zeros(length(aerosData.O2.timestamps), length(lags));
+aeIntAeros = zeros(length(aerosData.timestamps), length(lags));
 cumulativeAe = cumsum(ae);
 
 oneHour = 60;
@@ -840,22 +1044,16 @@ for i = 1:length(lags)
     aeIntDe2(:,i) = interp1(aeTime, aeInt, de2Data.timestamps, 'linear', 0);
     aeIntAEC(:,i) = interp1(aeTime, aeInt, aeCData.timestamps, 'linear', 0);
     aeIntAEE(:,i) = interp1(aeTime, aeInt, aeEData.timestamps, 'linear', 0);
-    aeIntAerosAr(:,i) = interp1(aeTime, aeInt, aerosData.Ar.timestamps, 'linear', 0);
-    aeIntAerosHe(:,i) = interp1(aeTime, aeInt, aerosData.He.timestamps, 'linear', 0);
-    aeIntAerosN2(:,i) = interp1(aeTime, aeInt, aerosData.N2.timestamps, 'linear', 0);
-    aeIntAerosO2(:,i) = interp1(aeTime, aeInt, aerosData.O2.timestamps, 'linear', 0);
+    aeIntAeros(:,i) = interp1(aeTime, aeInt, aerosData.timestamps, 'linear', 0);
 end
 
 goceData.aeInt = aeIntGoce;
 champData.aeInt = aeIntChamp;
-graceData.eInt = aeIntGrace;
+graceData.aeInt = aeIntGrace;
 de2Data.aeInt = aeIntDe2;
 aeCData.aeInt = aeIntAEC;
 aeEData.aeInt = aeIntAEE;
-aerosData.Ar.aeInt = aeIntAerosAr;
-aerosData.He.aeInt = aeIntAerosHe;
-aerosData.N2.aeInt = aeIntAerosN2;
-aerosData.O2.aeInt = aeIntAerosO2;
+aerosData.aeInt = aeIntAeros;
 
 end
 
@@ -896,17 +1094,8 @@ aeCData.F81A = interp1(F10datenum, F81A, aeCData.timestamps, 'previous', 100);
 aeEData.F10 = interp1(F10datenum + 1, F10, aeEData.timestamps, 'previous', 100);
 aeEData.F81A = interp1(F10datenum, F81A, aeEData.timestamps, 'previous', 100);
 
-aerosData.Ar.F10 = interp1(F10datenum + 1, F10, aerosData.Ar.timestamps, 'previous', 100);
-aerosData.Ar.F81A = interp1(F10datenum, F81A, aerosData.Ar.timestamps, 'previous', 100);
-
-aerosData.He.F10 = interp1(F10datenum + 1, F10, aerosData.He.timestamps, 'previous', 100);
-aerosData.He.F81A = interp1(F10datenum, F81A, aerosData.He.timestamps, 'previous', 100);
-
-aerosData.N2.F10 = interp1(F10datenum + 1, F10, aerosData.N2.timestamps, 'previous', 100);
-aerosData.N2.F81A = interp1(F10datenum, F81A, aerosData.N2.timestamps, 'previous', 100);
-
-aerosData.O2.F10 = interp1(F10datenum + 1, F10, aerosData.O2.timestamps, 'previous', 100);
-aerosData.O2.F81A = interp1(F10datenum, F81A, aerosData.O2.timestamps, 'previous', 100);
+aerosData.F10 = interp1(F10datenum + 1, F10, aerosData.timestamps, 'previous', 100);
+aerosData.F81A = interp1(F10datenum, F81A, aerosData.timestamps, 'previous', 100);
 
 end
 
@@ -1026,10 +1215,18 @@ aeEData.apAver12To33h = interp1(timestampsAp + 7.5*dt, ap24hSmooth, aeEData.time
 aeEData.apAver36To57h = interp1(timestampsAp + 15.5*dt, ap24hSmooth, aeEData.timestamps, 'previous', 'extrap');
 aeEData.ApDaily = interp1(timestampsAp, ap24hSmooth, aeEData.timestamps, 'previous', 'extrap');
 
+aerosData.apNow = interp1(timestampsAp, ap, aerosData.timestamps, 'previous', 'extrap');
+aerosData.ap3h = interp1(timestampsAp + dt, ap, aerosData.timestamps, 'previous', 'extrap');
+aerosData.ap6h = interp1(timestampsAp + 2*dt, ap, aerosData.timestamps, 'previous', 'extrap');
+aerosData.ap9h = interp1(timestampsAp + 3*dt, ap, aerosData.timestamps, 'previous', 'extrap');
+aerosData.apAver12To33h = interp1(timestampsAp + 7.5*dt, ap24hSmooth, aerosData.timestamps, 'previous', 'extrap');
+aerosData.apAver36To57h = interp1(timestampsAp + 15.5*dt, ap24hSmooth, aerosData.timestamps, 'previous', 'extrap');
+aerosData.ApDaily = interp1(timestampsAp, ap24hSmooth, aerosData.timestamps, 'previous', 'extrap');
+
 end
 
-function [correctedDensity, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, hwmU, hwmV, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData]...
-    = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDatenum, doy, timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, am3h, amAver24h, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData)
+function [correctedDensity, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, dtm2013Density270km, dtm2013DensityVariableAlt, dtm2013Density270kmNoAm, hwmU, hwmV, densityIndex, densityIndex1min, densityIndexNoBg, averagedDensity, averagedDensityNoBg, density3h]...
+    = relateMsisToDensity(density, altitude, datenumToJulian, timestampsDatenum, doy, timestampsAeDatenum, timestamps1minFixed, timestamps3hFixed, solarTime, latitude, longitude, F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, am3h, amAver24h, dtc, ApDaily, apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h)
       
 fprintf('%s\n', 'Computing normalized densities with models. This may take even half an hour.')
 
@@ -1053,10 +1250,6 @@ julianDay = timestampsDatenum + datenumToJulian;
 
 obsYear = datevec(timestampsDatenum);
 obsYear = obsYear(:,1);
-
-goceData = computeRelativeChanges(goceData);
-champData = computeRelativeChanges(champData);
-graceData = computeRelativeChanges(graceData);
 
 targetCount = round(length(modelingIndices) / 10000);
 barWidth = 50;
@@ -1179,60 +1372,6 @@ averagedDensityNoBg = normalize(averagedDensityNoBg, averagedDensity);
 
 density3h = smooth(averagedDensityNoBg, 179);
 density3h = density3h(find(ismember(timestamps1minFixed, timestamps3hFixed)) - 90);
-
-end
-
-function satelliteData = computeRelativeChanges(satelliteData)
-
-t = satelliteData.timestamps;
-seconds = (t - floor(t)) * 86400;
-[tYear,~,~,~,~,~] = datevec(t);
-yearVec = [tYear, ones(length(t),2), zeros(length(t), 3)];
-doy = t - datenum(yearVec) + 1;
-altitudeInKm = satelliteData.altitude;
-latitude = satelliteData.latitude;
-longitude = satelliteData.longitude;
-solarTime = satelliteData.solarTime;
-F81A = satelliteData.F81A;
-F10 = satelliteData.F10;
-ApDaily = satelliteData.ApDaily;
-apNow = satelliteData.apNow;
-ap3h = satelliteData.ap3h;
-ap6h = satelliteData.ap3h;
-ap9h = satelliteData.ap3h;
-apAver12To33h = satelliteData.apAver12To33h;
-apAver36To57h = satelliteData.apAver36To57h;
-density = satelliteData.density;
-
-modelingIndices = 1:length(t);
-
-targetCount = round(length(modelingIndices) / 10000);
-barWidth = 50;
-p = TimedProgressBar( targetCount, barWidth, ...
-                    'Computing relative change, ETA ', ...
-                    '. Now at ', ...
-                    'Completed in ' );
-
-parfor i = modelingIndices
-    [~,~,~,~,~,msisDensityVariableAlt(i),~,~,~,~,~]...
-      =nrlmsise_mex(doy(i),seconds(i),altitudeInKm(i),latitude(i),longitude(i),solarTime(i),F81A(i),F10(i),...
-      ApDaily(i),apNow(i),ap3h(i),ap6h(i),ap9h(i),apAver12To33h(i),apAver36To57h(i));
-
-    [~,~,~,~,~,msisDensityNoAp(i),~,~,~,~,~]...
-      =nrlmsise_mex(doy(i),seconds(i),altitudeInKm(i),latitude(i),longitude(i),solarTime(i),F81A(i),F10(i), 3);
-
-    if mod(i, 10000) == 0
-     p.progress;
-    end
-end
-p.stop;
-
-msisDensityVariableAlt = msisDensityVariableAlt';
-msisDensityNoAp = msisDensityNoAp';
-
-density = mean(msisDensityVariableAlt ./ density) * density;
-relativeChange = density ./ msisDensityNoAp;
-satelliteData.relativeChange = relativeChange;
 
 end
 
