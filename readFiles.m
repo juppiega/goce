@@ -68,10 +68,12 @@ end
 
 if ~exist('ilData.mat', 'file') 
     fprintf('%s\n', 'Arranging satellite data by variable')
-    [TempStruct, OStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData);
+    [TempStruct, OStruct, N2Struct, HeStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData);
     fprintf('%s\n', 'Saving results to "ilData.mat" file')
     save('ilData.mat', 'TempStruct', '-v7.3')
     save('ilData.mat', 'OStruct', '-append')
+    save('ilData.mat', 'N2Struct', '-append')
+    save('ilData.mat', 'HeStruct', '-append')
     save('ilData.mat', 'rhoStruct', '-append')
 end
 
@@ -144,7 +146,7 @@ end
 toc;
 end
 
-function [TempStruct, OStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData)
+function [TempStruct, OStruct, N2Struct, HeStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData)
 
 TempStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
@@ -162,6 +164,26 @@ OStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 
 [t, order] = unique(aeEData.oss.OTimes); Otime = [Otime; t]; data = [data; aeEData.oss.O(order)]; aeEOss = aeENace(end)+1 : length(data); OStruct = fillPosAndInd(OStruct, aeEData, Otime(aeEOss));
 [t, order] = unique(de2Data.dens.OTimes); Otime = [Otime; t]; data = [data; de2Data.dens.O(order)]; de2 = aeEOss(end)+1 : length(data); OStruct = fillPosAndInd(OStruct, de2Data, Otime(de2));
 OStruct.data = data; OStruct.timestamps = Otime; OStruct.aeC = aeC; OStruct.aeENace = aeENace; OStruct.aeEOss = aeEOss; OStruct.de2 = de2;
+
+N2Struct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
+                    'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
+
+[N2time, order] = unique(aeCData.oss.N2Times); data = aeCData.oss.N2(order); aeC = 1:length(data); N2Struct = fillPosAndInd(N2Struct, aeCData, N2time(aeC));
+[t, order] = unique(aeEData.nace.N2Times); N2time = [N2time; t]; data = [data; aeEData.nace.N2(order)]; aeENace = aeC(end)+1 : length(data); N2Struct = fillPosAndInd(N2Struct, aeEData, N2time(aeENace));
+[t, order] = unique(aeEData.oss.N2Times); N2time = [N2time; t]; data = [data; aeEData.oss.N2(order)]; aeEOss = aeENace(end)+1 : length(data); N2Struct = fillPosAndInd(N2Struct, aeEData, N2time(aeEOss));
+[t, order] = unique(de2Data.dens.N2Times); N2time = [N2time; t]; data = [data; de2Data.dens.N2(order)]; de2 = aeEOss(end)+1 : length(data); N2Struct = fillPosAndInd(N2Struct, de2Data, N2time(de2));
+[t, order] = unique(aerosData.dens.N2Times); N2time = [N2time; t]; data = [data; aerosData.dens.N2(order)]; aeros = de2(end)+1 : length(data); N2Struct = fillPosAndInd(N2Struct, aerosData, N2time(aeros));
+N2Struct.data = data; N2Struct.timestamps = N2time; N2Struct.aeC = aeC; N2Struct.aeENace = aeENace; N2Struct.aeEOss = aeEOss; N2Struct.de2 = de2; N2Struct.aeros = aeros;
+
+HeStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
+                    'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
+
+[Hetime, order] = unique(aeCData.oss.HeTimes); data = aeCData.oss.He(order); aeC = 1:length(data); HeStruct = fillPosAndInd(HeStruct, aeCData, Hetime(aeC));
+[t, order] = unique(aeEData.nace.HeTimes); Hetime = [Hetime; t]; data = [data; aeEData.nace.He(order)]; aeENace = aeC(end)+1 : length(data); HeStruct = fillPosAndInd(HeStruct, aeEData, Hetime(aeENace));
+[t, order] = unique(aeEData.oss.HeTimes); Hetime = [Hetime; t]; data = [data; aeEData.oss.He(order)]; aeEOss = aeENace(end)+1 : length(data); HeStruct = fillPosAndInd(HeStruct, aeEData, Hetime(aeEOss));
+[t, order] = unique(de2Data.dens.HeTimes); Hetime = [Hetime; t]; data = [data; de2Data.dens.He(order)]; de2 = aeEOss(end)+1 : length(data); HeStruct = fillPosAndInd(HeStruct, de2Data, Hetime(de2));
+[t, order] = unique(aerosData.dens.HeTimes); Hetime = [Hetime; t]; data = [data; aerosData.dens.He(order)]; aeros = de2(end)+1 : length(data); HeStruct = fillPosAndInd(HeStruct, aerosData, Hetime(aeros));
+HeStruct.data = data; HeStruct.timestamps = Hetime; HeStruct.aeC = aeC; HeStruct.aeENace = aeENace; HeStruct.aeEOss = aeEOss; HeStruct.de2 = de2; HeStruct.aeros = aeros;
 
 rhoStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
@@ -1031,13 +1053,15 @@ aeIntDe2 = zeros(length(de2Data.timestamps), length(lags));
 aeIntAEC = zeros(length(aeCData.timestamps), length(lags));
 aeIntAEE = zeros(length(aeEData.timestamps), length(lags));
 aeIntAeros = zeros(length(aerosData.timestamps), length(lags));
-cumulativeAe = cumsum(ae);
+t = (timestampsAe - timestampsAe(1))*24*60; tInterp = t(1):t(end);
+aeInterp = interp1(t, ae, tInterp, 'linear', 0); tInterp = tInterp/1440 + timestampsAe(1);
+cumulativeAe = cumsum(aeInterp);
 
 oneHour = 60;
 for i = 1:length(lags)
     lag = lags(i) * oneHour;
-    aeInt = cumulativeAe(lag + 1 : end) - cumulativeAe(1 : end - lag);
-    aeTime = timestampsAe(lag + 1 : end);
+    aeInt = (cumulativeAe(lag + 1 : end) - cumulativeAe(1 : end - lag)) / (lag);
+    aeTime = tInterp(lag + 1 : end);
     aeIntGoce(:,i) = interp1(aeTime, aeInt, timestampsGoce, 'linear', 0);
     aeIntChamp(:,i) = interp1(aeTime, aeInt, champData.timestamps, 'linear', 0);
     aeIntGrace(:,i) = interp1(aeTime, aeInt, graceData.timestamps, 'linear', 0);
