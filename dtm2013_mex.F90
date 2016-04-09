@@ -137,6 +137,8 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
     !k=mexPrintf('alt: '//temp//achar(13))
     !write(temp, *) lst
     !k=mexPrintf('lst: '//temp//achar(13))
+    !write(temp, *) doy
+    !k=mexPrintf('doy: '//temp//achar(13))
     !write(temp, *) lat
     !k=mexPrintf('lat: '//temp//achar(13))
     !write(temp, *) lon
@@ -151,6 +153,11 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
     ! **********************************************************************
     
     densityUncert = 1E-30
+
+    !write(temp, *) tinf
+    !k=mexPrintf('Tex: '//temp//achar(13))
+    !write(temp, *) density
+    !k=mexPrintf('rho: '//temp//achar(13))
 
     plhs(1) = mxCreateDoubleScalar(dble(tinf))
     plhs(2) = mxCreateDoubleScalar(dble(tz))

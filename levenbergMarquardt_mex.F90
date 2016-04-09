@@ -10,7 +10,7 @@ module fitModule
     type dataStruct
         real(kind = 8), allocatable, dimension(:) :: P10, P11, P20, P21, P22, &
                                      P30, P31, P32, P33, P40, P43, P44, P50, P51, &
-                                     P52, P53, P54, P60, P62, P63, P64, P71, P74, &
+                                     P52, P53, P54, P60, P62, P63, P64, P70, P71, P74, &
                                      yv, dv, latitudeTerm, solarTerm, annual, &
                                      diurnal, semidiurnal, terdiurnal, quaterdiurnal,&
                                      geomagnetic, data, Z, F, FA
@@ -54,7 +54,7 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     allocate(D%P40(N), D%P43(N), D%P44(N))
     allocate(D%P50(N), D%P51(N), D%P52(N), D%P53(N), D%P54(N))
     allocate(D%P60(N), D%P62(N), D%P63(N), D%P64(N))
-    allocate(D%P71(N), D%P74(N))
+    allocate(D%P70(N), D%P71(N), D%P74(N))
     allocate(D%yv(N), D%dv(N), D%latitudeTerm(N), D%solarTerm(N))
     allocate(D%annual(N), D%diurnal(N), D%semidiurnal(N), D%terdiurnal(N))
     allocate(D%quaterdiurnal(N), D%geomagnetic(N), D%data(N), D%Z(N), D%F(N), D%FA(N))
@@ -85,6 +85,7 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P62')), D%P62, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P63')), D%P63, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P64')), D%P64, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P70')), D%P70, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P71')), D%P71, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P74')), D%P74, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'yv')), D%yv, N)
@@ -161,7 +162,7 @@ subroutine deallocateStruct(D, typename)
     deallocate(D%P40, D%P43, D%P44)
     deallocate(D%P50, D%P51, D%P52, D%P53, D%P54)
     deallocate(D%P60, D%P62, D%P63, D%P64)
-    deallocate(D%P71, D%P74)
+    deallocate(D%P70, D%P71, D%P74)
     deallocate(D%yv, D%dv, D%latitudeTerm, D%solarTerm)
     deallocate(D%annual, D%diurnal, D%semidiurnal, D%terdiurnal)
     deallocate(D%quaterdiurnal, D%geomagnetic, D%data, D%Z, D%F, D%FA)
@@ -178,7 +179,8 @@ function G(a, S, numBiases)
     real(kind = 8), intent(in) :: a(:)
     integer, intent(in) :: numBiases
     real(kind = 8), allocatable :: G(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
-                                   terdiurnal(:), quaterdiurnal(:), geomagnetic(:)
+                                   terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
+                                   geom_lst(:), AE_base(:)
     integer :: k, dPh, numInts
     integer(kind = 4) :: mexPrintf, i
     real(kind = 8) :: pi
@@ -231,13 +233,20 @@ function G(a, S, numBiases)
     dPh = k + 14;
     numInts = size(S%aeInt, 2)
     !i = mexPrintf('G:geomagnetic'//achar(13))
-    geomagnetic = sumRowWise([a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7), a(k+8)], S%aeInt(:,1:numInts-1)) &
-                    * (a(k+9) + a(k+10)*S%P40 + a(k+11)*S%P60 + (a(k+12)*S%P10 + a(k+13)*S%P30)*cos(S%yv-pi*a(dPh))) + &
-                    (a(k+15)*S%aeInt(:,1) + a(k+16)*S%aeInt(:,3) + a(k+17)*S%aeInt(:,6)) * (a(k+18)*S%P11 + (a(k+19)*S%P21 + &
-                    a(k+20)*S%P31)*cos(S%yv-pi*a(dPh)))*cos(S%dv) + &
-                    (a(k+21)*S%aeInt(:,1) + a(k+22)*S%aeInt(:,3) + a(k+23)*S%aeInt(:,6)) * &
-                    (a(k+24)*S%P11 + (a(k+25)*S%P21 + a(k+26)*S%P31)*cos(S%yv-pi*a(dPh)))*sin(S%dv);
-    k = k + 26;
+    
+    !i = mexPrintf('G:AE_base'//achar(13))
+    AE_base = sumRowWise([a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7), a(k+8)], S%aeInt(:,1:numInts-1))
+    !i = mexPrintf('G:symmetric'//achar(13))
+    geom_symmetric = AE_base + (a(k+9)*S%P20 + a(k+10)*S%P40 + a(k+11)*S%P60)*AE_base;
+    !i = mexPrintf('G:yearly'//achar(13))
+    geom_yearly = (a(k+12)*S%P10 + a(k+13)*S%P30 + a(k+14)*S%P50 + a(k+15)*S%P70)*AE_base*cos(S%yv-pi*a(k+16));
+    !i = mexPrintf('G:lst'//achar(13))
+    geom_lst = (a(k+17)*S%P11 + a(k+18)*S%P31 + a(k+19)*S%P51)*cos(S%dv-pi*a(k+20))*AE_base;
+    !i = mexPrintf('G:geomagnetic'//achar(13))
+    geomagnetic = geom_symmetric + geom_yearly + geom_lst + a(k+21)*AE_base**2 !a(k+21)*geom_symmetric*AE_base + &
+                    !a(k+22)*geom_yearly*AE_base + a(k+23)*geom_lst*AE_base
+
+    k = k + 21;
 
     !i = mexPrintf('G:sum'//achar(13))
     G = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + geomagnetic;
@@ -527,8 +536,8 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
     ! ----- CALL Levenberg-Marquardt solver ------------
     tolX = 1E-8
-    tolFun = 1E-7
-    tolOpt = 1E2
+    tolFun = 1E-4
+    tolOpt = 1E4
     lambda0 = 1E-1
     maxFuncEvals = 5000 * size(initGuess)
     maxIter = 100000

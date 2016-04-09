@@ -43,6 +43,7 @@ addStruct.P64 = P(5,:)';
 
 % Seventh degree.
 P = legendre(7, x);
+addStruct.P70 = P(1,:)';
 addStruct.P71 = P(2,:)';
 addStruct.P74 = P(5,:)';
 

@@ -1304,26 +1304,26 @@ jb2008Density270km = nan(size(density));
 jb2008DensityVariableAlt = nan(size(density));
 jb2008Density270kmNoDtc = nan(size(density));
 
-p = TimedProgressBar( targetCount, barWidth, ...
-                    'Running JB2008, ETA ', ...
-                    '. Now at ', ...
-                    'Completed in ' );
-                
-parfor i = modelingIndices
-    [~,~,jb2008DensityVariableAlt(i)] = jb2008_mex(julianDay(i), altitudeInKm(i), latitude(i), longitude(i), F10(i), F81A(i), S10(i),...
-        S81A(i), M10(i), M81A(i), Y10(i), Y81A(i), dtc(i));
-    
-    [~,~,jb2008Density270km(i)] = jb2008_mex(julianDay(i), 270, latitude(i), longitude(i), F10(i), F81A(i), S10(i),...
-        S81A(i), M10(i), M81A(i), Y10(i), Y81A(i), dtc(i));
-    
-    [~,~,jb2008Density270kmNoDtc(i)] = jb2008_mex(julianDay(i), 270, latitude(i), longitude(i), F10(i), F81A(i), S10(i),...
-        S81A(i), M10(i), M81A(i), Y10(i), Y81A(i), 0);
-    
-    if mod(i, 10000) == 0
-     p.progress;
-    end
-end
-p.stop;
+% p = TimedProgressBar( targetCount, barWidth, ...
+%                     'Running JB2008, ETA ', ...
+%                     '. Now at ', ...
+%                     'Completed in ' );
+%                 
+% parfor i = modelingIndices
+%     [~,~,jb2008DensityVariableAlt(i)] = jb2008_mex(julianDay(i), altitudeInKm(i), latitude(i), longitude(i), F10(i), F81A(i), S10(i),...
+%         S81A(i), M10(i), M81A(i), Y10(i), Y81A(i), dtc(i));
+%     
+%     [~,~,jb2008Density270km(i)] = jb2008_mex(julianDay(i), 270, latitude(i), longitude(i), F10(i), F81A(i), S10(i),...
+%         S81A(i), M10(i), M81A(i), Y10(i), Y81A(i), dtc(i));
+%     
+%     [~,~,jb2008Density270kmNoDtc(i)] = jb2008_mex(julianDay(i), 270, latitude(i), longitude(i), F10(i), F81A(i), S10(i),...
+%         S81A(i), M10(i), M81A(i), Y10(i), Y81A(i), 0);
+%     
+%     if mod(i, 10000) == 0
+%      p.progress;
+%     end
+% end
+% p.stop;
 
 dtm2013Density270km = nan(size(density));
 dtm2013DensityVariableAlt = nan(size(density));
@@ -1655,21 +1655,4 @@ magneticLocalTime(tooBigTimes) = magneticLocalTime(tooBigTimes) - 24;
 magneticLocalTime(tooSmallTimes) = magneticLocalTime(tooSmallTimes) + 24;
 
 end
-
-function [magneticLatitude, magneticLongitude] = convertToMagneticCoordinates(latitude, longitude, altitude)
-% [magneticLatitude] = convertToMagneticCoordinates(latitude, longitude, altitude)
-
-ecefXYZ = geod2ecef(latitude, longitude, altitude)';
-ecefToMagTransform = [0.33907 -0.91964 -0.19826; ...
-                      0.93826  0.34594  0      ; ...
-                      0.06859  0.18602  0.98015];
-magXYZ = ecefToMagTransform * ecefXYZ;
-r = sqrt(magXYZ(1,:).^2 + magXYZ(2,:).^2 + magXYZ(3,:).^2);
-magneticLatitude = pi/2 - acos(magXYZ(3,:) ./ r);
-magneticLatitude = magneticLatitude' * 180 / pi;
-
-magneticLongitude = 180 * atan2(magXYZ(2,:), magXYZ(1,:))' / pi;
-
-end
-
 

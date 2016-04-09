@@ -349,38 +349,6 @@ set(gca, 'fontsize', 12)
 
 end
 
-function [limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps10s, magneticLatitude)
-%
-
-[latBeginIndex, latEndIndex] = limitLatitudeToIntegerMultipleOfOrbitalPeriod(magneticLatitude);
-limitedLatitude = magneticLatitude(latBeginIndex:latEndIndex);
-limitedTimestamps = timestamps10s(latBeginIndex:latEndIndex);
-[~, exactOrbitIndices] = splitIntoOrbits(limitedLatitude, limitedTimestamps);
-limitedLatitude = limitedLatitude(exactOrbitIndices);
-limitedTimestamps = limitedTimestamps(exactOrbitIndices);
-[orbits, ~] = splitIntoOrbits(limitedLatitude, limitedTimestamps);
-
-[minAllowedLatitude, maxAllowedLatitude] = findInterpolationLimits(limitedLatitude);
-
-if satelliteIsGoingSouth(limitedLatitude)
-    orbitsEndingTooNorth = find(limitedLatitude(orbits(:,2)) > minAllowedLatitude);
-    orbitsBeginningTooSouth = find(limitedLatitude(orbits(:,1)) < maxAllowedLatitude);
-    orbitsToDelete = unique(vertcat(orbitsBeginningTooSouth, orbitsEndingTooNorth));
-else
-    orbitsEndingTooSouth = find(limitedLatitude(orbits(:,2)) < maxAllowedLatitude);
-    orbitsBeginningTooNorth = find(limitedLatitude(orbits(:,1)) > minAllowedLatitude);
-    orbitsToDelete = unique(vertcat(orbitsBeginningTooNorth, orbitsEndingTooSouth));
-end
-
-newIndices = 1:length(limitedLatitude);
-for i = 1:length(orbitsToDelete)
-    newIndices = setdiff(newIndices, (orbits(orbitsToDelete(i), 1) : orbits(orbitsToDelete(i), 2)));
-end
-limitedTimestamps = limitedTimestamps(newIndices);
-limitedLatitude = limitedLatitude(newIndices);
-
-end
-
 function [crossingTimes, goceDensityByLatitude, msisDensityByLatitude, jbDensityByLatitude, dtmDensityByLatitude, aeProxyDensityByLatitude, tiegcmDensityByLatitude, oneDegreeStep] = interpolateAndPlotByLatitude(firstDatenum, aeIntegral, timestamps1min, timestamps10s, magneticLatitude, ...
     correctedDensity, msisDensity, jbDensity, dtmDensity, tiegcmDensity, aeProxyDensity, goceV, goceU, hwmV, hwmU, limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, plotFigures, timeOfDay)
 %
