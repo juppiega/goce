@@ -144,37 +144,25 @@ removeInd = ArStruct.data <= 0 | ArStruct.data > 1E20; % KORJAA!!!!
 ArStruct = removeDataPoints(ArStruct, removeInd);
 satInd = zeros(1, length(removeInd));
 satInd(ArStruct.de2) = 1;
-satInd(ArStruct.aeCOss) = 2;
-satInd(ArStruct.aeEOss) = 3;
-satInd(ArStruct.aeros) = 4;
+satInd(ArStruct.aeC) = 2;
+satInd(ArStruct.aeENace) = 3;
+satInd(ArStruct.aeEOss) = 4;
+satInd(ArStruct.aeros) = 5;
 satInd(removeInd) = [];
 ArStruct.de2 = find(satInd == 1);
-ArStruct.aeCOss = find(satInd == 2);
-ArStruct.aeEOss = find(satInd == 3);
-ArStruct.aeros = find(satInd == 4);
+ArStruct.aeC = find(satInd == 2);
+ArStruct.aeENace = find(satInd == 3);
+ArStruct.aeEOss = find(satInd == 4);
+ArStruct.aeros = find(satInd == 5);
 ArStruct.numBiases = 0;
 ArStruct.dataEnd = length(ArStruct.data);
 ArStruct.name = 'Ar';
 
-% Remove O2 observations
-removeInd = O2Struct.data <= 0 | O2Struct.data > 1E20; % KORJAA!!!!
-O2Struct = removeDataPoints(O2Struct, removeInd);
-satInd = zeros(1, length(removeInd));
-satInd(O2Struct.aeCOss) = 1;
-satInd(O2Struct.aeEOss) = 2;
-satInd(removeInd) = [];
-O2Struct.aeCOss = find(satInd == 1);
-O2Struct.aeEOss = find(satInd == 2);
-O2Struct.numBiases = 0;
-O2Struct.dataEnd = length(O2Struct.data);
-O2Struct.name = 'O2';
 
 TempStruct = computeGeopotentialHeight(TempStruct);
 OStruct = computeGeopotentialHeight(OStruct);
 N2Struct = computeGeopotentialHeight(N2Struct);
 HeStruct = computeGeopotentialHeight(HeStruct);
-ArStruct = computeGeopotentialHeight(ArStruct);
-O2Struct = computeGeopotentialHeight(O2Struct);
 rhoStruct = computeGeopotentialHeight(rhoStruct);
 
 end

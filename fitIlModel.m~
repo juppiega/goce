@@ -81,18 +81,12 @@ numBiasesOrig = S.numBiases; S.numBiases = 0;
 S.numBiases = numBiasesOrig;
 u2kg = 1.660538921E-27;
 k = 1.38064852E-23;
-g = 9.418; 
+g = 9.418; % TODO: Onko oikein?
 if strcmpi(S.name, 'O')
     molecMass = 16 * u2kg;
     alpha = 0;
 elseif strcmpi(S.name, 'N2')
     molecMass = 28 * u2kg;
-    alpha = 0;
-elseif strcmpi(S.name, 'O2')
-    molecMass = 32 * u2kg;
-    alpha = 0;
-elseif strcmpi(S.name, 'Ar')
-    molecMass = 40 * u2kg;
     alpha = 0;
 elseif strcmpi(S.name, 'He')
     molecMass = 4 * u2kg;
@@ -377,7 +371,7 @@ end
 residual = weights .* residual;
 
 if nargout == 2
-    fun = @(X)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, X);
+    fun = @(X)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, X);
     Jacobian = computeJAC(fun, coeff, dataLen, tolX);
 end
 
@@ -499,9 +493,9 @@ fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, 
 
 setenv('OMP_NUM_THREADS', num2str(numThreads))
 disp('Calling LM solver')
-%tic;optCoeff = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
-[comp,J] = fun(initGuess); %disp([comp(1), optCoeff]);
-JTJ_diag = diag(J'*J);
+tic;optCoeff = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
+%[comp,J] = fun(initGuess); %disp([comp(1), optCoeff]);
+%JTJ_diag = diag(J'*J);
 
 %tic; [optCoeff] = lsqnonlin(fun, initGuess, lb, ub, options);toc;
 
@@ -510,8 +504,6 @@ TexInd = TexStruct.coeffInd; save('optCoeff.mat', 'TexInd', '-append');
 HeInd = HeStruct.coeffInd; save('optCoeff.mat', 'HeInd', '-append');
 OInd = OStruct.coeffInd; save('optCoeff.mat', 'OInd', '-append');
 N2Ind = N2Struct.coeffInd; save('optCoeff.mat', 'N2Ind', '-append');
-ArInd = ArStruct.coeffInd; save('optCoeff.mat', 'ArInd', '-append');
-O2Ind = O2Struct.coeffInd; save('optCoeff.mat', 'O2Ind', '-append');
 save('optCoeff.mat', 'dTCoeffs', '-append');
 save('optCoeff.mat', 'T0Coeffs', '-append');
 

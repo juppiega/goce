@@ -75,14 +75,12 @@ end
 
 if ~exist('ilData.mat', 'file') 
     fprintf('%s\n', 'Arranging satellite data by variable')
-    [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0);
+    [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0);
     fprintf('%s\n', 'Saving results to "ilData.mat" file')
     save('ilData.mat', 'TempStruct', '-v7.3')
     save('ilData.mat', 'OStruct', '-append')
     save('ilData.mat', 'N2Struct', '-append')
     save('ilData.mat', 'HeStruct', '-append')
-    save('ilData.mat', 'ArStruct', '-append')
-    save('ilData.mat', 'O2Struct', '-append')
     save('ilData.mat', 'rhoStruct', '-append')
     save('ilData.mat', 'lbDTStruct', '-append')
     save('ilData.mat', 'lbT0Struct', '-append')
@@ -199,18 +197,18 @@ HeStruct.data = data; HeStruct.timestamps = Hetime; HeStruct.aeC = aeC; HeStruct
 ArStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
 
-[Artime, order] = unique(aeCData.oss.ArTimes); data = aeCData.oss.Ar(order); aeCOss = 1:length(data); ArStruct = fillPosAndInd(ArStruct, aeCData, Artime(aeCOss));
-[t, order] = unique(aeEData.oss.ArTimes); Artime = [Artime; t]; data = [data; aeEData.oss.Ar(order)]; aeEOss = aeCOss(end)+1 : length(data); ArStruct = fillPosAndInd(ArStruct, aeEData, Artime(aeEOss));
+[Artime, order] = unique(aeCData.oss.ArTimes); data = aeCData.oss.Ar(order); aeC = 1:length(data); ArStruct = fillPosAndInd(ArStruct, aeCData, Artime(aeC));
+[t, order] = unique(aeEData.oss.ArTimes); Artime = [Artime; t]; data = [data; aeEData.oss.Ar(order)]; aeEOss = aeC(end)+1 : length(data); ArStruct = fillPosAndInd(ArStruct, aeEData, Artime(aeEOss));
 [t, order] = unique(de2Data.dens.ArTimes); Artime = [Artime; t]; data = [data; de2Data.dens.Ar(order)]; de2 = aeEOss(end)+1 : length(data); ArStruct = fillPosAndInd(ArStruct, de2Data, Artime(de2));
 [t, order] = unique(aerosData.dens.ArTimes); Artime = [Artime; t]; data = [data; aerosData.dens.Ar(order)]; aeros = de2(end)+1 : length(data); ArStruct = fillPosAndInd(ArStruct, aerosData, Artime(aeros));
-ArStruct.data = data; ArStruct.timestamps = Artime; ArStruct.aeCOss = aeCOss; ArStruct.aeEOss = aeEOss; ArStruct.de2 = de2; ArStruct.aeros = aeros;
+ArStruct.data = data; ArStruct.timestamps = Artime; ArStruct.aeC = aeC; ArStruct.aeEOss = aeEOss; ArStruct.de2 = de2; ArStruct.aeros = aeros;
 
 O2Struct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
 
-[O2time, order] = unique(aeCData.oss.O2Times); data = aeCData.oss.O2(order); aeCOss = 1:length(data); O2Struct = fillPosAndInd(O2Struct, aeCData, O2time(aeCOss));
-[t, order] = unique(aeEData.oss.O2Times); O2time = [O2time; t]; data = [data; aeEData.oss.O2(order)]; aeEOss = aeCOss(end)+1 : length(data); O2Struct = fillPosAndInd(O2Struct, aeEData, O2time(aeEOss));
-O2Struct.data = data; O2Struct.timestamps = O2time; O2Struct.aeCOss = aeCOss; O2Struct.aeEOss = aeEOss; O2Struct.de2 = de2; O2Struct.aeros = aeros;
+[O2time, order] = unique(aeCData.oss.O2Times); data = aeCData.oss.O2(order); aeC = 1:length(data); O2Struct = fillPosAndInd(O2Struct, aeCData, O2time(aeC));
+[t, order] = unique(aeEData.oss.O2Times); O2time = [O2time; t]; data = [data; aeEData.oss.O2(order)]; aeEOss = aeC(end)+1 : length(data); O2Struct = fillPosAndInd(O2Struct, aeEData, O2time(aeEOss));
+O2Struct.data = data; O2Struct.timestamps = O2time; O2Struct.aeC = aeC; O2Struct.aeEOss = aeEOss; O2Struct.de2 = de2; O2Struct.aeros = aeros;
 
 lbDTStruct = saberDT;
 lbT0Struct = T0;
