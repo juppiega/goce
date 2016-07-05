@@ -1,4 +1,6 @@
-function [  ] = fitIlModel(  )
+function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT )
+% TODO: -Korjaa lämpötilaprofiili Bates-Walkeriksi (z0 = 120 km) ja painovoima 9.447:ksi.
+
 rng(1, 'twister');
 %import java.lang.*
 %r = Runtime.getRuntime;
@@ -6,13 +8,9 @@ rng(1, 'twister');
 numThreads = 64;
 
 global numCoeffs;
-global modelLbHeight;
-modelLbHeight = 130;
 numCoeffs = 103;
 
 clear mex;
-
-maxIter = 10;
 
 poolobj = gcp('nocreate'); % If no pool, do not create new one.
 if isempty(poolobj)
@@ -26,9 +24,20 @@ else
     error('File ilData.mat not found!')
 end
 
-[TempStruct, OStruct, N2Struct, HeStruct, rhoStruct] = removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, rhoStruct);
-if ~exist('TexStruct', 'var')
-    TexStruct = computeExosphericTemperatures(TempStruct);
+[TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct] = removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct);
+if ~exist('dTCoeffs', 'var') || recomputeDT
+    dTCoeffs = fitTemeratureGradient(lbDTStruct); 
+    save('ilData.mat', 'dTCoeffs', '-append')
+end
+
+if ~exist('T0Coeffs', 'var') || recomputeLbTemp
+    T0Coeffs = fitLbTemerature(lbT0Struct, lbDTStruct); 
+    save('ilData.mat', 'T0Coeffs', '-append')
+end
+
+if ~exist('TexStruct', 'var') || recomputeTex
+    TexStruct = computeExosphericTemperatures(TempStruct, dTCoeffs, T0Coeffs);
+    save('ilData.mat', 'TexStruct', '-append')
 end
 
 
@@ -62,7 +71,7 @@ numStartPoints = 1;
 % end
 % % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, opt, ms, numStartPoints, numThreads)
+fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads)
 
 end
 
@@ -72,7 +81,7 @@ numBiasesOrig = S.numBiases; S.numBiases = 0;
 S.numBiases = numBiasesOrig;
 u2kg = 1.660538921E-27;
 k = 1.38064852E-23;
-g = 9.80665; % TODO: Onko oikein?
+g = 9.418; % TODO: Onko oikein?
 if strcmpi(S.name, 'O')
     molecMass = 16 * u2kg;
     alpha = 0;
@@ -87,9 +96,9 @@ else
 end
 
 sigma = dT0 ./ (Tex - T0);
-T = Tex - (Tex - T0) .* exp(-sigma .* (S.Z - 130));
+T = Tex - (Tex - T0) .* exp(-sigma .* (S.Z));
 gamma = molecMass * g ./ (k * sigma * 1E-3 .* Tex);
-altTerm = (1 + gamma + alpha) .* log(T0 ./ T) - gamma .* sigma .* (S.Z - 130);
+altTerm = (1 + gamma + alpha) .* log(T0 ./ T) - gamma .* sigma .* (S.Z);
 S.rhs = log(S.data) - altTerm;
 
 if any(~isfinite(S.rhs))
@@ -98,14 +107,19 @@ end
 
 end
 
-function [TexStruct] = computeExosphericTemperatures(TempStruct)
+function [TexStruct] = computeExosphericTemperatures(TempStruct, dTCoeffs, T0Coeffs)
+
+fprintf('%s\n', 'Computing exospheric temperatures')
 
 TexVec = zeros(length(TempStruct.data),1);
 % Set solution accuracy to 0.001.
 options = optimoptions('fmincon', 'TolX', 1E-6, 'display', 'none');
 % Loop over the temperature data.
-Z = TempStruct.Z; data = TempStruct.data;
-T0 = TempStruct.T0; dT0 = TempStruct.dT0;
+S = computeVariablesForFit(TempStruct);
+Z = S.Z;
+T0 = evalT0(S, T0Coeffs); 
+data = S.data; data = clamp(T0+1, data, 10000);
+dT0 = clamp(1, evalDT(S, dTCoeffs), 30);
 
 targetCount = round(length(TexVec) / 1000);
 barWidth = 50;
@@ -116,7 +130,7 @@ p = TimedProgressBar( targetCount, barWidth, ...
 parfor i = 1:length(TexVec);
     % Because the Bates profile is nonlinear, use numerical root
     % finding.
-    minFunc = @(Tex)TexFunc(Tex, Z(i), data(i), T0, dT0);
+    minFunc = @(Tex)TexFunc(Tex, Z(i), data(i), T0(i), dT0(i));
     TexVec(i) = fmincon(minFunc, 1000, [],[],[],[],data(i),10000,[], options);
     if mod(i,1000) == 0
         p.progress;
@@ -138,14 +152,84 @@ TexStruct.aeC = find(satInd == 2);
 TexStruct.aeE = find(satInd == 3);
 TexStruct.data = TexVec(~removeInd);
 TexStruct.dataEnd = length(TexStruct.data);
+TexStruct.Z = TexStruct.Z(~removeInd);
 
-save('ilData.mat', 'TexStruct', '-append')
+end
+
+function dTCoeffs = fitTemeratureGradient(lbDTStruct)
+
+fprintf('%s\n', 'Fitting Temperature gradient')
+
+lbDTStruct = computeVariablesForFit(lbDTStruct);
+
+numCoeffs = 50;
+dTCoeffs = zeros(numCoeffs, 1);
+
+dTCoeffs(1) = mean(lbDTStruct.data);
+dTCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = 0.01;
+
+opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
+                 'TolX', 1E-6, 'Display', 'iter');
+
+fun = @(X) temperatureGradientMinimization(lbDTStruct, X);
+[dTCoeffs] = lsqnonlin(fun, dTCoeffs, [], [], opt);
+
+end
+
+function lbT0Coeffs = fitLbTemerature(lbT0Struct, TempStruct)
+
+fprintf('%s\n', 'Fitting lower boundary temperature')
+
+Nobs = length(lbT0Struct.data);
+Nmsis = length(TempStruct.data);
+
+TempStruct.altitude = 130 * ones(size(TempStruct.data));
+TempStruct = computeVariablesForFit(TempStruct);
+[~,~,~,~,~,T] = computeMsis(TempStruct);
+lbT0Struct.data = [lbT0Struct.data; T];
+lbT0Struct.timestamps = [lbT0Struct.timestamps; TempStruct.timestamps];
+lbT0Struct.latitude = [lbT0Struct.latitude; TempStruct.latitude];
+lbT0Struct.longitude = [lbT0Struct.longitude; TempStruct.longitude];
+lbT0Struct.solarTime = [lbT0Struct.solarTime; TempStruct.solarTime];
+lbT0Struct.altitude = [lbT0Struct.altitude; TempStruct.altitude];
+lbT0Struct.aeInt = [lbT0Struct.aeInt; TempStruct.aeInt];
+lbT0Struct.F = [lbT0Struct.F; TempStruct.F];
+lbT0Struct.FA = [lbT0Struct.FA; TempStruct.FA];
+lbT0Struct.apNow = [lbT0Struct.apNow; TempStruct.apNow];
+lbT0Struct.ap3h = [lbT0Struct.ap3h; TempStruct.ap3h];
+lbT0Struct.ap6h = [lbT0Struct.ap6h; TempStruct.ap6h];
+lbT0Struct.ap9h = [lbT0Struct.ap9h; TempStruct.ap9h];
+lbT0Struct.ap12To33h = [lbT0Struct.ap12To33h; TempStruct.ap12To33h];
+lbT0Struct.ap36To57h = [lbT0Struct.ap36To57h; TempStruct.ap36To57h];
+lbT0Struct.Ap = [lbT0Struct.Ap; TempStruct.Ap];
+lbT0Struct.type = [lbT0Struct.type; 3*ones(size(TempStruct.data))];
+
+lbT0Struct = computeVariablesForFit(lbT0Struct);
+
+weights = ones(size(lbT0Struct.data));
+weights(Nobs+1:end) = Nobs / Nmsis;
+weights = sqrt(weights);
+
+numCoeffs = 50;
+lbT0Coeffs = zeros(numCoeffs, 1);
+
+lbT0Coeffs(1) = mean(lbT0Struct.data);
+lbT0Coeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = 0.01;
+ub = [550, 0.5*ones(1, numCoeffs-1)];
+lb = [450, -0.5*ones(1, numCoeffs-1)];
+
+opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-reflective', 'TolFun', 1E-8, ...
+                 'TolX', 1E-7, 'Display', 'iter', 'MaxIter', 10000);
+
+fun = @(X) lbTemperatureMinimization(lbT0Struct, weights, X);
+lbT0Coeffs = lsqnonlin(fun, lbT0Coeffs, lb, ub, opt);
+
 end
 
 % Function, whose root gives the Tex.
 function y = TexFunc(Tex, Z, Tz, T0, dT0)
     %global modelLbHeight
-    y = abs(Tex - (Tex - T0)*exp(-(Z-130) * dT0 / (Tex-T0)) - Tz);
+    y = abs(Tex - (Tex - T0).*exp(-Z .* dT0 ./ (Tex-T0)) - Tz);
 end
 
 function [removeStruct] = removeFitVariables(removeStruct)
@@ -227,7 +311,7 @@ end
 function [residual] = computeSpeciesResidual(varStruct, Tex, dT0, T0, coeff)
 
 varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
-Gvec = G(coeff, varStruct);
+Gvec = G_major(coeff, varStruct);
 
 if varStruct.numBiases == 0
     residual = (varStruct.rhs ./ max(coeff(1) + Gvec, 1)) - 1;
@@ -239,32 +323,33 @@ end
 
 end
 
-function [residual, Jacobian] = modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, weights, tolX, coeff)
+function [residual, Jacobian] = modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff)
 
 dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) + length(HeStruct.data) + length(rhoStruct.data);
 residual = zeros(dataLen, 1);
 
-TexMesuredEstimate = clamp(TexStruct.T0+1, evalTex(TexStruct, coeff(TexStruct.coeffInd)), 5000);
+T0 = evalT0(TexStruct, T0Coeffs);
+TexMesuredEstimate = clamp(T0+1, evalTex(TexStruct, coeff(TexStruct.coeffInd)), 5000);
 residInd = 1:length(TexStruct.data);
 residual(residInd) = TexStruct.data./TexMesuredEstimate - 1;
 
-[Tex, dT0, T0] = findTempsForFit(OStruct, TexStruct, coeff);
+[Tex, dT0, T0] = findTempsForFit(OStruct, TexStruct, dTCoeffs, T0Coeffs, coeff);
 residInd = residInd(end) + (1:length(OStruct.data));
 residual(residInd) = computeSpeciesResidual(OStruct, Tex, dT0, T0, coeff(OStruct.coeffInd));
 
-[Tex, dT0, T0] = findTempsForFit(N2Struct, TexStruct, coeff);
+[Tex, dT0, T0] = findTempsForFit(N2Struct, TexStruct, dTCoeffs, T0Coeffs, coeff);
 residInd = residInd(end) + (1:length(N2Struct.data));
 residual(residInd) = computeSpeciesResidual(N2Struct, Tex, dT0, T0, coeff(N2Struct.coeffInd));
 
-[Tex, dT0, T0] = findTempsForFit(HeStruct, TexStruct, coeff);
+[Tex, dT0, T0] = findTempsForFit(HeStruct, TexStruct, dTCoeffs, T0Coeffs, coeff);
 residInd = residInd(end) + (1:length(HeStruct.data));
 residual(residInd) = computeSpeciesResidual(HeStruct, Tex, dT0, T0, coeff(HeStruct.coeffInd));
 
-[Tex, dT0, T0] = findTempsForFit(rhoStruct, TexStruct, coeff);
+[Tex, dT0, T0] = findTempsForFit(rhoStruct, TexStruct, dTCoeffs, T0Coeffs, coeff);
 residInd = residInd(end) + (1:length(rhoStruct.data));
-OlbDens = clamp(10, evalSpecies(rhoStruct, coeff(OStruct.coeffInd)), 1E20);
-N2lbDens = clamp(10, evalSpecies(rhoStruct, coeff(N2Struct.coeffInd)), 1E20);
-HelbDens = clamp(10, evalSpecies(rhoStruct, coeff(HeStruct.coeffInd)), 1E20);
+OlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(OStruct.coeffInd)), 1E20);
+N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(N2Struct.coeffInd)), 1E20);
+HelbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(HeStruct.coeffInd)), 1E20);
 modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens), 0.1);
 residual(residInd) = (log(rhoStruct.data)./log(modelRho)) - 1;
 
@@ -275,8 +360,32 @@ end
 residual = weights .* residual;
 
 if nargout == 2
-    fun = @(X)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, weights, tolX, X);
+    fun = @(X)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, X);
     Jacobian = computeJAC(fun, coeff, dataLen, tolX);
+end
+
+end
+
+function [residual, Jacobian] = temperatureGradientMinimization(lbDTStruct, coeff)
+
+modelDT = evalDT(lbDTStruct, coeff);
+residual = lbDTStruct.data - modelDT;
+
+if nargout == 2
+    fun = @(X)temperatureGradientMinimization(lbDTStruct, X);
+    Jacobian = computeJAC(fun, coeff, length(lbDTStruct.data), 1E-5);
+end
+
+end
+
+function [residual, Jacobian] = lbTemperatureMinimization(lbT0Struct, weights, coeff)
+
+modelT0 = evalT0(lbT0Struct, coeff);
+residual = weights .* (lbT0Struct.data - modelT0);
+
+if nargout == 2
+    fun = @(X)lbTemperatureMinimization(lbT0Struct, weights, X);
+    Jacobian = computeJAC(fun, coeff, length(lbT0Struct.data), 1E-5);
 end
 
 end
@@ -306,8 +415,10 @@ end
 
 end
 
-function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, options, multiStartSolver, numStartPoints, numThreads)
+function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, dTCoeffs, T0Coeffs, options, multiStartSolver, numStartPoints, numThreads)
 global numCoeffs;
+
+fprintf('%s\n', 'Computing final fit')
 
 dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) + length(HeStruct.data) + length(rhoStruct.data);
 
@@ -348,7 +459,7 @@ TexInd = 2:numCoeffs; ub(TexInd) = mode(ub(TexInd));
 lb = -ub;
 tolX = options.TolX;
 %fun = @(coeff)sum(modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, weights, tolX, coeff).^2);
-fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, weights, tolX, coeff);
+fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff);
 %problem = createOptimProblem('lsqnonlin', 'x0', initGuess, 'objective', fun, 'options', options);
 
 %tic;[optCoeff, fmin, flag, output, allmins] = run(multiStartSolver, problem, startPoints);toc;
@@ -360,7 +471,7 @@ fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, 
 
 setenv('OMP_NUM_THREADS', num2str(numThreads))
 disp('Calling LM solver')
-tic;optCoeff = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, weights, initGuess);toc;
+tic;optCoeff = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
 %[comp,J] = fun(initGuess); %disp([comp(1), optCoeff]);
 %JTJ_diag = diag(J'*J);
 
@@ -371,7 +482,8 @@ TexInd = TexStruct.coeffInd; save('optCoeff.mat', 'TexInd', '-append');
 HeInd = HeStruct.coeffInd; save('optCoeff.mat', 'HeInd', '-append');
 OInd = OStruct.coeffInd; save('optCoeff.mat', 'OInd', '-append');
 N2Ind = N2Struct.coeffInd; save('optCoeff.mat', 'N2Ind', '-append');
-
+save('optCoeff.mat', 'dTCoeffs', '-append');
+save('optCoeff.mat', 'T0Coeffs', '-append');
 
 end
 

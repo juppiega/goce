@@ -29,16 +29,23 @@ goceData = struct('density', density * 1E-11, 'densityError', absDensityError * 
 
 [champData, graceData, de2Data, aeCData, aeEData, aerosData] = computeOtherDensities();
 
+load temperatureGradient.mat
+load T0.mat
+
+T0 = vertcatStructFields(T0);
+
 [tiegcmDensityVariableAlt, tiegcmDensity270km] = readTiegcmFile(timestampsDensityDatenum);
 
-[aeIntegrals, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData] = computeAeIntegrals(ae, timestampsAeDatenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData);
+[aeIntegrals, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0] = ...
+    computeAeIntegrals(ae, timestampsAeDatenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0);
 
 [apGoce, ap, timestampsAp, amGoce, dtc] = readApAndDtcFiles(timestampsDensityDatenum);
 
-[F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData] = giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, F10datenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData);
+[F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0] = ...
+    giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, F10datenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0);
 
-[apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, ap, timestamps3h, timestamps3hFixed, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData] =...
-    giveApValsForMSIS(apGoce, amGoce, ap, timestampsAp, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData);
+[apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, ap, timestamps3h, timestamps3hFixed, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0] =...
+    giveApValsForMSIS(apGoce, amGoce, ap, timestampsAp, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0);
 
 if ~exist('goceVariables.mat', 'file')
 [densityNoBg, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, ...
@@ -68,13 +75,15 @@ end
 
 if ~exist('ilData.mat', 'file') 
     fprintf('%s\n', 'Arranging satellite data by variable')
-    [TempStruct, OStruct, N2Struct, HeStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData);
+    [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0);
     fprintf('%s\n', 'Saving results to "ilData.mat" file')
     save('ilData.mat', 'TempStruct', '-v7.3')
     save('ilData.mat', 'OStruct', '-append')
     save('ilData.mat', 'N2Struct', '-append')
     save('ilData.mat', 'HeStruct', '-append')
     save('ilData.mat', 'rhoStruct', '-append')
+    save('ilData.mat', 'lbDTStruct', '-append')
+    save('ilData.mat', 'lbT0Struct', '-append')
 end
 
 if ~exist('goceVariables.mat', 'file')
@@ -146,7 +155,7 @@ end
 toc;
 end
 
-function [TempStruct, OStruct, N2Struct, HeStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData)
+function [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberDT, T0)
 
 TempStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
@@ -184,6 +193,9 @@ HeStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [],
 [t, order] = unique(de2Data.dens.HeTimes); Hetime = [Hetime; t]; data = [data; de2Data.dens.He(order)]; de2 = aeEOss(end)+1 : length(data); HeStruct = fillPosAndInd(HeStruct, de2Data, Hetime(de2));
 [t, order] = unique(aerosData.dens.HeTimes); Hetime = [Hetime; t]; data = [data; aerosData.dens.He(order)]; aeros = de2(end)+1 : length(data); HeStruct = fillPosAndInd(HeStruct, aerosData, Hetime(aeros));
 HeStruct.data = data; HeStruct.timestamps = Hetime; HeStruct.aeC = aeC; HeStruct.aeENace = aeENace; HeStruct.aeEOss = aeEOss; HeStruct.de2 = de2; HeStruct.aeros = aeros;
+
+lbDTStruct = saberDT;
+lbT0Struct = T0;
 
 rhoStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
@@ -1043,7 +1055,8 @@ indicesToRemove = timestampsDensityDatenum < nearest3hTime;
 
 end
 
-function [aeIntGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData] = computeAeIntegrals(ae, timestampsAe, timestampsGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData)
+function [aeIntGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0] = ...
+    computeAeIntegrals(ae, timestampsAe, timestampsGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0)
 %
 lags = [2 4 8 16 21 30 40 50 60];
 aeIntGoce = zeros(length(timestampsGoce), length(lags));
@@ -1053,6 +1066,8 @@ aeIntDe2 = zeros(length(de2Data.timestamps), length(lags));
 aeIntAEC = zeros(length(aeCData.timestamps), length(lags));
 aeIntAEE = zeros(length(aeEData.timestamps), length(lags));
 aeIntAeros = zeros(length(aerosData.timestamps), length(lags));
+aeIntSaber = zeros(length(saberData.timestamps), length(lags));
+aeIntT0 = zeros(length(T0.timestamps), length(lags));
 t = (timestampsAe - timestampsAe(1))*24*60; tInterp = t(1):t(end);
 aeInterp = interp1(t, ae, tInterp, 'linear', 0); tInterp = tInterp/1440 + timestampsAe(1);
 cumulativeAe = cumsum(aeInterp);
@@ -1069,6 +1084,8 @@ for i = 1:length(lags)
     aeIntAEC(:,i) = interp1(aeTime, aeInt, aeCData.timestamps, 'linear', 0);
     aeIntAEE(:,i) = interp1(aeTime, aeInt, aeEData.timestamps, 'linear', 0);
     aeIntAeros(:,i) = interp1(aeTime, aeInt, aerosData.timestamps, 'linear', 0);
+    aeIntSaber(:,i) = interp1(aeTime, aeInt, saberData.timestamps, 'linear', 0);
+    aeIntT0(:,i) = interp1(aeTime, aeInt, T0.timestamps, 'linear', 0);
 end
 
 goceData.aeInt = aeIntGoce;
@@ -1078,10 +1095,13 @@ de2Data.aeInt = aeIntDe2;
 aeCData.aeInt = aeIntAEC;
 aeEData.aeInt = aeIntAEE;
 aerosData.aeInt = aeIntAeros;
+saberData.aeInt = aeIntSaber;
+T0.aeInt = aeIntT0;
 
 end
 
-function [F10out, F81Aout, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData] = giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, F10datenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData)
+function [F10out, F81Aout, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0] = ...
+    giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, F10datenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0)
 %
 fprintf('%s\n', 'Computing solar index values for models')
 
@@ -1121,10 +1141,16 @@ aeEData.F81A = interp1(F10datenum, F81A, aeEData.timestamps, 'previous', 100);
 aerosData.F10 = interp1(F10datenum + 1, F10, aerosData.timestamps, 'previous', 100);
 aerosData.F81A = interp1(F10datenum, F81A, aerosData.timestamps, 'previous', 100);
 
+saberData.F10 = interp1(F10datenum + 1, F10, saberData.timestamps, 'previous', 100);
+saberData.F81A = interp1(F10datenum, F81A, saberData.timestamps, 'previous', 100);
+
+T0.F10 = interp1(F10datenum + 1, F10, T0.timestamps, 'previous', 100);
+T0.F81A = interp1(F10datenum, F81A, T0.timestamps, 'previous', 100);
+
 end
 
-function [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, apAllFixed, timestamps3h, timestamps3hFixed, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData] = ...
-    giveApValsForMSIS(apGoce, amGoce, ap, timestampsAp, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData)
+function [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, apAllFixed, timestamps3h, timestamps3hFixed, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0] = ...
+    giveApValsForMSIS(apGoce, amGoce, ap, timestampsAp, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0)
 % 
 fprintf('%s\n', 'Computing ap values for msis')
 
@@ -1246,6 +1272,22 @@ aerosData.ap9h = interp1(timestampsAp + 3*dt, ap, aerosData.timestamps, 'previou
 aerosData.apAver12To33h = interp1(timestampsAp + 7.5*dt, ap24hSmooth, aerosData.timestamps, 'previous', 'extrap');
 aerosData.apAver36To57h = interp1(timestampsAp + 15.5*dt, ap24hSmooth, aerosData.timestamps, 'previous', 'extrap');
 aerosData.ApDaily = interp1(timestampsAp, ap24hSmooth, aerosData.timestamps, 'previous', 'extrap');
+
+saberData.apNow = interp1(timestampsAp, ap, saberData.timestamps, 'previous', 'extrap');
+saberData.ap3h = interp1(timestampsAp + dt, ap, saberData.timestamps, 'previous', 'extrap');
+saberData.ap6h = interp1(timestampsAp + 2*dt, ap, saberData.timestamps, 'previous', 'extrap');
+saberData.ap9h = interp1(timestampsAp + 3*dt, ap, saberData.timestamps, 'previous', 'extrap');
+saberData.apAver12To33h = interp1(timestampsAp + 7.5*dt, ap24hSmooth, saberData.timestamps, 'previous', 'extrap');
+saberData.apAver36To57h = interp1(timestampsAp + 15.5*dt, ap24hSmooth, saberData.timestamps, 'previous', 'extrap');
+saberData.ApDaily = interp1(timestampsAp, ap24hSmooth, saberData.timestamps, 'previous', 'extrap');
+
+T0.apNow = interp1(timestampsAp, ap, T0.timestamps, 'previous', 'extrap');
+T0.ap3h = interp1(timestampsAp + dt, ap, T0.timestamps, 'previous', 'extrap');
+T0.ap6h = interp1(timestampsAp + 2*dt, ap, T0.timestamps, 'previous', 'extrap');
+T0.ap9h = interp1(timestampsAp + 3*dt, ap, T0.timestamps, 'previous', 'extrap');
+T0.apAver12To33h = interp1(timestampsAp + 7.5*dt, ap24hSmooth, T0.timestamps, 'previous', 'extrap');
+T0.apAver36To57h = interp1(timestampsAp + 15.5*dt, ap24hSmooth, T0.timestamps, 'previous', 'extrap');
+T0.ApDaily = interp1(timestampsAp, ap24hSmooth, T0.timestamps, 'previous', 'extrap');
 
 end
 
@@ -1655,4 +1697,3 @@ magneticLocalTime(tooBigTimes) = magneticLocalTime(tooBigTimes) - 24;
 magneticLocalTime(tooSmallTimes) = magneticLocalTime(tooSmallTimes) + 24;
 
 end
-

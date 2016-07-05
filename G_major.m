@@ -1,4 +1,4 @@
-function [result] = G(a, S)
+function [result] = G_major(a, S)
 
 k = S.numBiases + 1; % Counter, which helps adding terms.
 

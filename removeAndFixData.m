@@ -1,9 +1,9 @@
-function [TempStruct, OStruct, N2Struct, HeStruct, rhoStruct] = removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, rhoStruct)
+function [TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct] = removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct)
 
 % Make GOCE observations unbiased.
 rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 1.23;
 rhoStruct.numBiases = 0;
-removeInd = ~ismember(1:length(rhoStruct.data), 1:1:length(rhoStruct.data)) | rhoStruct.data' <= 0; % !!!!!!!!!! TESTAUS
+removeInd = ~ismember(1:length(rhoStruct.data), 1:30:length(rhoStruct.data)) | rhoStruct.data' <= 0; % !!!!!!!!!! TESTAUS
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
 goceWeight = 0.5*(1 - length(rhoStruct.goce) / length(rhoStruct.data));
 champWeight = 1 - length(rhoStruct.champ)  / length(rhoStruct.data);
@@ -14,10 +14,8 @@ rhoStruct.weights(rhoStruct.champ) = champWeight;
 rhoStruct.weights(rhoStruct.grace) = graceWeight;
 rhoStruct.numBiases = 0;
 
-TempStruct.T0 = 507;
-TempStruct.dT0 = 12.6;
 % Remove bad temperature observations
-removeInd = TempStruct.data <= TempStruct.T0 | TempStruct.data > 10000;
+removeInd = TempStruct.data <= 300 | TempStruct.data > 10000;
 % For an unknown reason, there is one erroneous value in the local solar
 % time present in the original ASCII data files.
 removeInd(TempStruct.solarTime > 24 | TempStruct.solarTime < 0) = true(1);
@@ -34,6 +32,51 @@ TempStruct.aeC = find(satInd == 2);
 TempStruct.aeE = find(satInd == 3);
 TempStruct.numBiases = 0;
 TempStruct.dataEnd = length(TempStruct.data);
+
+% Remove DT observations
+lbDTStruct.F = lbDTStruct.F10;
+lbDTStruct.FA = lbDTStruct.F81A;
+lbDTStruct.ap12To33h = lbDTStruct.apAver12To33h;
+lbDTStruct.ap36To57h = lbDTStruct.apAver36To57h;
+lbDTStruct.Ap = lbDTStruct.ApDaily;
+lbDTStruct.altitude = lbDTStruct.altitude * ones(size(lbDTStruct.data));
+
+removeInd = lbDTStruct.solarTime < 0;
+removeInd(lbDTStruct.data <= 0) = true;
+removeInd(85 < lbDTStruct.zenithAngle & lbDTStruct.zenithAngle < 95) = true;
+removeInd(lbDTStruct.apNow > 15) = true;
+%removeInd(lbDTStruct.nightObservation == 2) = true; % Remove twilight observations.
+%removeInd(lbDTStruct.nightObservation == 1 & abs(lbDTStruct.latitude) > 52) = true;
+lbDTStruct = removeDataPoints(lbDTStruct, removeInd);
+lbDTStruct.auroraFlag(removeInd) = [];
+lbDTStruct.zenithAngle(removeInd) = [];
+lbDTStruct.nightObservation(removeInd) = [];
+lbDTStruct.numBiases = 0;
+
+% Remove DT observations
+lbT0Struct.F = lbT0Struct.F10;
+lbT0Struct.FA = lbT0Struct.F81A;
+lbT0Struct.ap12To33h = lbT0Struct.apAver12To33h;
+lbT0Struct.ap36To57h = lbT0Struct.apAver36To57h;
+lbT0Struct.Ap = lbT0Struct.ApDaily;
+lbT0Struct.fundPulseLen = lbT0Struct.fundPulsLen;
+
+removeInd = lbT0Struct.apNow > 15;
+removeInd(lbT0Struct.data <= 200) = true;
+%removeInd(lbT0Struct.Ti_err > 200 | lbT0Struct.Tn_err > 200) = true(1);
+removeInd(lbT0Struct.fundPulseLen > 100*1E-6) = true; % Remove > 100 us (>~15 km) pulses.
+lbT0Struct = removeDataPoints(lbT0Struct, removeInd);
+lbT0Struct.snr(removeInd) = [];
+lbT0Struct.chiSq(removeInd) = [];
+lbT0Struct.Ti(removeInd) = [];
+lbT0Struct.Ti_err(removeInd) = [];
+lbT0Struct.Tn_err(removeInd) = [];
+lbT0Struct.type(removeInd) = [];
+lbT0Struct.pulseLen(removeInd) = [];
+lbT0Struct.fundPulseLen(removeInd) = [];
+lbT0Struct.vertRes(removeInd) = [];
+lbT0Struct.index(removeInd) = [];
+lbT0Struct.numBiases = 0;
 
 % Remove bad oxygen observations
 removeInd = OStruct.data <= 1E6 | OStruct.data > 0.8E10;
@@ -100,13 +143,5 @@ OStruct = computeGeopotentialHeight(OStruct);
 N2Struct = computeGeopotentialHeight(N2Struct);
 HeStruct = computeGeopotentialHeight(HeStruct);
 rhoStruct = computeGeopotentialHeight(rhoStruct);
-
-end
-
-function [addStruct] = computeGeopotentialHeight(addStruct)
-% TODO: Lisaa leveyspiirin ja pyorimisen vaikutus.
-
-R = 6371E3;
-addStruct.Z = (R * addStruct.altitude) ./ (R + addStruct.altitude*1000);
 
 end
