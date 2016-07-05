@@ -457,24 +457,24 @@ TexStruct.coeffInd = 1:numCoeffs;
 lb = [500, 125*G_lb]; ub = [1500, 125*G_ub];
 
 OStruct.coeffInd = TexStruct.coeffInd(end) + (1:numCoeffs+OStruct.numBiases);
-lb = [lb, log(0.5E10), zeros(1, OStruct.numBiases), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E11), zeros(1, OStruct.numBiases), G_ub];
+lb = [lb, log(0.5E10),  G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E11), G_ub];
 
 N2Struct.coeffInd = OStruct.coeffInd(end) + (1:numCoeffs+N2Struct.numBiases);
-lb = [lb, log(0.5E11), zeros(1, N2Struct.numBiases), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E12), zeros(1, N2Struct.numBiases), G_ub];
+lb = [lb, log(0.5E11), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E12), G_ub];
 
 HeStruct.coeffInd = N2Struct.coeffInd(end) + (1:numCoeffs+HeStruct.numBiases);
-lb = [lb, log(0.5E7), zeros(1, HeStruct.numBiases), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E8), zeros(1, HeStruct.numBiases), G_ub];
+lb = [lb, log(0.5E7), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E8), G_ub];
 
 ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numCoeffs+ArStruct.numBiases);
-lb = [lb, log(0.5E7), zeros(1, ArStruct.numBiases), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E8), zeros(1, ArStruct.numBiases), G_ub]; % KORJAA
+lb = [lb, log(0.5E7), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E8), G_ub]; % KORJAA
 
 O2Struct.coeffInd = ArStruct.coeffInd(end) + (1:numCoeffs+O2Struct.numBiases);
-lb = [lb, log(0.5E7), zeros(1, O2Struct.numBiases), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E8), zeros(1, O2Struct.numBiases), G_ub]; % KORJAA
+lb = [lb, log(0.5E7), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E8), G_ub]; % KORJAA
 
 startPoints = createRandomStartPoints(lb, ub, numStartPoints);
 %initGuess = list(startPoints);
