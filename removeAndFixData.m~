@@ -1,10 +1,14 @@
 function [TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct] = ...
-    removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct)
+    removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct, aeThreshold)
 
 % Make GOCE observations unbiased.
 rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 1.23;
 rhoStruct.numBiases = 0;
-removeInd = ~ismember(1:length(rhoStruct.data), 1:30:length(rhoStruct.data)) | rhoStruct.data' <= 0; % !!!!!!!!!! TESTAUS
+if aeThreshold <= 0
+    removeInd = ~ismember(1:length(rhoStruct.data), 1:30:length(rhoStruct.data)) | rhoStruct.data' <= 0; % !!!!!!!!!! TESTAUS
+else
+    removeInd = rhoStruct.aeInt(:,4) < aeThreshold;
+end
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
 goceWeight = 0.5*(1 - length(rhoStruct.goce) / length(rhoStruct.data));
 champWeight = 1 - length(rhoStruct.champ)  / length(rhoStruct.data);

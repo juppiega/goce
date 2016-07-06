@@ -1,4 +1,6 @@
 function [] = visualizeFit()
+aeThreshold = 0;
+
 
 if exist('optCoeff.mat', 'file')
     load optCoeff.mat
@@ -13,7 +15,8 @@ else
     error('File ilData.mat not found!')
 end
 
-[TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct] = removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct);
+[TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct] = ...
+    removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct, aeThreshold);
 
 % TODO: Ei huomioi numBiases:a!
 TexCoeff = optCoeff(TexInd); TexStruct.coeffInd = TexInd;

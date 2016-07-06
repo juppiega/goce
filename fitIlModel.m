@@ -6,6 +6,7 @@ rng(1, 'twister');
 %r = Runtime.getRuntime;
 %numThreads = r.availableProcessors;
 numThreads = 64;
+aeThreshold = 0;
 
 global numCoeffs;
 numCoeffs = 103;
@@ -24,7 +25,8 @@ else
     error('File ilData.mat not found!')
 end
 
-[TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct] = removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct);
+[TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct] = ...
+    removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct, aeThreshold);
 if ~exist('dTCoeffs', 'var') || recomputeDT
     dTCoeffs = fitTemeratureGradient(lbDTStruct); 
     save('ilData.mat', 'dTCoeffs', '-append')
