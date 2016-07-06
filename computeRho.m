@@ -1,4 +1,4 @@
-function [rho, OnumDens, N2numDens, HeNumDens] = computeRho(T0, dT0, Tex, Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens)
+function [rho, OnumDens, N2numDens, HeNumDens, ArNumDens, O2NumDens] = computeRho(T0, dT0, Tex, Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens)
 %global modelLbHeight
 sigma = dT0 ./ (Tex - T0);
 g = 9.418;
