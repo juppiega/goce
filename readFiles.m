@@ -200,8 +200,7 @@ ArStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [],
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
 
 [Artime, order] = unique(aeCData.oss.ArTimes); data = aeCData.oss.Ar(order); aeCOss = 1:length(data); ArStruct = fillPosAndInd(ArStruct, aeCData, Artime(aeCOss));
-[t, order] = unique(aeEData.oss.ArTimes); Artime = [Artime; t]; data = [data; aeEData.oss.Ar(order)]; aeEOss = aeCOss(end)+1 : length(data); ArStruct = fillPosAndInd(ArStruct, aeEData, Artime(aeEOss));
-[t, order] = unique(de2Data.dens.ArTimes); Artime = [Artime; t]; data = [data; de2Data.dens.Ar(order)]; de2 = aeEOss(end)+1 : length(data); ArStruct = fillPosAndInd(ArStruct, de2Data, Artime(de2));
+[t, order] = unique(de2Data.dens.ArTimes); Artime = [Artime; t]; data = [data; de2Data.dens.Ar(order)]; de2 = aeCOss(end)+1 : length(data); ArStruct = fillPosAndInd(ArStruct, de2Data, Artime(de2));
 [t, order] = unique(aerosData.dens.ArTimes); Artime = [Artime; t]; data = [data; aerosData.dens.Ar(order)]; aeros = de2(end)+1 : length(data); ArStruct = fillPosAndInd(ArStruct, aerosData, Artime(aeros));
 ArStruct.data = data; ArStruct.timestamps = Artime; ArStruct.aeCOss = aeCOss; ArStruct.aeEOss = aeEOss; ArStruct.de2 = de2; ArStruct.aeros = aeros;
 
