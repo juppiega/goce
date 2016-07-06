@@ -495,8 +495,10 @@ initGuess = mean([lb;ub]);% - 0.001;
 initGuess(ind) = -ub(ind);
 ArCoeffs = zeros(numMinorCoeffs+ArStruct.numBiases, 1);
 ArCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
+initGuess(ArStruct.coeffInd) = ArCoeffs;
 O2Coeffs = zeros(numMinorCoeffs+O2Struct.numBiases, 1);
 O2Coeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50] + O2Struct.numBiases) = 0.001;
+initGuess(O2Struct.coeffInd) = O2Coeffs;
 
 ub(ind) = mode(ub(~ind));
 TexInd = 2:numCoeffs; ub(TexInd) = mode(ub(TexInd));
