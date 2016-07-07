@@ -578,10 +578,8 @@ weights = sqrt(weights);
 
 end
 
-function stop = outfun(x, optimValues, state, dataLen)
+function stop = outfun(x, optimValues, state)
 
-t = sqrt(abs(optimValues.firstorderopt)/dataLen);
-fprintf('%s\n', ['Normalized first-order opt.: ', num2str(t)])
-stop = t < 0.005;
+fprintf('Coefficient(1): %12.6f \n', x(1))
 
 end
