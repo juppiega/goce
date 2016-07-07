@@ -156,40 +156,38 @@ HeStruct.dataEnd = length(HeStruct.data);
 HeStruct.name = 'He';
 
 % Remove Ar observations
-removeInd = ArStruct.data <= 0 | ArStruct.data > 1E20; % KORJAA!!!!
+removeInd = ArStruct.data <= 100 | ArStruct.data > 1E16; % KORJAA!!!!
+removeInd(ArStruct.aeCOss) = true(1);
 ArStruct = removeDataPoints(ArStruct, removeInd);
 satInd = zeros(1, length(removeInd));
 satInd(ArStruct.de2) = 1;
-satInd(ArStruct.aeCOss) = 2;
-satInd(ArStruct.aeEOss) = 3;
-satInd(ArStruct.aeros) = 4;
+satInd(ArStruct.aeEOss) = 2;
+satInd(ArStruct.aeros) = 3;
 satInd(removeInd) = [];
 ArStruct.de2 = find(satInd == 1);
-ArStruct.aeCOss = find(satInd == 2);
-ArStruct.aeEOss = find(satInd == 3);
-ArStruct.aeros = find(satInd == 4);
-ArStruct.numBiases = 4;
+ArStruct.aeEOss = find(satInd == 2);
+ArStruct.aeros = find(satInd == 3);
+ArStruct.numBiases = 3;
 ArStruct.biases = zeros(length(ArStruct.data), ArStruct.numBiases);
 ArStruct.biases(ArStruct.de2, 1) = 1;
-ArStruct.biases(ArStruct.aeCOss, 2) = 1;
-ArStruct.biases(ArStruct.aeEOss, 3) = 1;
-ArStruct.biases(ArStruct.aeros, 4) = 1;
+ArStruct.biases(ArStruct.aeEOss, 2) = 1;
+ArStruct.biases(ArStruct.aeros, 3) = 1;
 ArStruct.dataEnd = length(ArStruct.data);
 ArStruct.name = 'Ar';
 
 % Remove O2 observations
-removeInd = O2Struct.data <= 0 | O2Struct.data > 1E20; % KORJAA!!!!
+removeInd = O2Struct.data <= 0 | O2Struct.data > 1E17; % KORJAA!!!!
+removeInd(O2Struct.aeEOss) = true;
+removeInd(O2Struct.apNow > 15) = true;
+removeInd(O2Struct.altitude > 220) = true;
 O2Struct = removeDataPoints(O2Struct, removeInd);
-satInd = zeros(1, length(removeInd));
-satInd(O2Struct.aeCOss) = 1;
-satInd(O2Struct.aeEOss) = 2;
-satInd(removeInd) = [];
-O2Struct.aeCOss = find(satInd == 1);
-O2Struct.aeEOss = find(satInd == 2);
-O2Struct.numBiases = 2;
-O2Struct.biases = zeros(length(O2Struct.data), O2Struct.numBiases);
-O2Struct.biases(O2Struct.aeCOss, 2) = 1;
-O2Struct.biases(O2Struct.aeEOss, 3) = 1;
+%satInd = zeros(1, length(removeInd));
+%satInd(O2Struct.aeCOss) = 1;
+%satInd(removeInd) = [];
+%O2Struct.aeCOss = find(satInd == 1);
+O2Struct.numBiases = 0;
+%O2Struct.biases = zeros(length(O2Struct.data), O2Struct.numBiases);
+%O2Struct.biases(O2Struct.aeCOss, 1) = 1;
 O2Struct.dataEnd = length(O2Struct.data);
 O2Struct.name = 'O2';
 
