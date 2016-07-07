@@ -414,7 +414,7 @@ end
 function [residual, Jacobian] = temperatureGradientMinimization(lbDTStruct, coeff)
 
 modelDT = evalDT(lbDTStruct, coeff);
-residual = lbDTStruct.data - modelDT;
+residual = lbDTStruct.data ./ modelDT - 1;
 
 if nargout == 2
     fun = @(X)temperatureGradientMinimization(lbDTStruct, X);
@@ -426,7 +426,7 @@ end
 function [residual, Jacobian] = lbTemperatureMinimization(lbT0Struct, weights, coeff)
 
 modelT0 = evalT0(lbT0Struct, coeff);
-residual = weights .* (lbT0Struct.data - modelT0);
+residual = weights .* (lbT0Struct.data ./ modelT0 - 1);
 
 if nargout == 2
     fun = @(X)lbTemperatureMinimization(lbT0Struct, weights, X);
