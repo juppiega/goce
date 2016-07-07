@@ -179,7 +179,7 @@ dTCoeffs(1) = mean(lbDTStruct.data);
 dTCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = 0.01;
 
 opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
-                 'TolX', 1E-6, 'Display', 'iter');
+                 'TolX', 1E-6, 'Display', 'iter', 'initDamping', 1E8);
 
 fun = @(X) temperatureGradientMinimization(lbDTStruct, X);
 [dTCoeffs] = lsqnonlin(fun, dTCoeffs, [], [], opt);
