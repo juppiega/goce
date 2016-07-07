@@ -47,7 +47,7 @@ lbDTStruct.Ap = lbDTStruct.ApDaily;
 lbDTStruct.altitude = lbDTStruct.altitude * ones(size(lbDTStruct.data));
 
 removeInd = lbDTStruct.solarTime < 0;
-removeInd(lbDTStruct.data <= 0) = true;
+removeInd(lbDTStruct.data <= 0 | lbDTStruct.data > ) = true;
 removeInd(85 < lbDTStruct.zenithAngle & lbDTStruct.zenithAngle < 95) = true;
 removeInd(lbDTStruct.apNow > 15) = true;
 %removeInd(lbDTStruct.nightObservation == 2) = true; % Remove twilight observations.
@@ -181,10 +181,10 @@ removeInd(O2Struct.aeEOss) = true;
 removeInd(O2Struct.apNow > 15) = true;
 removeInd(O2Struct.altitude > 220) = true;
 O2Struct = removeDataPoints(O2Struct, removeInd);
-%satInd = zeros(1, length(removeInd));
-%satInd(O2Struct.aeCOss) = 1;
-%satInd(removeInd) = [];
-%O2Struct.aeCOss = find(satInd == 1);
+satInd = zeros(1, length(removeInd));
+satInd(O2Struct.aeCOss) = 1;
+satInd(removeInd) = [];
+O2Struct.aeCOss = find(satInd == 1);
 O2Struct.numBiases = 0;
 %O2Struct.biases = zeros(length(O2Struct.data), O2Struct.numBiases);
 %O2Struct.biases(O2Struct.aeCOss, 1) = 1;

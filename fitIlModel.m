@@ -176,7 +176,7 @@ numCoeffs = 50;
 dTCoeffs = zeros(numCoeffs, 1);
 
 dTCoeffs(1) = mean(lbDTStruct.data);
-dTCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = 0.01;
+dTCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = -0.01;
 
 opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
                  'TolX', 1E-8, 'Display', 'iter', 'initDamping', 1E8, 'OutputFcn', @outfun);
