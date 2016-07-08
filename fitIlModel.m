@@ -321,7 +321,7 @@ end
 function [residual] = computeSpeciesResidual_major(varStruct, Tex, dT0, T0, coeff)
 
 varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
-Gvec = G_major(coeff, varStruct);
+Gvec = G_major(coeff, varStruct, varStruct.numBiases);
 
 if varStruct.numBiases == 0
     residual = (varStruct.rhs ./ max(coeff(1) + Gvec, 1)) - 1;
@@ -336,7 +336,7 @@ end
 function [residual] = computeSpeciesResidual_minor(varStruct, Tex, dT0, T0, coeff)
 
 varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
-Gvec = G_minor(coeff, varStruct);
+Gvec = G_minor(coeff, varStruct, varStruct.numBiases);
 
 if varStruct.numBiases == 0
     residual = (varStruct.rhs ./ max(coeff(1) + Gvec, 1)) - 1;
@@ -390,10 +390,10 @@ residual(residInd) = computeSpeciesResidual_O2(O2Struct, Tex, dT0, T0, coeff(O2S
 
 [Tex, dT0, T0] = findTempsForFit(rhoStruct, TexStruct, dTCoeffs, T0Coeffs, coeff);
 residInd = residInd(end) + (1:length(rhoStruct.data));
-OlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(OStruct.coeffInd)), 1E20);
-N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(N2Struct.coeffInd)), 1E20);
-HelbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(HeStruct.coeffInd)), 1E20);
-ArlbDens = clamp(10, evalMinorSpecies(rhoStruct, coeff(ArStruct.coeffInd)), 1E20);
+OlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(OStruct.coeffInd), OStruct.numBiases), 1E20);
+N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(N2Struct.coeffInd), N2Struct.numBiases), 1E20);
+HelbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(HeStruct.coeffInd), HeStruct.numBiases), 1E20);
+ArlbDens = clamp(10, evalMinorSpecies(rhoStruct, coeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
 O2lbDens = clamp(10, exp(coeff(O2Struct.coeffInd)), 1E20);
 modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
 residual(residInd) = (log(rhoStruct.data)./log(modelRho)) - 1;
@@ -512,7 +512,7 @@ initGuess(ArStruct.coeffInd) = ArCoeffs;
 
 initGuess(TexStruct.coeffInd(1)) = 1030;
 initGuess(OStruct.coeffInd(1)) = log(8E10);
-initGuess(N2truct.coeffInd(1)) = log(3E11);
+initGuess(N2Struct.coeffInd(1)) = log(3E11);
 initGuess(Hetruct.coeffInd(1)) = log(2.5E7);
 initGuess(Artruct.coeffInd(1)) = log(1.2E9);
 initGuess(O2Struct.coeffInd) = log(3E10);

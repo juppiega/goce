@@ -1,5 +1,5 @@
-function [F] = evalMinorSpecies(S, coeff)
+function [F] = evalMinorSpecies(S, coeff, numBiases)
 
-F = exp(coeff(1) + G_minor(coeff, S));
+F = exp(coeff(1) + G_minor(coeff, S, numBiases));
 
 end

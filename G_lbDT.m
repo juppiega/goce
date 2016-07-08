@@ -1,6 +1,6 @@
-function [result] = G_lbDT(a, S)
+function [result] = G_lbDT(a, S, numBiases)
 
-k = S.numBiases + 1;
+k = numBiases + 1;
 
 S.latitudeTerm = a(k+1)*S.P10 + a(k+2)*S.P20 + a(k+3)*S.P30 + a(k+4)*S.P40 + ...
                  a(k+5)*S.FA.*S.P10 + a(k+6)*S.FA.*S.P20 + a(k+7)*S.FA.*S.P30 + ...
