@@ -1,4 +1,4 @@
-function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT )
+function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeModel )
 % TODO: -Korjaa lämpötilaprofiili Bates-Walkeriksi (z0 = 120 km) ja painovoima 9.447:ksi.
 
 rng(1, 'twister');
@@ -6,7 +6,7 @@ rng(1, 'twister');
 %r = Runtime.getRuntime;
 %numThreads = r.availableProcessors;
 numThreads = 64;
-aeThreshold = 0;
+aeThreshold = 500;
 
 global numCoeffs;
 numCoeffs = 103;
@@ -73,7 +73,9 @@ numStartPoints = 1;
 % end
 % % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads)
+if recomputeModel
+    fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads)
+end
 
 end
 
@@ -174,10 +176,10 @@ numCoeffs = 50;
 dTCoeffs = zeros(numCoeffs, 1);
 
 dTCoeffs(1) = mean(lbDTStruct.data);
-dTCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = 0.01;
+dTCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = -0.01;
 
 opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
-                 'TolX', 1E-6, 'Display', 'iter');
+                 'TolX', 1E-8, 'Display', 'iter', 'initDamping', 1E8, 'OutputFcn', @outfun);
 
 fun = @(X) temperatureGradientMinimization(lbDTStruct, X);
 [dTCoeffs] = lsqnonlin(fun, dTCoeffs, [], [], opt);
@@ -319,7 +321,7 @@ end
 function [residual] = computeSpeciesResidual_major(varStruct, Tex, dT0, T0, coeff)
 
 varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
-Gvec = G_major(coeff, varStruct);
+Gvec = G_major(coeff, varStruct, varStruct.numBiases);
 
 if varStruct.numBiases == 0
     residual = (varStruct.rhs ./ max(coeff(1) + Gvec, 1)) - 1;
@@ -334,7 +336,7 @@ end
 function [residual] = computeSpeciesResidual_minor(varStruct, Tex, dT0, T0, coeff)
 
 varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
-Gvec = G_minor(coeff, varStruct);
+Gvec = G_minor(coeff, varStruct, varStruct.numBiases);
 
 if varStruct.numBiases == 0
     residual = (varStruct.rhs ./ max(coeff(1) + Gvec, 1)) - 1;
@@ -388,10 +390,10 @@ residual(residInd) = computeSpeciesResidual_O2(O2Struct, Tex, dT0, T0, coeff(O2S
 
 [Tex, dT0, T0] = findTempsForFit(rhoStruct, TexStruct, dTCoeffs, T0Coeffs, coeff);
 residInd = residInd(end) + (1:length(rhoStruct.data));
-OlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(OStruct.coeffInd)), 1E20);
-N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(N2Struct.coeffInd)), 1E20);
-HelbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(HeStruct.coeffInd)), 1E20);
-ArlbDens = clamp(10, evalMinorSpecies(rhoStruct, coeff(ArStruct.coeffInd)), 1E20);
+OlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(OStruct.coeffInd), OStruct.numBiases), 1E20);
+N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(N2Struct.coeffInd), N2Struct.numBiases), 1E20);
+HelbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(HeStruct.coeffInd), HeStruct.numBiases), 1E20);
+ArlbDens = clamp(10, evalMinorSpecies(rhoStruct, coeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
 O2lbDens = clamp(10, exp(coeff(O2Struct.coeffInd)), 1E20);
 modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
 residual(residInd) = (log(rhoStruct.data)./log(modelRho)) - 1;
@@ -412,7 +414,7 @@ end
 function [residual, Jacobian] = temperatureGradientMinimization(lbDTStruct, coeff)
 
 modelDT = evalDT(lbDTStruct, coeff);
-residual = lbDTStruct.data - modelDT;
+residual = lbDTStruct.data ./ modelDT - 1;
 
 if nargout == 2
     fun = @(X)temperatureGradientMinimization(lbDTStruct, X);
@@ -424,7 +426,7 @@ end
 function [residual, Jacobian] = lbTemperatureMinimization(lbT0Struct, weights, coeff)
 
 modelT0 = evalT0(lbT0Struct, coeff);
-residual = weights .* (lbT0Struct.data - modelT0);
+residual = weights .* (lbT0Struct.data ./ modelT0 - 1);
 
 if nargout == 2
     fun = @(X)lbTemperatureMinimization(lbT0Struct, weights, X);
@@ -481,7 +483,7 @@ weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Str
 G_lb = 4 * G_lb; G_ub = 4 * G_ub;
 
 TexStruct.coeffInd = 1:numCoeffs;
-lb = [500, 125*G_lb]; ub = [1500, 125*G_ub];
+lb = [500, G_lb]; ub = [1500, G_ub];
 
 OStruct.coeffInd = TexStruct.coeffInd(end) + (1:numCoeffs+OStruct.numBiases);
 lb = [lb, log(0.5E10), zeros(1, OStruct.numBiases), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -505,15 +507,14 @@ ind(1:numCoeffs) = ub(1:numCoeffs) < 100;
 initGuess = mean([lb;ub]);% - 0.001;
 initGuess(ind) = -ub(ind);
 ArCoeffs = zeros(numMinorCoeffs+ArStruct.numBiases, 1);
-ArCoeffs(1) = log(1.2E9);
 ArCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
 initGuess(ArStruct.coeffInd) = ArCoeffs;
 
 initGuess(TexStruct.coeffInd(1)) = 1030;
 initGuess(OStruct.coeffInd(1)) = log(8E10);
-initGuess(N2truct.coeffInd(1)) = log(3E11);
-initGuess(Hetruct.coeffInd(1)) = log(2.5E7);
-initGuess(Artruct.coeffInd(1)) = log(1.2E9);
+initGuess(N2Struct.coeffInd(1)) = log(3E11);
+initGuess(HeStruct.coeffInd(1)) = log(2.5E7);
+initGuess(ArStruct.coeffInd(1)) = log(1.2E9);
 initGuess(O2Struct.coeffInd) = log(3E10);
 
 
@@ -577,10 +578,9 @@ weights = sqrt(weights);
 
 end
 
-function stop = outfun(x, optimValues, state, dataLen)
+function stop = outfun(x, optimValues, state)
 
-t = sqrt(abs(optimValues.firstorderopt)/dataLen);
-fprintf('%s\n', ['Normalized first-order opt.: ', num2str(t)])
-stop = t < 0.005;
+fprintf('Coefficient(1): %12.6f \n', x(1))
+stop = false;
 
 end

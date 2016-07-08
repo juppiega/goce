@@ -513,8 +513,8 @@ initGuess(ArStruct.coeffInd) = ArCoeffs;
 initGuess(TexStruct.coeffInd(1)) = 1030;
 initGuess(OStruct.coeffInd(1)) = log(8E10);
 initGuess(N2Struct.coeffInd(1)) = log(3E11);
-initGuess(Hetruct.coeffInd(1)) = log(2.5E7);
-initGuess(Artruct.coeffInd(1)) = log(1.2E9);
+initGuess(HeStruct.coeffInd(1)) = log(2.5E7);
+initGuess(ArStruct.coeffInd(1)) = log(1.2E9);
 initGuess(O2Struct.coeffInd) = log(3E10);
 
 
