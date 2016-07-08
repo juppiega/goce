@@ -503,7 +503,7 @@ O2Struct.coeffInd = ArStruct.coeffInd(end) + 1;
 startPoints = createRandomStartPoints(lb, ub, numStartPoints);
 %initGuess = list(startPoints);
 ind = ub < 0.5;
-ind(1:numCoeffs) = ub(1:numCoeffs) < 100;
+%ind(1:numCoeffs) = ub(1:numCoeffs) < 100;
 initGuess = mean([lb;ub]);% - 0.001;
 initGuess(ind) = -ub(ind);
 ArCoeffs = zeros(numMinorCoeffs+ArStruct.numBiases, 1);
@@ -518,9 +518,9 @@ initGuess(ArStruct.coeffInd(1)) = log(1.2E9);
 initGuess(O2Struct.coeffInd) = log(3E10);
 
 
-ub(ind) = mode(ub(~ind));
-TexInd = 2:numCoeffs; ub(TexInd) = mode(ub(TexInd));
-lb = -ub;
+% ub(ind) = mode(ub(~ind));
+% TexInd = 2:numCoeffs; ub(TexInd) = mode(ub(TexInd));
+% lb = -ub;
 tolX = options.TolX;
 %fun = @(coeff)sum(modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, weights, tolX, coeff).^2);
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff);
