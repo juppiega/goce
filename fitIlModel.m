@@ -6,7 +6,7 @@ rng(1, 'twister');
 %r = Runtime.getRuntime;
 %numThreads = r.availableProcessors;
 numThreads = 64;
-aeThreshold = 0;
+aeThreshold = 500;
 
 global numCoeffs;
 numCoeffs = 103;
