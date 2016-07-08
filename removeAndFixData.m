@@ -157,21 +157,17 @@ HeStruct.name = 'He';
 
 % Remove Ar observations
 removeInd = ArStruct.data <= 100 | ArStruct.data > 1E16; % KORJAA!!!!
-removeInd(ArStruct.aeCOss) = true(1);
 ArStruct = removeDataPoints(ArStruct, removeInd);
 satInd = zeros(1, length(removeInd));
 satInd(ArStruct.de2) = 1;
-satInd(ArStruct.aeEOss) = 2;
-satInd(ArStruct.aeros) = 3;
+satInd(ArStruct.aeros) = 2;
 satInd(removeInd) = [];
 ArStruct.de2 = find(satInd == 1);
-ArStruct.aeEOss = find(satInd == 2);
-ArStruct.aeros = find(satInd == 3);
-ArStruct.numBiases = 3;
+ArStruct.aeros = find(satInd == 2);
+ArStruct.numBiases = 2;
 ArStruct.biases = zeros(length(ArStruct.data), ArStruct.numBiases);
 ArStruct.biases(ArStruct.de2, 1) = 1;
-ArStruct.biases(ArStruct.aeEOss, 2) = 1;
-ArStruct.biases(ArStruct.aeros, 3) = 1;
+ArStruct.biases(ArStruct.aeros, 2) = 1;
 ArStruct.dataEnd = length(ArStruct.data);
 ArStruct.name = 'Ar';
 
