@@ -20,7 +20,7 @@ module fitModule
         real(kind = 8), allocatable :: aeInt(:,:)!, biases(:,:)
     end type
 
-    type(dataStruct) :: TexStruct, OStruct, N2Struct, HeStruct, rhoStruct
+    type(dataStruct) :: TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct
     real(kind = 8), allocatable :: weights(:), initGuess(:), dTCoeffs(:), T0Coeffs(:)
 
     interface clamp
@@ -129,23 +129,23 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     N = mrows
     if (typeName == 'O') then
         D%name = 1
-        call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'numBiases')), numBiases_real, 1)
-        D%numBiases = nint(numBiases_real)
-        !allocate(D%biases(N, D%numBiases))
-        !call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'biases')), D%biases, D%numBiases*N)
     else if (typeName == 'N2') then
         D%name = 2
-        call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'numBiases')), numBiases_real, 1)
-        D%numBiases = nint(numBiases_real)
-        !allocate(D%biases(N, D%numBiases))
-        !call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'biases')), D%biases, D%numBiases*N)
     else if (typeName == 'He') then
         D%name = 3
-        call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'numBiases')), numBiases_real, 1)
-        D%numBiases = nint(numBiases_real)
-        !allocate(D%biases(N, D%numBiases))
-        !call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'biases')), D%biases, D%numBiases*N)
+    else if (typeName == 'Ar') then
+        D%name = 4
+    else if (typeName == 'O2') then
+        D%name = 5
+        D%numBiases = 0
     end if
+    if (typename == 'O' || typename == 'N2' || typename == 'He' || &
+	typename == 'Ar') then
+	    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'numBiases')), numBiases_real, 1)
+        D%numBiases = nint(numBiases_real)
+        allocate(D%biases(N, D%numBiases))
+        call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'biases')), D%biases, D%numBiases*N)
+    endif
     !write(tempChar, *) D%numBiases
     !k = mexPrintf('numBiases '//tempChar//achar(13))
 
@@ -172,14 +172,18 @@ subroutine deallocateStruct(D, typename)
     if (typename /= 'rho') then
         deallocate(D%coeffInd)
     end if
+    if (typename == 'O' || typename == 'N2' || typename == 'He' || &
+	typename == 'Ar') then
+	    deallocate(D%biases)
+	end if
 end subroutine
 
-function G(a, S, numBiases)
+function G_major(a, S, numBiases)
     implicit none
     type(dataStruct), intent(in) :: S
     real(kind = 8), intent(in) :: a(:)
     integer, intent(in) :: numBiases
-    real(kind = 8), allocatable :: G(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
+    real(kind = 8), allocatable :: G_major(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
                                    terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
                                    geom_lst(:), AE_base(:)
     integer :: k, dPh, numInts
@@ -300,6 +304,51 @@ function G_lbT0(a, S, numBiases)
     !i = mexPrintf('G End'//achar(13))
 end function
 
+function G_minor(a, S, numBiases)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: a(:)
+    integer, intent(in) :: numBiases
+    real(kind = 8), allocatable :: G_lbT0(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
+                                   terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
+                                   geom_lst(:), AE_base(:)
+    integer :: k, dPy, numInts
+    integer(kind = 4) :: mexPrintf, i
+    real(kind = 8) :: pi
+    pi = 4.0 * atan(1.0)
+    
+    k = numBiases + 1;
+
+    latitudeTerm = a(k+1)*S%P10 + a(k+2)*S%P20 + a(k+3)*S%P30 + a(k+4)*S%P40 + &
+                     a(k+5)*S%FA*S%P10 + a(k+6)*S%FA*S%P20 + a(k+7)*S%FA*S%P30 + &
+                     a(k+8)*S%F*S%P10 + a(k+9)*S%F*S%P20 + a(k+10)*S%F*S%P30;
+    k = k + 10;
+
+    solarTerm = a(k+1)*S%F + a(k+2)*S%F**2 + a(k+3)*S%FA + a(k+4)*S%FA**2 + a(k+5)*S%F*S%FA;
+    k = k + 5;
+
+    annual = (a(k+1) + a(k+2)*S%P10 + a(k+3)*S%P20 + a(k+4)*S%P30 + a(k+5)*S%P40 + a(k+6)*S%FA + a(k+7)*S%F) * &
+               (a(k+8)*sin(S%yv) + a(k+9)*cos(S%yv) + a(k+10)*sin(2*S%yv) + a(k+11)*cos(2*S%yv));
+    k = k + 11;
+
+    dPy = k + 7;
+    diurnal = ((a(k+1)*S%P11 + a(k+2)*S%P31 + a(k+3)*S%FA + a(k+4)*S%FA**2) + (a(k+5)*S%P11 + a(k+6)*S%P21)*&
+                (cos(S%yv-pi*a(dPy))))*cos(S%dv) + &
+                ((a(k+8)*S%P11 + a(k+9)*S%P31 + a(k+10)*S%FA + a(k+11)*S%FA**2) + (a(k+12)*S%P11 + a(k+13)*S%P21)*&
+                (cos(S%yv-pi*a(dPy))))*sin(S%dv);
+    k = k + 13;
+
+    semidiurnal = ((a(k+1)*S%P22 + a(k+2)*S%P32 + a(k+3)*S%FA + a(k+4)*S%FA**2) + &
+                    (a(k+5)*S%P32)*cos(S%yv-pi*a(dPy)))*cos(2*S%dv) + &
+                    ((a(k+6)*S%P22 + a(k+7)*S%P32 + a(k+8)*S%FA + a(k+9)*S%FA**2) &
+                    + (a(k+10)*S%P32)*cos(S%yv-pi*a(dPy)))*sin(2*S%dv);
+    k = k + 10;
+
+    !i = mexPrintf('G:sum'//achar(13))
+    G_lbT0 = latitudeTerm + solarTerm + annual + diurnal + semidiurnal;
+    !i = mexPrintf('G End'//achar(13))
+end function
+
 function G_lbDT(a, S, numBiases)
     implicit none
     type(dataStruct), intent(in) :: S
@@ -355,7 +404,7 @@ function evalTex(S, coeff)
     
     allocate(evalTex(size(S%data)))
     !k = mexPrintf('Before G at evalTex'//achar(13))
-    evalTex = coeff(1) + G(coeff, S, 0); ! TODO: numBiases huomioitava!
+    evalTex = coeff(1) * (1 + clamp(-0.9, G_major(coeff, S, 0), 9.0)) 
 
 end function
 
@@ -368,7 +417,7 @@ function evalT0(S, coeff)
     
     allocate(evalT0(size(S%data)))
     !k = mexPrintf('Before G at evalT0'//achar(13))
-    evalT0 = clamp(dble(200.0), coeff(1) * (1 + clamp(dble(-0.5), G_lbT0(coeff, S, 0), dble(2.0))), dble(1000.0)) ! TODO: numBiases huomioitava!
+    evalT0 = clamp(dble(300.0), coeff(1) * (1 + clamp(dble(-0.5), G_lbT0(coeff, S, 0), dble(2.0))), dble(1000.0))
 
 end function
 
@@ -381,22 +430,39 @@ function evalDT(S, coeff)
     
     allocate(evalDT(size(S%data)))
     !k = mexPrintf('Before G at evalDT'//achar(13))
-    evalDT = clamp(dble(1.0), coeff(1) + G_lbT0(coeff, S, 0), dble(30.0)); ! TODO: numBiases huomioitava!
+    evalDT = coeff(1) * (1 + clamp(-0.9, G_lbDT(coeff, S, 0), 9.0)); 
 
 end function
 
-function evalSpecies(S, coeff)
+function evalMajorSpecies(S, coeff, numBiases)
     implicit none
     type(dataStruct), intent(in) :: S
+    integer, intent(in) :: numBiases
     real(kind = 8), intent(in) :: coeff(:)
-    real(kind = 8), allocatable :: evalSpecies(:)
+    real(kind = 8), allocatable :: evalMajorSpecies(:)
     integer(kind = 4) :: mexPrintf, k
     !character(len = 60) :: tempChar
     
-    allocate(evalSpecies(size(S%data)))
+    allocate(evalMajorSpecies(size(S%data)))
     !write(tempChar,*) S%numBiases
     !k = mexPrintf('S%numBiases: '//tempChar//achar(13))
-    evalSpecies = exp(coeff(1) + G(coeff, S, S%numBiases));
+    evalMajorSpecies = exp(coeff(1) + G_major(coeff, S, numBiases));
+
+end function
+
+function evalMinorSpecies(S, coeff, numBiases)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    integer, intent(in) :: numBiases
+    real(kind = 8), intent(in) :: coeff(:)
+    real(kind = 8), allocatable :: evalMinorSpecies(:)
+    integer(kind = 4) :: mexPrintf, k
+    !character(len = 60) :: tempChar
+    
+    allocate(evalMinorSpecies(size(S%data)))
+    !write(tempChar,*) S%numBiases
+    !k = mexPrintf('S%numBiases: '//tempChar//achar(13))
+    evalMinorSpecies = exp(coeff(1) + G_minor(coeff, S, numBiases));
 
 end function
 
@@ -419,6 +485,12 @@ subroutine computeDensityRHS(S, Tex, dT0, T0, rhs)
     elseif (S%name == 3) then
         molecMass = 4 * u2kg;
         alpha = -0.38;
+    elseif (S%name == 4) then
+        molecMass = 40 * u2kg;
+        alpha = 0;
+    elseif (S%name == 5) then
+        molecMass = 32 * u2kg;
+        alpha = 0;
     end if
 
     sigma = dT0 / (Tex - T0);
@@ -429,11 +501,13 @@ subroutine computeDensityRHS(S, Tex, dT0, T0, rhs)
 
 end subroutine
 
-function computeRho(T0, dT0, Tex, Z, OlbDens, N2lbDens, HelbDens) result(rho)
+function computeRho(T0, dT0, Tex, Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens) result(rho)
     implicit none
-    real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), Z(:), olbDens(:), N2lbDens(:), HelbDens(:)
-    real(kind = 8), dimension(size(Tex)) :: sigma, T, gamma_O, gamma_N2, gamma_He, f_O, &
-                                            f_N2, f_He, OnumDens, N2numDens, HeNumDens, rho
+    real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), Z(:), olbDens(:), N2lbDens(:), HelbDens(:)&
+                                  ArlbDens(:), O2lbDens(:)
+    real(kind = 8), dimension(size(Tex)) :: sigma, T, gamma_O, gamma_N2, gamma_He, gamma_Ar, &
+                                            gamma_O2,f_O,f_N2,f_He,f_Ar,f_O2,OnumDens,N2numDens, &
+                                            HeNumDens, ArNumDens, O2NumDens, rho
     real(kind = 8), parameter :: u2kg = 1.660538921E-27, k = 1.38064852E-23, g = 9.418
 
     sigma = dT0 / (Tex - T0);
@@ -451,8 +525,16 @@ function computeRho(T0, dT0, Tex, Z, OlbDens, N2lbDens, HelbDens) result(rho)
     gamma_He = 4 * u2kg * g / (sigma*1E-3 * k * Tex);
     f_He = (T0 / T)**(1+gamma_He) * exp(-sigma * (Z) * gamma_He);
     HeNumDens = HelbDens*f_He; ! [1/cm^3]
+    
+    gamma_Ar = 40 * u2kg * g / (sigma*1E-3 * k * Tex);
+    f_Ar = (T0 / T)**(1+gamma_Ar) * exp(-sigma * (Z) * gamma_Ar);
+    ArNumDens = ArlbDens*f_Ar; ! [1/cm^3]
 
-    rho = (16*OnumDens + 28*N2numDens + 4*HeNumDens) * u2kg * 1E6; ! [kg/m^3]
+    gamma_O2 = 32 * u2kg * g / (sigma*1E-3 * k * Tex);
+    f_O2 = (T0 / T)**(1+gamma_O2) * exp(-sigma * (Z) * gamma_O2);
+    O2NumDens = O2lbDens*f_O2; ! [1/cm^3]
+
+    rho = (16*OnumDens + 28*N2numDens + 4*HeNumDens + 40*ArNumDens + 32*O2NumDens) * u2kg * 1E6; ! [kg/m^3]
 
 end function
 
@@ -471,7 +553,7 @@ subroutine findTempsForFit(varStruct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex,
 
 end subroutine
 
-function computeSpeciesResidual(varStruct, Tex, dT0, T0, coeff) result(residual)
+function computeMajorSpeciesResidual(varStruct, Tex, dT0, T0, coeff) result(residual)
     implicit none
     type(dataStruct) :: varStruct
     real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), coeff(:)
@@ -479,15 +561,47 @@ function computeSpeciesResidual(varStruct, Tex, dT0, T0, coeff) result(residual)
     
     allocate(rhs(size(Tex)))
     call computeDensityRHS(varStruct, Tex, dT0, T0, rhs);
-    Gvec = G(coeff, varStruct, varStruct%numBiases);
+    Gvec = G_major(coeff, varStruct, varStruct%numBiases);
 
     if (varStruct%numBiases == 0) then
         residual = (rhs / max(coeff(1) + Gvec, dble(1))) - 1;
     elseif (varStruct%numBiases > 0) then
-        call mexErrMsgTxt ('Levenberg-Marquardt: Biases not set!')
-        !residual = (rhs / max(coeff(1) + sumRowWise(coeff(2:varStruct%numBiases+1), varStruct%biases) + Gvec, dble(1)))&
-        !             - 1;
+        residual = (rhs / max(coeff(1) + sumRowWise(coeff(2:varStruct%numBiases+1), varStruct%biases) + Gvec, dble(1)))&
+                     - 1;
     end if
+
+end function
+
+function computeMinorSpeciesResidual(varStruct, Tex, dT0, T0, coeff) result(residual)
+    implicit none
+    type(dataStruct) :: varStruct
+    real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), coeff(:)
+    real(kind = 8), allocatable :: residual(:), Gvec(:), rhs(:)
+    
+    allocate(rhs(size(Tex)))
+    call computeDensityRHS(varStruct, Tex, dT0, T0, rhs);
+    Gvec = G_minor(coeff, varStruct, varStruct%numBiases);
+
+    if (varStruct%numBiases == 0) then
+        residual = (rhs / max(coeff(1) + Gvec, dble(1))) - 1;
+    elseif (varStruct%numBiases > 0) then
+        residual = (rhs / max(coeff(1) + sumRowWise(coeff(2:varStruct%numBiases+1), varStruct%biases) + Gvec, dble(1)))&
+                     - 1;
+    end if
+
+end function
+
+function computeO2Residual(varStruct, Tex, dT0, T0, coeff) result(residual)
+    implicit none
+    type(dataStruct) :: varStruct
+    real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), coeff(:)
+    real(kind = 8), allocatable :: residual(:), Gvec(:), rhs(:)
+    
+    allocate(rhs(size(Tex)))
+    call computeDensityRHS(varStruct, Tex, dT0, T0, rhs);
+    Gvec = coeff(1);
+
+    residual = (rhs / max(coeff(1) + Gvec, dble(1))) - 1;
 
 end function
 
@@ -495,13 +609,15 @@ function modelMinimizationFunction(coeff) result(residual)
     implicit none
     real(kind = 8), intent(in) :: coeff(:)
     real(kind = 8), allocatable :: residual(:), TexMesuredEstimate(:), Tex(:), dT0(:),& 
-                                   olbDens(:), N2lbDens(:), HelbDens(:), modelRho(:), T0(:)
+                                   olbDens(:), N2lbDens(:), HelbDens(:), ArlbDens(:), O2lbDens(:),&
+                                   modelRho(:), T0(:)
     integer(kind = 8), allocatable :: residInd(:)
     integer(kind = 8) :: dataLen, i, residIndEnd
     integer(kind = 4) :: mexPrintf, k, mexCallMatlab
 
     
-    dataLen = size(TexStruct%data) + size(OStruct%data) + size(N2Struct%data) + size(HeStruct%data) + size(rhoStruct%data)
+    dataLen = size(TexStruct%data) + size(OStruct%data) + size(N2Struct%data) + size(HeStruct%data) + &
+              size(rhoStruct%data) + size(ArStruct%data) + size(O2Struct%data)
     allocate(residual(dataLen))
     
     !k = mexPrintf('Before TexEst.'//achar(13))
@@ -515,28 +631,48 @@ function modelMinimizationFunction(coeff) result(residual)
     !k = mexPrintf('Before O'//achar(13))
     call findTempsForFit(OStruct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex, dT0, T0)
     residInd = residIndEnd + (/(i, i = 1, size(OStruct%data))/); residIndEnd = residInd(size(residInd))
-    residual(residInd) = computeSpeciesResidual(OStruct, Tex, dT0, T0, coeff(OStruct%coeffInd));
+    residual(residInd) = computeMajorSpeciesResidual(OStruct, Tex, dT0, T0, coeff(OStruct%coeffInd));
     !deallocate(residInd)
 
     !k = mexPrintf('Before N2'//achar(13))
     call findTempsForFit(N2Struct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex, dT0, T0);
     residInd = residIndEnd + (/(i, i = 1, size(N2Struct%data))/); residIndEnd = residInd(size(residInd))
-    residual(residInd) = computeSpeciesResidual(N2Struct, Tex, dT0, T0, coeff(N2Struct%coeffInd));
+    residual(residInd) = computeMajorSpeciesResidual(N2Struct, Tex, dT0, T0, coeff(N2Struct%coeffInd));
     !deallocate(residInd)
 
     !k = mexPrintf('Before He'//achar(13))
     call findTempsForFit(HeStruct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex, dT0, T0);
     residInd = residIndEnd + (/(i, i = 1, size(HeStruct%data))/); residIndEnd = residInd(size(residInd))
-    residual(residInd) = computeSpeciesResidual(HeStruct, Tex, dT0, T0, coeff(HeStruct%coeffInd));
+    residual(residInd) = computeMajorSpeciesResidual(HeStruct, Tex, dT0, T0, coeff(HeStruct%coeffInd));
+    !deallocate(residInd)
+    
+    !k = mexPrintf('Before Ar'//achar(13))
+    call findTempsForFit(ArStruct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex, dT0, T0);
+    residInd = residIndEnd + (/(i, i = 1, size(ArStruct%data))/); residIndEnd = residInd(size(residInd))
+    residual(residInd) = computeMinorSpeciesResidual(ArStruct, Tex, dT0, T0, coeff(ArStruct%coeffInd));
+    !deallocate(residInd)
+    
+    !k = mexPrintf('Before O2'//achar(13))
+    call findTempsForFit(O2Struct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex, dT0, T0);
+    residInd = residIndEnd + (/(i, i = 1, size(O2Struct%data))/); residIndEnd = residInd(size(residInd))
+    residual(residInd) = computeO2Residual(O2Struct, Tex, dT0, T0, coeff(O2Struct%coeffInd));
     !deallocate(residInd)
 
     !k = mexPrintf('Before rho'//achar(13))
     call findTempsForFit(rhoStruct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex, dT0, T0);
     residInd = residIndEnd + (/(i, i = 1, size(rhoStruct%data))/); residIndEnd = residInd(size(residInd))
-    OlbDens = clamp(dble(10), evalSpecies(rhoStruct, coeff(OStruct%coeffInd)), dble(1E20));
-    N2lbDens = clamp(dble(10), evalSpecies(rhoStruct, coeff(N2Struct%coeffInd)), dble(1E20));
-    HelbDens = clamp(dble(10), evalSpecies(rhoStruct, coeff(HeStruct%coeffInd)), dble(1E20));
-    modelRho = clamp(dble(1E-20), computeRho(T0, dT0, Tex, rhoStruct%Z, OlbDens, N2lbDens, HelbDens), dble(0.1));
+    OlbDens = clamp(dble(10), evalMajorSpecies(rhoStruct, coeff(OStruct%coeffInd), OStruct%numBiases), &
+                    dble(1E20));
+    N2lbDens = clamp(dble(10), evalMajorSpecies(rhoStruct, coeff(N2Struct%coeffInd), N2Struct%numBiases), &
+                     dble(1E20));
+    HelbDens = clamp(dble(10), evalMajorSpecies(rhoStruct, coeff(HeStruct%coeffInd), HeStruct%numBiases), &
+                     dble(1E20));
+    ArlbDens = clamp(dble(10), evalMinorSpecies(rhoStruct, coeff(ArStruct%coeffInd), ArStruct%numBiases), &
+                     dble(1E20));
+    O2lbDens = clamp(10.0, exp(coeff(O2Struct.coeffInd)), 1E20)
+    modelRho = clamp(dble(1E-20), computeRho(T0, dT0, Tex, rhoStruct%Z, OlbDens, N2lbDens, HelbDens, &
+                                             ArlbDens, O2lbDens), &
+                     dble(0.1));
     residual(residInd) = (log(rhoStruct%data)/log(modelRho)) - 1;
 
     residual = weights * residual;
@@ -608,7 +744,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
 
     !-----------------------------------------------------------------------
     !     Check for proper number of argumentS% 
-    if(nrhs /= 9) then
+    if(nrhs /= 11) then
         call mexErrMsgTxt ('Levenberg-Marquardt: Nine inputs required!')
     elseif(nlhs .gt. 1) then
         call mexErrMsgTxt ('Levenberg-Marquardt: At most one outputs allowed!')
@@ -618,10 +754,11 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     !     Check that the input is a struct.
     if(mxIsStruct(prhs(1)) .eq. 0 .or. mxIsStruct(prhs(2)) .eq. 0 .or. &
        mxIsStruct(prhs(3)) .eq. 0 .or. mxIsStruct(prhs(4)) .eq. 0 .or. &
-       mxIsStruct(prhs(5)) .eq. 0) then
-        call mexErrMsgTxt ('Levenberg-Marquardt: Five first inputs must be structs!')
+       mxIsStruct(prhs(5)) .eq. 0 .or. mxIsStruct(prhs(6)) .eq. 0 .or. &
+       mxIsStruct(prhs(7)) .eq. 0) then
+        call mexErrMsgTxt ('Levenberg-Marquardt: Seven first inputs must be structs!')
     endif
-    if (mxIsDouble(prhs(6)) .eq. 0 .or. mxIsDouble(prhs(7)) .eq. 0) then
+    if (mxIsDouble(prhs(8)) .eq. 0 .or. mxIsDouble(prhs(9)) .eq. 0) then
         
     end if
 
@@ -634,33 +771,37 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     N2Struct = structToDerived_TexAndMajor(prhs(3), 'N2')
     !k = mexPrintf('Before He'//achar(13))
     HeStruct = structToDerived_TexAndMajor(prhs(4), 'He')
+    !k = mexPrintf('Before Ar'//achar(13))
+    ArStruct = structToDerived_TexAndMajor(prhs(5), 'Ar')
+    !k = mexPrintf('Before O2'//achar(13))
+    O2Struct = structToDerived_TexAndMajor(prhs(6), 'O2')
     !k = mexPrintf('Before Rho'//achar(13))
-    rhoStruct = structToDerived_TexAndMajor(prhs(5), 'rho')
+    rhoStruct = structToDerived_TexAndMajor(prhs(7), 'rho')
     
     !k = mexPrintf('Before dTCoeffs'//achar(13))
-    N = max(mxGetM(prhs(6)), mxGetN(prhs(6)))
+    N = max(mxGetM(prhs(8)), mxGetN(prhs(8)))
     allocate(dTCoeffs(N))
-    call mxCopyPtrToReal8(mxGetPr(prhs(6)), dTCoeffs, N)
+    call mxCopyPtrToReal8(mxGetPr(prhs(8)), dTCoeffs, N)
     !write(tempChar,*) dTCoeffs(N)
     !k = mexPrintf('last dT coeff: '//tempChar//achar(13))
 
     !k = mexPrintf('Before T0Coeffs'//achar(13))
-    N = max(mxGetM(prhs(7)), mxGetN(prhs(7)))
+    N = max(mxGetM(prhs(9)), mxGetN(prhs(9)))
     allocate(T0Coeffs(N))
-    call mxCopyPtrToReal8(mxGetPr(prhs(7)), T0Coeffs, N)
+    call mxCopyPtrToReal8(mxGetPr(prhs(9)), T0Coeffs, N)
     
     
     ! Read weights
     !k = mexPrintf('Before Weights'//achar(13))
-    N = mxGetM(prhs(8))
+    N = mxGetM(prhs(10))
     allocate(weights(N))
-    call mxCopyPtrToReal8(mxGetPr(prhs(8)), weights, N)
+    call mxCopyPtrToReal8(mxGetPr(prhs(10)), weights, N)
     
     ! Read initGuess
     !k = mexPrintf('Before InitGuess'//achar(13))
-    N = max(mxGetM(prhs(9)), mxGetN(prhs(9)))
+    N = max(mxGetM(prhs(11)), mxGetN(prhs(11)))
     allocate(initGuess(N))
-    call mxCopyPtrToReal8(mxGetPr(prhs(9)), initGuess, N)
+    call mxCopyPtrToReal8(mxGetPr(prhs(11)), initGuess, N)
     
     !$omp parallel
     if(omp_get_thread_num() == 0) write(tempChar,*) omp_get_num_threads()
@@ -706,7 +847,10 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     call deallocateStruct(OStruct, 'O')
     call deallocateStruct(N2Struct, 'N2')
     call deallocateStruct(HeStruct, 'He')
+    call deallocateStruct(ArStruct, 'Ar')
+    call deallocateStruct(O2Struct, 'O2')
     call deallocateStruct(rhoStruct, 'rho')
     k = mexPrintf('Deallocation performed'//achar(13))
     return
 end
+
