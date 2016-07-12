@@ -1,7 +1,7 @@
-function [TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct] = ...
-    removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct, aeThreshold)
+function [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
+    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct)
 
-% Make GOCE observations unbiased.
+
 rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 1.23;
 rhoStruct.numBiases = 0;
 if aeThreshold <= 0
@@ -18,6 +18,11 @@ rhoStruct.weights(rhoStruct.goce) = goceWeight;
 rhoStruct.weights(rhoStruct.champ) = champWeight;
 rhoStruct.weights(rhoStruct.grace) = graceWeight;
 rhoStruct.numBiases = 0;
+rhoStruct = computeGeopotentialHeight(rhoStruct);
+
+if nargin == 2 && nargout == 1
+    return
+end
 
 % Remove bad temperature observations
 removeInd = TempStruct.data <= 300 | TempStruct.data > 10000;
@@ -193,6 +198,6 @@ N2Struct = computeGeopotentialHeight(N2Struct);
 HeStruct = computeGeopotentialHeight(HeStruct);
 ArStruct = computeGeopotentialHeight(ArStruct);
 O2Struct = computeGeopotentialHeight(O2Struct);
-rhoStruct = computeGeopotentialHeight(rhoStruct);
+
 
 end

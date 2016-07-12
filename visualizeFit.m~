@@ -1,4 +1,13 @@
 function [] = visualizeFit()
+aeThreshold = 500;
+
+
+% Check the existence of the data file.
+if exist('ilData.mat', 'file')
+    load('ilData.mat', 'rhoStruct')
+else
+    error('File ilData.mat not found!')
+end
 
 if exist('optCoeff.mat', 'file')
     load optCoeff.mat
@@ -6,27 +15,27 @@ else
     error('File optCoeff.mat not found!')
 end
 
-% Check the existence of the data file.
-if exist('ilData.mat', 'file')
-    load ilData.mat
-else
-    error('File ilData.mat not found!')
-end
+[rhoStruct] = removeAndFixData(rhoStruct, aeThreshold);
 
-[TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct] = removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, rhoStruct, lbDTStruct, lbT0Struct);
+numBiasesStruct = struct('O', 4, 'N2', 5,...
+    'He', 5, 'Ar', 2, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
 
-% TODO: Ei huomioi numBiases:a!
-TexCoeff = optCoeff(TexInd); TexStruct.coeffInd = TexInd;
-OCoeff = optCoeff(OInd);
-N2Coeff = optCoeff(N2Ind);
-HeCoeff = optCoeff(HeInd);
+TexStruct.coeffInd = TexInd;
+coeffStruct = struct('TexCoeff' , optCoeff(TexInd),... 
+'OCoeff', optCoeff(OInd),...
+'N2Coeff' , optCoeff(N2Ind),...
+'HeCoeff' , optCoeff(HeInd),...
+'O2Coeff' , optCoeff(O2Ind),...
+'ArCoeff' , optCoeff(ArInd),...
+'dTCoeff', dTCoeffs,...
+'T0Coeff', T0Coeffs);
 
-plotSurfs(130, 70, 70, 90, 'T0', optCoeff, TexStruct, TexCoeff, dTCoeffs, T0Coeffs, OCoeff, N2Coeff, HeCoeff);
+plotSurfs(150, 140, 140, 1, 'O2', coeffStruct, numBiasesStruct);
 
 if exist('comparisonRho.mat', 'file')
     load comparisonRho.mat
 else
-    [ilRho, msisRho, dtmRho] = computeComparisonData(rhoStruct, optCoeff, TexStruct, dTCoeffs, T0Coeffs, OCoeff, N2Coeff, HeCoeff);
+    [ilRho, msisRho, dtmRho] = computeComparisonData(rhoStruct, coeffStruct, numBiasesStruct);
 
     save('comparisonRho.mat', 'ilRho')
     save('comparisonRho.mat', 'msisRho', '-append')
@@ -39,7 +48,17 @@ end
 
 end
 
-function [] = plotSurfs(heights, F, FA, doy, paramName, allCoeff, TexStruct, TexCoeff, dTCoeffs, T0Coeffs, OCoeff, N2Coeff, HeCoeff)
+function [Tex, dT0, T0] = findTempsForFit(varStruct, TexCoeffs, dTCoeffs, T0Coeffs)
+
+Tex_est = evalTex(varStruct, TexCoeffs);
+
+T0 = clamp(200, evalT0(varStruct, T0Coeffs), 1000);
+dT0 = clamp(1, evalDT(varStruct, dTCoeffs), 30);
+Tex = clamp(T0+1, Tex_est, 5000);
+
+end
+
+function [] = plotSurfs(heights, F, FA, doy, paramName, coeffStruct, numBiasesStruct)
 
 lat = -90:1:90;
 lst = 0:0.1:23.9;
@@ -61,11 +80,16 @@ S = computeLatLstGrid(S, lat, lst);
 S.numBiases = 0;
 S = computeVariablesForFit(S);
 
+TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
+T0Coeffs = coeffStruct.T0Coeff;
+
 if ~strcmpi(paramName, 'Tex') && ~strcmpi(paramName, 'T0') && ~strcmpi(paramName, 'dT')
-    [Tex, dT0, T0] = findTempsForFit(S, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
-    OlbDens = evalMajorSpecies(S, OCoeff);
-    N2lbDens = evalMajorSpecies(S, N2Coeff);
-    HelbDens = evalMajorSpecies(S, HeCoeff);
+    [Tex, dT0, T0] = findTempsForFit(S, TexCoeffs, dTCoeffs, T0Coeffs);
+    OlbDens = evalMajorSpecies(S, coeffStruct.OCoeff, numBiasesStruct.O);
+    N2lbDens = evalMajorSpecies(S, coeffStruct.N2Coeff, numBiasesStruct.N2);
+    HelbDens = evalMajorSpecies(S, coeffStruct.HeCoeff, numBiasesStruct.He);
+    ArlbDens = evalMinorSpecies(S, coeffStruct.ArCoeff, numBiasesStruct.Ar);
+    O2lbDens = exp(coeffStruct.O2Coeff);
 end
 
 for a = 1:length(heights)
@@ -78,27 +102,36 @@ for a = 1:length(heights)
         dtmParam = computeDtm(S);
     elseif strcmpi(paramName, 'T0')
         param = evalT0(S, T0Coeffs);
-        param = param - mean(pa
         [msisParam, ~, dtmParam, ~] = computeMsisDtmLb(S);
+        msisParam = (msisParam-mean(msisParam))*2 + mean(msisParam);
+        dtmParam = (dtmParam-mean(dtmParam))*2 + mean(dtmParam);
     elseif strcmpi(paramName, 'dT')
         param = evalDT(S, dTCoeffs);
         [~, msisParam, ~, dtmParam] = computeMsisDtmLb(S);
     elseif strcmpi(paramName, 'rho')
-        param = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens);
+        param = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
         [~,msisParam] = computeMsis(S);
         [~,dtmParam] = computeDtm(S);
     elseif strcmpi(paramName, 'O')
-        [~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens);
+        [~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
         [~,~,msisParam] = computeMsis(S);
         [~,~,dtmParam] = computeDtm(S);
     elseif strcmpi(paramName, 'N2')
-        [~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens);
+        [~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
         [~,~,~,msisParam] = computeMsis(S);
         [~,~,~,dtmParam] = computeDtm(S);
     elseif strcmpi(paramName, 'He')
-        [~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens);   
+        [~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
         [~,~,~,~,msisParam] = computeMsis(S);
         [~,~,~,~,dtmParam] = computeDtm(S);
+    elseif strcmpi(paramName, 'Ar')
+        [~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+        [~,~,~,~,msisParam] = computeMsis(S);
+        dtmParam = zeros(size(msisParam));
+    elseif strcmpi(paramName, 'O2')
+        [~,~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+        [~,~,~,~,msisParam] = computeMsis(S);
+        dtmParam = zeros(size(msisParam));
     else
         error(['Unknown variable: ', paramName])
     end
@@ -110,6 +143,7 @@ for a = 1:length(heights)
     figure;
     
     subplot(3,1,1);
+    %clims = plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16);
     clims = plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16);
     
     subplot(3,1,2);
@@ -117,21 +151,26 @@ for a = 1:length(heights)
     
     subplot(3,1,3);
     plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16, clims);
+   % plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
     
 end
 
 end
 
-function [ilRho, msisRho, dtmRho] = computeComparisonData(rhoStruct, allCoeff, TexStruct, dTCoeffs, T0Coeffs, OCoeff, N2Coeff, HeCoeff)
+function [ilRho, msisRho, dtmRho] = computeComparisonData(rhoStruct, coeffStruct, numBiasesStruct)
 
 rhoStruct = computeVariablesForFit(rhoStruct);
+TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
+T0Coeffs = coeffStruct.T0Coeff;
+[Tex, dT0, T0] = findTempsForFit(rhoStruct, TexCoeffs, dTCoeffs, T0Coeffs);
 
-[Tex, dT0, T0] = findTempsForFit(rhoStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
-OlbDens = evalMajorSpecies(rhoStruct, OCoeff);
-N2lbDens = evalMajorSpecies(rhoStruct, N2Coeff);
-HelbDens = evalMajorSpecies(rhoStruct, HeCoeff);
+OlbDens = evalMajorSpecies(rhoStruct, coeffStruct.OCoeff, numBiasesStruct.O);
+N2lbDens = evalMajorSpecies(rhoStruct, coeffStruct.N2Coeff, numBiasesStruct.N2);
+HelbDens = evalMajorSpecies(rhoStruct, coeffStruct.HeCoeff, numBiasesStruct.He);
+ArlbDens = evalMinorSpecies(rhoStruct, coeffStruct.ArCoeff, numBiasesStruct.Ar);
+O2lbDens = exp(coeffStruct.O2Coeff);
 
-ilRho = computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens);
+ilRho = computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
 
 [~, msisRho] = computeMsis(rhoStruct);
 [~, dtmRho] = computeDtm(rhoStruct);

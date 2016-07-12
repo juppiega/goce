@@ -25,8 +25,10 @@ else
     error('File ilData.mat not found!')
 end
 
-[TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct] = ...
-    removeAndFixData(TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, lbDTStruct, lbT0Struct, aeThreshold);
+
+[rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
+    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct)
+
 if ~exist('dTCoeffs', 'var') || recomputeDT
     dTCoeffs = fitTemeratureGradient(lbDTStruct); 
     save('ilData.mat', 'dTCoeffs', '-append')
