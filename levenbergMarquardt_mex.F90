@@ -523,7 +523,7 @@ function computeRho(T0, dT0, Tex, Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lb
     N2numDens = N2lbDens*f_N2; ! [1/cm^3]
 
     gamma_He = 4 * u2kg * g / (sigma*1E-3 * k * Tex);
-    f_He = (T0 / T)**(1+gamma_He) * exp(-sigma * (Z) * gamma_He);
+    f_He = (T0 / T)**(1+gamma_He-0.38) * exp(-sigma * (Z) * gamma_He);
     HeNumDens = HelbDens*f_He; ! [1/cm^3]
     
     gamma_Ar = 40 * u2kg * g / (sigma*1E-3 * k * Tex);
