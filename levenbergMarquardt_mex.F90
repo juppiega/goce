@@ -17,7 +17,7 @@ module fitModule
         integer(kind = 4), allocatable :: coeffInd(:)
         integer :: name, numBiases
         real(kind = 8) :: dT0, T0
-        real(kind = 8), allocatable :: aeInt(:,:)!, biases(:,:)
+        real(kind = 8), allocatable :: aeInt(:,:), biases(:,:)
     end type
 
     type(dataStruct) :: TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct
@@ -139,7 +139,7 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
         D%name = 5
         D%numBiases = 0
     end if
-    if (typename == 'O' || typename == 'N2' || typename == 'He' || &
+    if (typename == 'O' .or. typename == 'N2' .or. typename == 'He' .or. &
 	typename == 'Ar') then
 	    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'numBiases')), numBiases_real, 1)
         D%numBiases = nint(numBiases_real)
@@ -172,7 +172,7 @@ subroutine deallocateStruct(D, typename)
     if (typename /= 'rho') then
         deallocate(D%coeffInd)
     end if
-    if (typename == 'O' || typename == 'N2' || typename == 'He' || &
+    if (typename == 'O' .or. typename == 'N2' .or. typename == 'He' .or. &
 	typename == 'Ar') then
 	    deallocate(D%biases)
 	end if
@@ -255,7 +255,7 @@ function G_major(a, S, numBiases)
     k = k + 21;
 
     !i = mexPrintf('G:sum'//achar(13))
-    G = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + geomagnetic;
+    G_major = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + geomagnetic;
     !i = mexPrintf('G End'//achar(13))
 end function
 
@@ -309,7 +309,7 @@ function G_minor(a, S, numBiases)
     type(dataStruct), intent(in) :: S
     real(kind = 8), intent(in) :: a(:)
     integer, intent(in) :: numBiases
-    real(kind = 8), allocatable :: G_lbT0(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
+    real(kind = 8), allocatable :: G_minor(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
                                    terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
                                    geom_lst(:), AE_base(:)
     integer :: k, dPy, numInts
@@ -345,7 +345,7 @@ function G_minor(a, S, numBiases)
     k = k + 10;
 
     !i = mexPrintf('G:sum'//achar(13))
-    G_lbT0 = latitudeTerm + solarTerm + annual + diurnal + semidiurnal;
+    G_minor = latitudeTerm + solarTerm + annual + diurnal + semidiurnal;
     !i = mexPrintf('G End'//achar(13))
 end function
 
@@ -404,7 +404,7 @@ function evalTex(S, coeff)
     
     allocate(evalTex(size(S%data)))
     !k = mexPrintf('Before G at evalTex'//achar(13))
-    evalTex = coeff(1) * (1 + clamp(-0.9, G_major(coeff, S, 0), 9.0)) 
+    evalTex = coeff(1) * (1 + clamp(dble(-0.9), G_major(coeff, S, 0), dble(9.0))) 
 
 end function
 
@@ -430,7 +430,7 @@ function evalDT(S, coeff)
     
     allocate(evalDT(size(S%data)))
     !k = mexPrintf('Before G at evalDT'//achar(13))
-    evalDT = coeff(1) * (1 + clamp(-0.9, G_lbDT(coeff, S, 0), 9.0)); 
+    evalDT = coeff(1) * (1 + clamp(dble(-0.9), G_lbDT(coeff, S, 0), dble(9.0))); 
 
 end function
 
@@ -503,7 +503,7 @@ end subroutine
 
 function computeRho(T0, dT0, Tex, Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens) result(rho)
     implicit none
-    real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), Z(:), olbDens(:), N2lbDens(:), HelbDens(:)&
+    real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), Z(:), olbDens(:), N2lbDens(:), HelbDens(:), &
                                   ArlbDens(:), O2lbDens(:)
     real(kind = 8), dimension(size(Tex)) :: sigma, T, gamma_O, gamma_N2, gamma_He, gamma_Ar, &
                                             gamma_O2,f_O,f_N2,f_He,f_Ar,f_O2,OnumDens,N2numDens, &
@@ -595,7 +595,8 @@ function computeO2Residual(varStruct, Tex, dT0, T0, coeff) result(residual)
     implicit none
     type(dataStruct) :: varStruct
     real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), coeff(:)
-    real(kind = 8), allocatable :: residual(:), Gvec(:), rhs(:)
+    real(kind = 8), allocatable :: residual(:), rhs(:)
+    real(kind = 8) :: Gvec
     
     allocate(rhs(size(Tex)))
     call computeDensityRHS(varStruct, Tex, dT0, T0, rhs);
@@ -669,7 +670,7 @@ function modelMinimizationFunction(coeff) result(residual)
                      dble(1E20));
     ArlbDens = clamp(dble(10), evalMinorSpecies(rhoStruct, coeff(ArStruct%coeffInd), ArStruct%numBiases), &
                      dble(1E20));
-    O2lbDens = clamp(10.0, exp(coeff(O2Struct.coeffInd)), 1E20)
+    O2lbDens = clamp(dble(10.0), exp(coeff(O2Struct%coeffInd)), dble(1E20))
     modelRho = clamp(dble(1E-20), computeRho(T0, dT0, Tex, rhoStruct%Z, OlbDens, N2lbDens, HelbDens, &
                                              ArlbDens, O2lbDens), &
                      dble(0.1));
