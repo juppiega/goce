@@ -509,7 +509,7 @@ ind = ub < 0.5;
 initGuess = mean([lb;ub]);% - 0.001;
 initGuess(ind) = -ub(ind);
 ArCoeffs = zeros(numMinorCoeffs+ArStruct.numBiases, 1);
-ArCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
+ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
 initGuess(ArStruct.coeffInd) = ArCoeffs;
 
 initGuess(TexStruct.coeffInd(1)) = 1030;
