@@ -259,12 +259,12 @@ function [lb, ub] = G_bounds()
 
 latitude = ones(1,14);
 solarActivity = ones(1,5);
-annual = ones(1,15); annual(1) = 0.001; annual(8) = 0.0001;
+annual = ones(1,15); annual(1) = 0.002; annual(8) = 0.0002;
 diurnal = ones(1, 21); diurnal([8, 19]) = 0.001;
 semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
-geomagnetic = ones(1,21); geomagnetic([1,9,12,17]) = 0.0001;
+geomagnetic = ones(1,21); geomagnetic([1,9,12,17]) = 0.0002;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, geomagnetic];
 lb = -ub;
@@ -509,7 +509,7 @@ ind = ub < 0.5;
 initGuess = mean([lb;ub]);% - 0.001;
 initGuess(ind) = -ub(ind);
 ArCoeffs = zeros(numMinorCoeffs+ArStruct.numBiases, 1);
-ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
+ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.002;
 initGuess(ArStruct.coeffInd) = ArCoeffs;
 
 initGuess(TexStruct.coeffInd(1)) = 1030;
