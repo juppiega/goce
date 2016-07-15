@@ -27,7 +27,7 @@ end
 
 
 [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
-    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct)
+    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
 
 if ~exist('dTCoeffs', 'var') || recomputeDT
     dTCoeffs = fitTemeratureGradient(lbDTStruct); 
