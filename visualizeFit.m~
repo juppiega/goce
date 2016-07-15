@@ -30,7 +30,17 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-plotSurfs(150, 140, 140, 1, 'O2', coeffStruct, numBiasesStruct);
+z = 400;
+lat = 0;
+lst = 0:0.5:24;
+doy = 0:5:365;
+F = 150;
+FA = 150;
+aeInt = 20*ones(1,9);
+zonalMean = false;
+latitudeMean = true;
+devFromXmean = false;
+plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, 'xy', 'rho', coeffStruct, numBiasesStruct);
 
 if exist('comparisonRho.mat', 'file')
     load comparisonRho.mat
@@ -41,6 +51,13 @@ else
     save('comparisonRho.mat', 'msisRho', '-append')
     save('comparisonRho.mat', 'dtmRho', '-append')
 end
+
+modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
+
+% plot3DOM(rhoStruct.doy, 10, rhoStruct.FA, 20, rhoStruct.data,...
+%     modelStruct, 'rms', 'doy', 'FA');
+
+%plot2DOM(rhoStruct.doy, 50, rhoStruct.data, modelStruct, 'O/M', 'DOY')
 
 %computeStatistics(rhoStruct, ilRho, msisRho, dtmRho);
 
@@ -58,27 +75,57 @@ Tex = clamp(T0+1, Tex_est, 5000);
 
 end
 
-function [] = plotSurfs(heights, F, FA, doy, paramName, coeffStruct, numBiasesStruct)
+function [] = plotSurfs(altitude, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, paramOrder, paramName, coeffStruct, numBiasesStruct)
 
-lat = -90:1:90;
-lst = 0:0.1:23.9;
-N = length(lat)*length(lst);
+[X, Y, xname, yname] = findSurfXY(altitude, lat, lst, doy, paramOrder);
 
-S.aeInt = 20 * ones(N, 9);
+averLsts = 0:1:23;
+averLats = -85:10:85;
+if zonalMean
+    N = length(X)*length(Y)*length(averLsts);
+elseif latitudeMean
+    N = length(X)*length(Y)*length(averLats);
+else
+    N = length(X)*length(Y);
+end
+
+%S.aeInt = 20 * ones(N, 9);
+S.aeInt = bsxfun(@times, ones(N,size(aeInt,2)), aeInt);
 S.latitude = zeros(N, 1);
 S.longitude = zeros(N, 1);
 S.solarTime = zeros(N,1);
+S.altitude = zeros(N,1);
 S.F = F * ones(N,1);
 S.FA = FA * ones(N,1);
-S.doy = doy * ones(N,1);
+S.doy = zeros(N,1);
 
+if zonalMean
+    [xmat, ymat, zmat] = meshgrid(X, Y, averLsts);
+    S.solarTime = zmat(:);
+elseif latMean
+    [xmat, ymat, zmat] = meshgrid(X, Y, averLats);
+    S.latitude = zmat(:);
+else
+    [xmat, ymat] = meshgrid(X, Y);
+    if length(lst) == 1; S.solarTime(:) = lst; end
+end
+
+if length(lat) == 1; S.latitude(:) = lat; end
+S.longitude(:) = 0;
+if length(doy) == 1; S.doy(:) = doy; end
+if length(altitude) == 1; S.altitude(:) = altitude; end
+
+[S, titleAddition] = assignPlotVars(S, xmat(:), ymat(:), xname, yname, zonalMean, latitudeMean);
+
+%TODO: ap:t parametrina
 S.Ap = 3*ones(N,1); S.apNow = 3*ones(N,1); S.ap3h = 3*ones(N,1); S.ap6h = 3*ones(N,1);
 S.ap9h = 3*ones(N,1); S.ap12To33h = 3*ones(N,1); S.ap36To57h = 3*ones(N,1);
 
-[lstGrid, latGrid] = meshgrid(lst, lat);
-S = computeLatLstGrid(S, lat, lst);
-S.numBiases = 0;
+% [lstGrid, latGrid] = meshgrid(lst, lat);
+% S = computeLatLstGrid(S, lat, lst);
+% S.numBiases = 0;
 S = computeVariablesForFit(S);
+S = computeGeopotentialHeight(S);
 
 TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
 T0Coeffs = coeffStruct.T0Coeff;
@@ -92,68 +139,151 @@ if ~strcmpi(paramName, 'Tex') && ~strcmpi(paramName, 'T0') && ~strcmpi(paramName
     O2lbDens = exp(coeffStruct.O2Coeff);
 end
 
-for a = 1:length(heights)
-    S.altitude = ones(N,1) * heights(a);
-    S = computeGeopotentialHeight(S);
-
-    if strcmpi(paramName, 'Tex')
-        param = evalTex(S, TexCoeff);
-        msisParam = computeMsis(S);
-        dtmParam = computeDtm(S);
-    elseif strcmpi(paramName, 'T0')
-        param = evalT0(S, T0Coeffs);
-        [msisParam, ~, dtmParam, ~] = computeMsisDtmLb(S);
-        msisParam = (msisParam-mean(msisParam))*2 + mean(msisParam);
-        dtmParam = (dtmParam-mean(dtmParam))*2 + mean(dtmParam);
-    elseif strcmpi(paramName, 'dT')
-        param = evalDT(S, dTCoeffs);
-        [~, msisParam, ~, dtmParam] = computeMsisDtmLb(S);
-    elseif strcmpi(paramName, 'rho')
-        param = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
-        [~,msisParam] = computeMsis(S);
-        [~,dtmParam] = computeDtm(S);
-    elseif strcmpi(paramName, 'O')
-        [~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
-        [~,~,msisParam] = computeMsis(S);
-        [~,~,dtmParam] = computeDtm(S);
-    elseif strcmpi(paramName, 'N2')
-        [~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
-        [~,~,~,msisParam] = computeMsis(S);
-        [~,~,~,dtmParam] = computeDtm(S);
-    elseif strcmpi(paramName, 'He')
-        [~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
-        [~,~,~,~,msisParam] = computeMsis(S);
-        [~,~,~,~,dtmParam] = computeDtm(S);
-    elseif strcmpi(paramName, 'Ar')
-        [~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
-        [~,~,~,~,msisParam] = computeMsis(S);
-        dtmParam = zeros(size(msisParam));
-    elseif strcmpi(paramName, 'O2')
-        [~,~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
-        [~,~,~,~,msisParam] = computeMsis(S);
-        dtmParam = zeros(size(msisParam));
-    else
-        error(['Unknown variable: ', paramName])
-    end
-    
-    param = reshape(param, length(lat), length(lst));
-    msisParam = reshape(msisParam, length(lat), length(lst));
-    dtmParam = reshape(dtmParam, length(lat), length(lst));
-    
-    figure;
-    
-    subplot(3,1,1);
-    %clims = plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16);
-    clims = plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16);
-    
-    subplot(3,1,2);
-    plotSurfSubplot(lstGrid, latGrid, msisParam, ['MSIS ', paramName], FA, doy, heights(a), 16, clims);
-    
-    subplot(3,1,3);
-    plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16, clims);
-   % plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
-    
+if strcmpi(paramName, 'Tex')
+    param = evalTex(S, TexCoeffs);
+    msisParam = computeMsis(S);
+    dtmParam = computeDtm(S);
+elseif strcmpi(paramName, 'T0')
+    param = evalT0(S, T0Coeffs);
+    [msisParam, ~, dtmParam, ~] = computeMsisDtmLb(S);
+    msisParam = (msisParam-mean(msisParam))*2 + mean(msisParam);
+    dtmParam = (dtmParam-mean(dtmParam))*2 + mean(dtmParam);
+elseif strcmpi(paramName, 'dT')
+    param = evalDT(S, dTCoeffs);
+    [~, msisParam, ~, dtmParam] = computeMsisDtmLb(S);
+elseif strcmpi(paramName, 'rho')
+    param = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+    [~,msisParam] = computeMsis(S);
+    [~,dtmParam] = computeDtm(S);
+elseif strcmpi(paramName, 'O')
+    [~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+    [~,~,msisParam] = computeMsis(S);
+    [~,~,dtmParam] = computeDtm(S);
+elseif strcmpi(paramName, 'N2')
+    [~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+    [~,~,~,msisParam] = computeMsis(S);
+    [~,~,~,dtmParam] = computeDtm(S);
+elseif strcmpi(paramName, 'He')
+    [~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+    [~,~,~,~,msisParam] = computeMsis(S);
+    [~,~,~,~,dtmParam] = computeDtm(S);
+elseif strcmpi(paramName, 'Ar')
+    [~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+    [~,~,~,~,~,msisParam] = computeMsis(S);
+    dtmParam = zeros(size(msisParam));
+elseif strcmpi(paramName, 'O2')
+    [~,~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+    [~,~,~,~,~,~,msisParam] = computeMsis(S);
+    dtmParam = zeros(size(msisParam));
+else
+    error(['Unknown variable: ', paramName])
 end
+
+if zonalMean
+    param = reshape(param, length(Y), length(X), length(averLsts));
+    msisParam = reshape(msisParam, length(Y), length(X), length(averLsts));
+    dtmParam = reshape(dtmParam, length(Y), length(X), length(averLsts));
+    param = mean(param, 3); 
+    msisParam = mean(msisParam, 3);
+    dtmParam = mean(dtmParam, 3);
+    xmat = xmat(:,:,1);
+    ymat = ymat(:,:,1);
+elseif latitudeMean
+    param = reshape(param, length(Y), length(X), length(averLsts));
+    msisParam = reshape(msisParam, length(Y), length(X), length(averLsts));
+    dtmParam = reshape(dtmParam, length(Y), length(X), length(averLsts));
+    weights = ones(1,1,length(averLats)); weights(1,1,:) = cosd(averLats);
+    param = bsxfun(@times, param, weights); param = sum(param, 3) / sum(weights, 3);
+    msisParam = bsxfun(@times, msisParam, weights); msisParam = sum(msisParam, 3) / sum(weights, 3);
+    dtmParam = bsxfun(@times, dtmParam, weights); dtmParam = sum(dtmParam, 3) / sum(weights, 3);
+else
+    param = reshape(param, length(Y), length(X));
+    msisParam = reshape(msisParam, length(Y), length(X));
+    dtmParam = reshape(dtmParam, length(Y), length(X));
+end
+
+if devFromXmean
+    param = bsxfun(@rdivide, param, mean(param, 2));
+    msisParam = bsxfun(@rdivide, msisParam, mean(msisParam, 2));
+    dtmParam = bsxfun(@rdivide, dtmParam, mean(dtmParam, 2));
+end
+
+figure;
+
+%subplot(3,1,1);
+%clims = plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16);
+clims = plotSurfSubplot(xmat, ymat, msisParam, paramName, titleAddition, xname, yname, 16);
+
+%subplot(3,1,2);
+%plotSurfSubplot(xmat, ymat, msisParam, ['MSIS ', paramName], FA, doy, altitude(a), 16, clims);
+
+%subplot(3,1,3);
+%plotSurfSubplot(xmat, ymat, dtmParam, ['DTM ', paramName], FA, doy, altitude(a), 16, clims);
+% plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
+
+
+
+end
+
+function [S, titleAddition] = assignPlotVars(S, X, Y, xname, yname, zonalMean, latitudeMean)
+
+if strcmpi(xname, 'altitude')
+    S.altitude = X; xNum = 1;
+elseif strcmpi(xname, 'lat')
+    S.latitude = X; xNum = 2;
+elseif strcmpi(xname, 'lst')
+    S.solarTime = X; xNum = 3;
+elseif strcmpi(xname, 'doy')
+    S.doy = X; xNum = 4;
+end
+
+if strcmpi(yname, 'altitude')
+    S.altitude = Y; yNum = 1;
+elseif strcmpi(yname, 'lat')
+    S.latitude = Y; yNum = 2;
+elseif strcmpi(yname, 'lst')
+    S.solarTime = Y; yNum = 3;
+elseif strcmpi(yname, 'doy')
+    S.doy = Y; yNum = 4;
+end
+
+names = {'z', 'lat', 'lst', 'doy'};
+nonVecInd = setdiff(1:4, [xNum, yNum]);
+nonVecNames = names(nonVecInd);
+vals = [S.altitude(1), S.latitude(1), S.solarTime(1), S.doy(1)];
+nonVecVals = vals(nonVecInd);
+if zonalMean
+    otherInd = find(nonVecInd ~= 3);
+    titleAddition = [names{otherInd}, '=', num2str(vals(otherInd)), ', zonal mean'];
+elseif latitudeMean
+    otherInd = find(nonVecInd ~= 3);
+    titleAddition = [names{otherInd}, '=', num2str(vals(otherInd)), ', meridional mean'];
+else
+    titleAddition = [nonVecNames{1}, '=', num2str(nonVecVals(1)), ', ',...
+                     nonVecNames{2}, '=', num2str(nonVecVals(2))];
+end
+
+end
+
+function [X, Y, xname, yname] = findSurfXY(varargin)
+% [X, Y] = findSurfXY(heights, lat, lst, doy, paramOrder)
+
+lh = length(varargin{1}); llat = length(varargin{2}); llst = length(varargin{3});...
+    ldoy = length(varargin{4});
+a = [lh, llat, llst, ldoy];
+names = {'altitude', 'lat', 'lst', 'doy'};
+if strcmpi(varargin{5}, 'xy')
+    xind = find(a > 1, 1, 'first');
+    yind = find(a > 1, 1, 'last');
+else
+    xind = find(a > 1, 1, 'last');
+    yind = find(a > 1, 1, 'first');
+end
+
+X = varargin{xind};
+Y = varargin{yind};
+xname = names{xind};
+yname = names{yind};
 
 end
 
@@ -177,24 +307,21 @@ ilRho = computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbD
 
 end
 
-function clims = plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, height, fs, clims)
+function clims = plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, fs, clims)
 
-surf(lstGrid, latGrid, param, 'edgecolor', 'none');
+surf(xmat, ymat, param, 'edgecolor', 'none');
 view(2);
 colorbar;
 %colormap jet
 axis tight;
-xlabel('LST', 'fontsize', fs)
-ylabel('lat', 'fontsize', fs)
+xlabel(xname, 'fontsize', fs)
+ylabel(yname, 'fontsize', fs)
 if (nargin == 9)
     caxis(clims)
 end
 clims = caxis;
-if strcmpi(paramName, 'Tex')
-    title(['Tex: F10.7=', num2str(FA), ', doy=', num2str(doy)], 'fontsize', fs)
-else
-    title([paramName, ': F10.7=', num2str(FA), ', doy=', num2str(doy), ', Z=', num2str(height)], 'fontsize', fs)
-end
+title([paramName, ' ', titleAddition], 'fontsize', fs)
+
 set(gca, 'fontsize', fs);
 
 end
@@ -256,29 +383,164 @@ fprintf('DTM CORR: %f \n\n', corr(rhoStruct.data,dtmRho));
 
 end
 
-function S = computeLatLstGrid(S, lat, lst)
+function [] = plot3DOM(x, dx, y, dy, obs, modelStruct, rmsOrOM, xName, yName)
 
-for j = 1:length(lst)
-    for i = 1:length(lat)
-        ind = i + (j-1)*length(lat);
-        S.latitude(ind) = lat(i);
-        S.solarTime(ind) = lst(j);
+minX = dx * floor(min(x) / dx); minY = dy * floor(min(y) / dy);
+maxX = dx * ceil(max(x) / dx); maxY = dy * ceil(max(y) / dy);
+
+[Xmat, Ymat] = meshgrid(minX:dx:maxX, minY:dy:maxY);
+countMat = zeros(size(Xmat)-1);
+ilMat = zeros(size(Xmat)-1);
+dtmMat = zeros(size(Xmat)-1);
+msisMat = zeros(size(Xmat)-1);
+
+ilVal = obs ./ modelStruct.il;
+dtmVal = obs ./ modelStruct.dtm;
+msisVal = obs ./ modelStruct.msis;
+
+if strcmpi(rmsOrOM, 'rms')
+    computeRms = true;
+    rmsOrOM = 'RMS';
+else
+    computeRms = false;
+    rmsOrOM = 'O/M';
+end
+
+for j = 1:size(Xmat,2)-1
+    xInd = Xmat(1,j) <= x & x < Xmat(1,j+1);
+    for i = 1:size(Xmat,1)-1       
+        yInd = Ymat(i,1) <= y & y < Ymat(i+1,1);
+        ind = xInd & yInd;
+        countMat(i,j) = sum(ind);
+        if computeRms
+            ilMat(i,j) = rms(ilVal(ind) - 1);
+            dtmMat(i,j) = rms(dtmVal(ind) - 1);
+            msisMat(i,j) = rms(msisVal(ind) - 1);
+        else
+            ilMat(i,j) = mean(ilVal(ind));
+            dtmMat(i,j) = mean(dtmVal(ind));
+            msisMat(i,j) = mean(msisVal(ind));
+        end
     end
 end
 
+Xmat = Xmat + dx/2; Xmat = Xmat(1:end-1,1:end-1);
+Ymat = Ymat + dy/2; Ymat = Ymat(1:end-1,1:end-1);
+
+baseTitle = [' ', rmsOrOM];
+
+figure;
+subplot(4,1,1)
+surf(Xmat, Ymat, log10(countMat), 'edgecolor', 'none')
+view(2);
+axis tight;
+h = colorbar;
+axisTicks = round(10.^get(h,'YTick'));
+tickLabels = strsplit(num2str(axisTicks));
+set(h,'YTickLabel', tickLabels);
+Title = ['Number of observations'];
+title(Title);
+xlabel(xName)
+ylabel(yName)
+
+subplot(4,1,2)
+surf(Xmat, Ymat, ilMat, 'edgecolor', 'none')
+view(2);
+axis tight;
+colorbar;
+Title = ['IL ', baseTitle];
+title(Title);
+xlabel(xName)
+ylabel(yName)
+clims = caxis;
+
+subplot(4,1,3)
+surf(Xmat, Ymat, msisMat, 'edgecolor', 'none')
+view(2);
+axis tight;
+colorbar;
+Title = ['MSIS ', baseTitle];
+title(Title);
+xlabel(xName)
+ylabel(yName)
+%caxis(clims);
+
+subplot(4,1,4)
+surf(Xmat, Ymat, dtmMat, 'edgecolor', 'none')
+view(2);
+axis tight;
+colorbar;
+Title = ['DTM ', baseTitle];
+title(Title);
+xlabel(xName)
+ylabel(yName)
+%caxis(clims);
+
 end
 
-function [Tex, dT0, T0] = findTemps(varStruct, TexCoeff)
+function [] = plot2DOM(x, dx, obs, modelStruct, rmsOrOM, xName)
 
-origNumBiases = varStruct.numBiases; varStruct.numBiases = 0;
-Tex_est = evalTex(varStruct, TexCoeff);
-varStruct.numBiases = origNumBiases;
+minX = dx * floor(min(x) / dx);
+maxX = dx * ceil(max(x) / dx);
 
-T0 = 507;
-dT0 = 12.6;
-Tex = clamp(T0+1, Tex_est, 5000);
+Xbins = minX:dx:maxX;
+countVec = zeros(length(Xbins)-1,1);
+ilVec = zeros(length(Xbins)-1,1);
+dtmVec = zeros(length(Xbins)-1,1);
+msisVec = zeros(length(Xbins)-1,1);
+
+ilVal = obs ./ modelStruct.il;
+dtmVal = obs ./ modelStruct.dtm;
+msisVal = obs ./ modelStruct.msis;
+
+if strcmpi(rmsOrOM, 'rms')
+    computeRms = true;
+    rmsOrOM = 'RMS';
+else
+    computeRms = false;
+    rmsOrOM = 'O/M';
+end
+
+for i = 1:length(Xbins)-1
+    ind = Xbins(i) <= x & x < Xbins(i+1);
+    countVec(i) = sum(ind);
+    if computeRms
+        ilVec(i) = rms(ilVal(ind) - 1);
+        dtmVec(i) = rms(dtmVal(ind) - 1);
+        msisVec(i) = rms(msisVal(ind) - 1);
+    else
+        ilVec(i) = mean(ilVal(ind));
+        dtmVec(i) = mean(dtmVal(ind));
+        msisVec(i) = mean(msisVal(ind));
+    end
+end
+
+Xbins = Xbins + dx/2; Xbins = Xbins(1:end-1);
+plotX = repmat(Xbins', 1, 2);
+plotY = [msisVec, dtmVec];
+
+interpX = minX:dx/100:maxX;
+interpCount = interp1(Xbins, countVec, interpX, 'nearest', 'extrap');
+
+fontsize = 13;
+
+figure;
+[hax, hIL, hCount] = plotyy(Xbins, ilVec, interpX, interpCount);
+set(hCount, 'color', 'k', 'linestyle', '-');
+set(hIL, 'linewidth', 2.0);
+hold all
+plot(hax(1), plotX, plotY)
+
+legend('AE', 'MSIS', 'DTM', '# obs.');
+title(['Model ', rmsOrOM, ' vs. ', xName], 'fontsize', fontsize)
+xlabel(xName, 'fontsize', fontsize)
+ylabel(rmsOrOM, 'fontsize', fontsize)
+set(hax(1), 'fontsize', fontsize, 'ycolor', 'k')
+set(hax(2), 'fontsize', fontsize, 'ycolor', 'k')
 
 end
+
+%function [] = plotLatCrossSection(paramName, AE, F, FA, lst, doy, )
 
 function [] = plotStormFig(rhoStruct, ilRho, msisRho, dtmRho, date1, date2, satellite, TexCoeff, OCoeff, N2Coeff, HeCoeff)
 
