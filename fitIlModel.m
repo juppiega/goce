@@ -35,7 +35,7 @@ if ~exist('dTCoeffs', 'var') || recomputeDT
 end
 
 if ~exist('T0Coeffs', 'var') || recomputeLbTemp
-    T0Coeffs = fitLbTemerature(lbT0Struct, lbDTStruct); 
+    T0Coeffs = fitLbTemerature(lbT0Struct); 
     save('ilData.mat', 'T0Coeffs', '-append')
 end
 
