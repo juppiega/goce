@@ -57,7 +57,7 @@ lbDTStruct.Ap = lbDTStruct.ApDaily;
 lbDTStruct.altitude = lbDTStruct.altitude * ones(size(lbDTStruct.data));
 
 removeInd = lbDTStruct.solarTime < 0;
-removeInd(lbDTStruct.data <= 0 | lbDTStruct.data > 20) = true;
+removeInd(lbDTStruct.data <= 1 | lbDTStruct.data > 20) = true;
 removeInd(85 < lbDTStruct.zenithAngle & lbDTStruct.zenithAngle < 95) = true;
 removeInd(lbDTStruct.apNow > 15) = true;
 %removeInd(lbDTStruct.nightObservation == 2) = true; % Remove twilight observations.

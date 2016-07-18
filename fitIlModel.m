@@ -172,6 +172,23 @@ function dTCoeffs = fitTemeratureGradient(lbDTStruct)
 
 fprintf('%s\n', 'Fitting Temperature gradient')
 
+lbDTStruct.data = [lbDTStruct.data; lbDTStruct.data];
+lbDTStruct.timestamps = [lbDTStruct.timestamps; lbDTStruct.timestamps + 180];
+lbDTStruct.latitude = [lbDTStruct.latitude; -lbDTStruct.latitude];
+lbDTStruct.longitude = [lbDTStruct.longitude; lbDTStruct.longitude];
+lbDTStruct.solarTime = [lbDTStruct.solarTime; lbDTStruct.solarTime];
+lbDTStruct.altitude = [lbDTStruct.altitude; lbDTStruct.altitude];
+lbDTStruct.aeInt = [lbDTStruct.aeInt; lbDTStruct.aeInt];
+lbDTStruct.F = [lbDTStruct.F; lbDTStruct.F];
+lbDTStruct.FA = [lbDTStruct.FA; lbDTStruct.FA];
+lbDTStruct.apNow = [lbDTStruct.apNow; lbDTStruct.apNow];
+lbDTStruct.ap3h = [lbDTStruct.ap3h; lbDTStruct.ap3h];
+lbDTStruct.ap6h = [lbDTStruct.ap6h; lbDTStruct.ap6h];
+lbDTStruct.ap9h = [lbDTStruct.ap9h; lbDTStruct.ap9h];
+lbDTStruct.ap12To33h = [lbDTStruct.ap12To33h; lbDTStruct.ap12To33h];
+lbDTStruct.ap36To57h = [lbDTStruct.ap36To57h; lbDTStruct.ap36To57h];
+lbDTStruct.Ap = [lbDTStruct.Ap; lbDTStruct.Ap];
+
 lbDTStruct = computeVariablesForFit(lbDTStruct);
 
 numCoeffs = 50;
@@ -188,52 +205,44 @@ fun = @(X) temperatureGradientMinimization(lbDTStruct, X);
 
 end
 
-function lbT0Coeffs = fitLbTemerature(lbT0Struct, TempStruct)
+function lbT0Coeffs = fitLbTemerature(lbT0Struct)
 
 fprintf('%s\n', 'Fitting lower boundary temperature')
 
 Nobs = length(lbT0Struct.data);
-Nmsis = length(TempStruct.data);
 
-TempStruct.altitude = 130 * ones(size(TempStruct.data));
-TempStruct = computeVariablesForFit(TempStruct);
-[~,~,~,~,~,T] = computeMsis(TempStruct);
-lbT0Struct.data = [lbT0Struct.data; T];
-lbT0Struct.timestamps = [lbT0Struct.timestamps; TempStruct.timestamps];
-lbT0Struct.latitude = [lbT0Struct.latitude; TempStruct.latitude];
-lbT0Struct.longitude = [lbT0Struct.longitude; TempStruct.longitude];
-lbT0Struct.solarTime = [lbT0Struct.solarTime; TempStruct.solarTime];
-lbT0Struct.altitude = [lbT0Struct.altitude; TempStruct.altitude];
-lbT0Struct.aeInt = [lbT0Struct.aeInt; TempStruct.aeInt];
-lbT0Struct.F = [lbT0Struct.F; TempStruct.F];
-lbT0Struct.FA = [lbT0Struct.FA; TempStruct.FA];
-lbT0Struct.apNow = [lbT0Struct.apNow; TempStruct.apNow];
-lbT0Struct.ap3h = [lbT0Struct.ap3h; TempStruct.ap3h];
-lbT0Struct.ap6h = [lbT0Struct.ap6h; TempStruct.ap6h];
-lbT0Struct.ap9h = [lbT0Struct.ap9h; TempStruct.ap9h];
-lbT0Struct.ap12To33h = [lbT0Struct.ap12To33h; TempStruct.ap12To33h];
-lbT0Struct.ap36To57h = [lbT0Struct.ap36To57h; TempStruct.ap36To57h];
-lbT0Struct.Ap = [lbT0Struct.Ap; TempStruct.Ap];
-lbT0Struct.type = [lbT0Struct.type; 3*ones(size(TempStruct.data))];
+lbT0Struct.data = [lbT0Struct.data; lbT0Struct.data];
+lbT0Struct.timestamps = [lbT0Struct.timestamps; lbT0Struct.timestamps + 180];
+lbT0Struct.latitude = [lbT0Struct.latitude; -lbT0Struct.latitude];
+lbT0Struct.longitude = [lbT0Struct.longitude; lbT0Struct.longitude];
+lbT0Struct.solarTime = [lbT0Struct.solarTime; lbT0Struct.solarTime];
+lbT0Struct.altitude = [lbT0Struct.altitude; lbT0Struct.altitude];
+lbT0Struct.aeInt = [lbT0Struct.aeInt; lbT0Struct.aeInt];
+lbT0Struct.F = [lbT0Struct.F; lbT0Struct.F];
+lbT0Struct.FA = [lbT0Struct.FA; lbT0Struct.FA];
+lbT0Struct.apNow = [lbT0Struct.apNow; lbT0Struct.apNow];
+lbT0Struct.ap3h = [lbT0Struct.ap3h; lbT0Struct.ap3h];
+lbT0Struct.ap6h = [lbT0Struct.ap6h; lbT0Struct.ap6h];
+lbT0Struct.ap9h = [lbT0Struct.ap9h; lbT0Struct.ap9h];
+lbT0Struct.ap12To33h = [lbT0Struct.ap12To33h; lbT0Struct.ap12To33h];
+lbT0Struct.ap36To57h = [lbT0Struct.ap36To57h; lbT0Struct.ap36To57h];
+lbT0Struct.Ap = [lbT0Struct.Ap; lbT0Struct.Ap];
+lbT0Struct.type = [lbT0Struct.type; lbT0Struct.type];
 
 lbT0Struct = computeVariablesForFit(lbT0Struct);
-
-weights = ones(size(lbT0Struct.data));
-weights(Nobs+1:end) = Nobs / Nmsis;
-weights = sqrt(weights);
 
 numCoeffs = 50;
 lbT0Coeffs = zeros(numCoeffs, 1);
 
 lbT0Coeffs(1) = mean(lbT0Struct.data);
 lbT0Coeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = 0.01;
-ub = [550, 0.5*ones(1, numCoeffs-1)];
-lb = [450, -0.5*ones(1, numCoeffs-1)];
+ub = [600, 1.0*ones(1, numCoeffs-1)];
+lb = [400, -1.0*ones(1, numCoeffs-1)];
 
 opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-reflective', 'TolFun', 1E-8, ...
                  'TolX', 1E-7, 'Display', 'iter', 'MaxIter', 10000);
 
-fun = @(X) lbTemperatureMinimization(lbT0Struct, weights, X);
+fun = @(X) lbTemperatureMinimization(lbT0Struct, X);
 lbT0Coeffs = lsqnonlin(fun, lbT0Coeffs, lb, ub, opt);
 
 end
@@ -425,13 +434,13 @@ end
 
 end
 
-function [residual, Jacobian] = lbTemperatureMinimization(lbT0Struct, weights, coeff)
+function [residual, Jacobian] = lbTemperatureMinimization(lbT0Struct, coeff)
 
 modelT0 = evalT0(lbT0Struct, coeff);
-residual = weights .* (lbT0Struct.data ./ modelT0 - 1);
+residual = (lbT0Struct.data ./ modelT0 - 1);
 
 if nargout == 2
-    fun = @(X)lbTemperatureMinimization(lbT0Struct, weights, X);
+    fun = @(X)lbTemperatureMinimization(lbT0Struct, X);
     Jacobian = computeJAC(fun, coeff, length(lbT0Struct.data), 1E-5);
 end
 
@@ -557,17 +566,26 @@ end
 
 function weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct)
 
+wTex = ones(size(TexStruct.data)); wTex(TexStruct.de2) = length(TexStruct.aeE) / length(TexStruct.de2);
+wO = ones(size(OStruct.data)); wO(OStruct.de2) = length(OStruct.aeE) / length(OStruct.de2);
+wN2 = ones(size(N2Struct.data)); wN2(N2Struct.de2) = length(N2Struct.aeE) / length(N2Struct.de2);
+wHe = ones(size(HeStruct.data)); wHe(HeStruct.de2) = length(HeStruct.aeE) / length(HeStruct.de2);
+wAr = ones(size(ArStruct.data)); wAr(ArStruct.de2) = 2*length(ArStruct.aeros) / length(ArStruct.de2);
+wO2 = ones(size(O2Struct.data));
+tempSpecWeight = [wTex; wO; wN2; wHe; wAr; wO2];
+
 dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) + length(HeStruct.data) + length(rhoStruct.data)...
     + length(ArStruct.data) + length(O2Struct.data);
 TempAndSpectrometerLen = dataLen - length(rhoStruct.data);
 weights = ones(dataLen, 1);
 
 meanRhoWeight = mean(rhoStruct.weights); numRho = length(rhoStruct.weights);
+meanTempSpecWeight = mean(tempSpecWeight);
 
-w = meanRhoWeight * (numRho / TempAndSpectrometerLen);
+w = meanRhoWeight * numRho / (TempAndSpectrometerLen * meanTempSpecWeight);
 wInd = 1:TempAndSpectrometerLen;
-weights(wInd) = w;
-weights(1:length(TexStruct.data)) = 0.5 * w;
+weights(wInd) = tempSpecWeight * w;
+%weights(1:length(TexStruct.data)) = 0.5 * w;
 
 weights(wInd(end)+1:end) = rhoStruct.weights;
 

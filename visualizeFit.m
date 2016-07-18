@@ -30,17 +30,17 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 400;
-lat = 0;
-lst = 0:0.5:24;
-doy = 0:5:365;
+z = 130;
+lat = -90:5:90;
+lst = 0;
+doy = 1:5:365;
 F = 150;
 FA = 150;
 aeInt = 20*ones(1,9);
-zonalMean = false;
-latitudeMean = true;
+zonalMean = true;
+latitudeMean = false;
 devFromXmean = false;
-plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, 'xy', 'rho', coeffStruct, numBiasesStruct);
+plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, 'yx', 'T0', coeffStruct, numBiasesStruct);
 
 if exist('comparisonRho.mat', 'file')
     load comparisonRho.mat
@@ -212,14 +212,16 @@ end
 
 figure;
 
-%subplot(3,1,1);
+subplot(3,1,1);
 %clims = plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16);
-clims = plotSurfSubplot(xmat, ymat, dtmParam, paramName, titleAddition, xname, yname, 16);
+clims = plotSurfSubplot(xmat, ymat, msisParam, paramName, titleAddition, xname, yname, 16);
 
-%subplot(3,1,2);
+subplot(3,1,2);
+plotSurfSubplot(xmat, ymat, msisParam, paramName, ['MSIS ',titleAddition], xname, yname, 16, clims);
 %plotSurfSubplot(xmat, ymat, msisParam, ['MSIS ', paramName], FA, doy, altitude(a), 16, clims);
 
-%subplot(3,1,3);
+subplot(3,1,3);
+plotSurfSubplot(xmat, ymat, dtmParam, paramName, ['DTM ',titleAddition], xname, yname, 16, clims);
 %plotSurfSubplot(xmat, ymat, dtmParam, ['DTM ', paramName], FA, doy, altitude(a), 16, clims);
 % plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
 
