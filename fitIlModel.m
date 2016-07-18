@@ -172,22 +172,22 @@ function dTCoeffs = fitTemeratureGradient(lbDTStruct)
 
 fprintf('%s\n', 'Fitting Temperature gradient')
 
-lbDTStruct.data = [lbDTStruct.data; lbDTStruct.data];
-lbDTStruct.timestamps = [lbDTStruct.timestamps; lbDTStruct.timestamps + 180];
-lbDTStruct.latitude = [lbDTStruct.latitude; -lbDTStruct.latitude];
-lbDTStruct.longitude = [lbDTStruct.longitude; lbDTStruct.longitude];
-lbDTStruct.solarTime = [lbDTStruct.solarTime; lbDTStruct.solarTime];
-lbDTStruct.altitude = [lbDTStruct.altitude; lbDTStruct.altitude];
-lbDTStruct.aeInt = [lbDTStruct.aeInt; lbDTStruct.aeInt];
-lbDTStruct.F = [lbDTStruct.F; lbDTStruct.F];
-lbDTStruct.FA = [lbDTStruct.FA; lbDTStruct.FA];
-lbDTStruct.apNow = [lbDTStruct.apNow; lbDTStruct.apNow];
-lbDTStruct.ap3h = [lbDTStruct.ap3h; lbDTStruct.ap3h];
-lbDTStruct.ap6h = [lbDTStruct.ap6h; lbDTStruct.ap6h];
-lbDTStruct.ap9h = [lbDTStruct.ap9h; lbDTStruct.ap9h];
-lbDTStruct.ap12To33h = [lbDTStruct.ap12To33h; lbDTStruct.ap12To33h];
-lbDTStruct.ap36To57h = [lbDTStruct.ap36To57h; lbDTStruct.ap36To57h];
-lbDTStruct.Ap = [lbDTStruct.Ap; lbDTStruct.Ap];
+lbDTStruct.data = [lbDTStruct.data(1:2:end); lbDTStruct.data(1:2:end)];
+lbDTStruct.timestamps = [lbDTStruct.timestamps(1:2:end); lbDTStruct.timestamps(1:2:end) + 180];
+lbDTStruct.latitude = [lbDTStruct.latitude(1:2:end); -lbDTStruct.latitude(1:2:end)];
+lbDTStruct.longitude = [lbDTStruct.longitude(1:2:end); lbDTStruct.longitude(1:2:end)];
+lbDTStruct.solarTime = [lbDTStruct.solarTime(1:2:end); lbDTStruct.solarTime(1:2:end)];
+lbDTStruct.altitude = [lbDTStruct.altitude(1:2:end); lbDTStruct.altitude(1:2:end)];
+lbDTStruct.aeInt = [lbDTStruct.aeInt(1:2:end); lbDTStruct.aeInt(1:2:end)];
+lbDTStruct.F = [lbDTStruct.F(1:2:end); lbDTStruct.F(1:2:end)];
+lbDTStruct.FA = [lbDTStruct.FA(1:2:end); lbDTStruct.FA(1:2:end)];
+lbDTStruct.apNow = [lbDTStruct.apNow(1:2:end); lbDTStruct.apNow(1:2:end)];
+lbDTStruct.ap3h = [lbDTStruct.ap3h(1:2:end); lbDTStruct.ap3h(1:2:end)];
+lbDTStruct.ap6h = [lbDTStruct.ap6h(1:2:end); lbDTStruct.ap6h(1:2:end)];
+lbDTStruct.ap9h = [lbDTStruct.ap9h(1:2:end); lbDTStruct.ap9h(1:2:end)];
+lbDTStruct.ap12To33h = [lbDTStruct.ap12To33h(1:2:end); lbDTStruct.ap12To33h(1:2:end)];
+lbDTStruct.ap36To57h = [lbDTStruct.ap36To57h(1:2:end); lbDTStruct.ap36To57h(1:2:end)];
+lbDTStruct.Ap = [lbDTStruct.Ap(1:2:end); lbDTStruct.Ap(1:2:end)];
 
 lbDTStruct = computeVariablesForFit(lbDTStruct);
 
