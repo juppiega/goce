@@ -205,13 +205,13 @@ dTCoeffs = [zeros(1,1), latitude, solarActivity, annual, diurnal, semidiurnal, .
 dTCoeffs(1) = mean(lbDTStruct.data);
 
 
-%opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
-%                 'TolX', 1E-8, 'Display', 'iter', 'initDamping', 1E8, 'OutputFcn', @outfun);
+opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
+                 'TolX', 1E-8, 'Display', 'iter', 'initDamping', 1E8, 'OutputFcn', @outfun);
 
 fun = @(X) temperatureGradientMinimization(lbDTStruct, X);
-[fval, JAC] = fun(dTCoeffs);
-JTJ_diag = diag(JAC'*JAC);
-%[dTCoeffs] = lsqnonlin(fun, dTCoeffs, [], [], opt);
+%[fval, JAC] = fun(dTCoeffs);
+%JTJ_diag = diag(JAC'*JAC);
+[dTCoeffs] = lsqnonlin(fun, dTCoeffs, [], [], opt);
 
 end
 
