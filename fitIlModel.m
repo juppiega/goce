@@ -206,7 +206,7 @@ dTCoeffs(1) = mean(lbDTStruct.data);
 
 
 %opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
-                 'TolX', 1E-8, 'Display', 'iter', 'initDamping', 1E8, 'OutputFcn', @outfun);
+%                 'TolX', 1E-8, 'Display', 'iter', 'initDamping', 1E8, 'OutputFcn', @outfun);
 
 fun = @(X) temperatureGradientMinimization(lbDTStruct, X);
 [fval, JAC] = fun(dTCoeffs);
