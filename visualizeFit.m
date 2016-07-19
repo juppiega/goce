@@ -31,14 +31,14 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'T0Coeff', T0Coeffs);
 
 z = 130;
-lat = -90:5:90;
+lat = 0;
 lst = 0:0.5:24;
-doy = 180;
-F = 150;
-FA = 150;
+doy = 1:5:365;
+F = 70;
+FA = 70;
 aeInt = 20*ones(1,9);
 zonalMean = false;
-latitudeMean = false;
+latitudeMean = true;
 devFromXmean = false;
 sameColorBars = false;
 plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, ...

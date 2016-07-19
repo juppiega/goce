@@ -8,7 +8,7 @@ lon = 0;
 alt = 130;
 F107 = 150;
 F107A = F107;
-Ap = 132;
+Ap = 3;
 
 meanT = 0;
 meanTgrad = 0;

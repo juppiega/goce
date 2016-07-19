@@ -357,41 +357,57 @@ function G_lbDT(a, S, numBiases)
     real(kind = 8), allocatable :: G_lbDT(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
                                    terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
                                    geom_lst(:), AE_base(:)
-    integer :: k, dPy, numInts
+    integer :: k, dPh, numInts
     integer(kind = 4) :: mexPrintf, i
     real(kind = 8) :: pi
     pi = 4.0 * atan(1.0)
     
-    k = numBiases + 1;
+    k = numBiases + 1; ! Counter, which helps adding termS%
+    !i = mexPrintf('G Begin'//achar(13))
+    ! Latitude termS%
+    latitudeTerm = a(k+1)*S%P10 + a(k+2)*S%P20 + a(k+3)*S%P30 + a(k+4)*S%P40 + a(k+5)*S%P50 + a(k+6)*S%P60 + &
+                     a(k+7)*S%FA*S%P10 + a(k+8)*S%FA*S%P20 + a(k+9)*S%FA*S%P30 + a(k+10)*S%FA*S%P40 + &
+                     a(k+11)*S%F*S%P10 + a(k+12)*S%F*S%P20 + a(k+13)*S%F*S%P30 + a(k+14)*S%F*S%P40;
+    k = k + 14;
 
-    latitudeTerm = a(k+1)*S%P10 + a(k+2)*S%P20 + a(k+3)*S%P30 + a(k+4)*S%P40 + &
-                     a(k+5)*S%FA*S%P10 + a(k+6)*S%FA*S%P20 + a(k+7)*S%FA*S%P30 + &
-                     a(k+8)*S%F*S%P10 + a(k+9)*S%F*S%P20 + a(k+10)*S%F*S%P30;
-    k = k + 10;
-
+    ! % Solar activity termS%
+    !i = mexPrintf('G:solar'//achar(13))
     solarTerm = a(k+1)*S%F + a(k+2)*S%F**2 + a(k+3)*S%FA + a(k+4)*S%FA**2 + a(k+5)*S%F*S%FA;
     k = k + 5;
 
+    ! Annual termS%
+    !i = mexPrintf('G:annual'//achar(13))
     annual = (a(k+1) + a(k+2)*S%P10 + a(k+3)*S%P20 + a(k+4)*S%P30 + a(k+5)*S%P40 + a(k+6)*S%FA + a(k+7)*S%F) * &
-               (a(k+8)*sin(S%yv) + a(k+9)*cos(S%yv) + a(k+10)*sin(2*S%yv) + a(k+11)*cos(2*S%yv));
-    k = k + 11;
+               (a(k+8)*sin(S%yv) + a(k+9)*cos(S%yv) + a(k+10)*sin(2*S%yv) + a(k+11)*cos(2*S%yv) + a(k+12)*sin(3*S%yv) + &
+                a(k+13)*cos(3*S%yv) + a(k+14)*sin(4*S%yv) + a(k+15)*cos(4*S%yv));
+    k = k + 15;
+
+    dPh = k + 11;
+    !i = mexPrintf('G:diurnal'//achar(13))
+    diurnal = ((a(k+1)*S%P11 + a(k+2)*S%P31 + a(k+3)*S%P51 + a(k+4)*S%P71 + a(k+5)*S%FA + a(k+6)*S%FA**2 + &
+                 a(k+7)*(S%F - S%FA)) + (a(k+8)*S%P11 + a(k+9)*S%P21 + a(k+10)*S%P31)*(cos(S%yv-pi*a(dPh))))*cos(S%dv) + &
+                ((a(k+12)*S%P11 + a(k+13)*S%P31 + a(k+14)*S%P51 + a(k+15)*S%P71 + a(k+16)*S%FA + a(k+17)*S%FA**2 + &
+                a(k+18)*(S%F - S%FA)) + (a(k+19)*S%P11 + a(k+20)*S%P21 + a(k+21)*S%P31)*(cos(S%yv-pi*a(dPh))))*sin(S%dv);
+    k = k + 21;
     
-    dPy = k + 7;
-    diurnal = ((a(k+1)*S%P11 + a(k+2)*S%P31 + a(k+3)*S%FA + a(k+4)*S%FA**2) + (a(k+5)*S%P11 + a(k+6)*S%P21)*&
-                (cos(S%yv-pi*a(dPy))))*cos(S%dv) + &
-                ((a(k+8)*S%P11 + a(k+9)*S%P31 + a(k+10)*S%FA + a(k+11)*S%FA**2) + (a(k+12)*S%P11 + a(k+13)*S%P21)*&
-                (cos(S%yv-pi*a(dPy))))*sin(S%dv);
-    k = k + 13;
+    !i = mexPrintf('G:semidiurnal'//achar(13))
+    semidiurnal = (a(k+1)*S%P22 + a(k+2)*S%P32 + a(k+3)*S%P52 + a(k+4)*S%FA + a(k+5)*S%FA**2 + a(k+6)*(S%F-S%FA) + &
+                (a(k+7)*S%P32 + a(k+8)*S%P52)*cos(S%yv-pi*a(dPh)))*cos(2*S%dv) + &
+                (a(k+9)*S%P22 + a(k+10)*S%P32 + a(k+11)*S%P52 + a(k+12)*S%FA + a(k+13)*S%FA**2 + a(k+14)*(S%F-S%FA) + &
+                (a(k+15)*S%P32 + a(k+16)*S%P52)*cos(S%yv-pi*a(dPh)))*sin(2*S%dv);
+    k = k + 16;
 
-    semidiurnal = ((a(k+1)*S%P22 + a(k+2)*S%P32 + a(k+3)*S%FA + a(k+4)*S%FA**2) + &
-                    (a(k+5)*S%P32)*cos(S%yv-pi*a(dPy)))*cos(2*S%dv) + &
-                    ((a(k+6)*S%P22 + a(k+7)*S%P32 + a(k+8)*S%FA + a(k+9)*S%FA**2) &
-                    + (a(k+10)*S%P32)*cos(S%yv-pi*a(dPy)))*sin(2*S%dv);
+    !i = mexPrintf('G:terdiurnal'//achar(13))
+    terdiurnal = (a(k+1)*S%P33 + a(k+2)*S%P53 + (a(k+3)*S%P43 + a(k+4)*S%P63)*cos(S%yv-pi*a(dPh)))*cos(3*S%dv) + &
+                   (a(k+5)*S%P33 + a(k+6)*S%P53 + (a(k+7)*S%P43 + a(k+8)*S%P63)*cos(S%yv-pi*a(dPh)))*sin(3*S%dv);
+    k = k + 8;
 
-    k = k + 10;
+    !i = mexPrintf('G:quaterdiurnal'//achar(13))
+    quaterdiurnal = a(k+1)*S%P44*cos(4*S%dv) + a(k+2)*S%P44*sin(4*S%dv);
+    k = k + 2;
 
     !i = mexPrintf('G:sum'//achar(13))
-    G_lbDT = latitudeTerm + solarTerm + annual + diurnal + semidiurnal;
+    G_lbDT = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal
     !i = mexPrintf('G End'//achar(13))
 end function
 
