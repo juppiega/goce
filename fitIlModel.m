@@ -577,9 +577,9 @@ end
 function weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct)
 
 wTex = ones(size(TexStruct.data)); wTex(TexStruct.de2) = length(TexStruct.aeE) / length(TexStruct.de2);
-wO = ones(size(OStruct.data)); wO(OStruct.de2) = length(OStruct.aeE) / length(OStruct.de2);
-wN2 = ones(size(N2Struct.data)); wN2(N2Struct.de2) = length(N2Struct.aeE) / length(N2Struct.de2);
-wHe = ones(size(HeStruct.data)); wHe(HeStruct.de2) = length(HeStruct.aeE) / length(HeStruct.de2);
+wO = ones(size(OStruct.data)); wO(OStruct.de2) = length(OStruct.aeENace) / length(OStruct.de2);
+wN2 = ones(size(N2Struct.data)); wN2(N2Struct.de2) = length(N2Struct.aeENace) / length(N2Struct.de2);
+wHe = ones(size(HeStruct.data)); wHe(HeStruct.de2) = length(HeStruct.aeENace) / length(HeStruct.de2);
 wAr = ones(size(ArStruct.data)); wAr(ArStruct.de2) = 2*length(ArStruct.aeros) / length(ArStruct.de2);
 wO2 = ones(size(O2Struct.data));
 tempSpecWeight = [wTex; wO; wN2; wHe; wAr; wO2];
