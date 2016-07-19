@@ -199,7 +199,7 @@ diurnal = zeros(1, 21); diurnal([8, 19]) = 0.001;
 semidiurnal = zeros(1,16);
 terdiurnal = zeros(1,8);
 quaterdiurnal = zeros(1,2);
-dTCoeffs = [latitude, solarActivity, annual, diurnal, semidiurnal, ...
+dTCoeffs = [zeros(1,1), latitude, solarActivity, annual, diurnal, semidiurnal, ...
     terdiurnal, quaterdiurnal];
 
 dTCoeffs(1) = mean(lbDTStruct.data);
