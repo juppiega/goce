@@ -191,17 +191,27 @@ lbDTStruct.Ap = [lbDTStruct.Ap(1:2:end); lbDTStruct.Ap(1:2:end)];
 
 lbDTStruct = computeVariablesForFit(lbDTStruct);
 
-numCoeffs = 50;
-dTCoeffs = zeros(numCoeffs, 1);
+numCoeffs = 82;
+latitude = zeros(1,14);
+solarActivity = zeros(1,5);
+annual = zeros(1,15); annual(1) = 0.002; annual(8) = 0.0002;
+diurnal = zeros(1, 21); diurnal([8, 19]) = 0.001;
+semidiurnal = zeros(1,16);
+terdiurnal = zeros(1,8);
+quaterdiurnal = zeros(1,2);
+dTCoeffs = [latitude, solarActivity, annual, diurnal, semidiurnal, ...
+    terdiurnal, quaterdiurnal];
 
 dTCoeffs(1) = mean(lbDTStruct.data);
-dTCoeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = -0.01;
 
-opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
+
+%opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
                  'TolX', 1E-8, 'Display', 'iter', 'initDamping', 1E8, 'OutputFcn', @outfun);
 
 fun = @(X) temperatureGradientMinimization(lbDTStruct, X);
-[dTCoeffs] = lsqnonlin(fun, dTCoeffs, [], [], opt);
+[fval, JAC] = fun(dTCoeffs);
+JTJ_diag = diag(JAC'*JAC);
+%[dTCoeffs] = lsqnonlin(fun, dTCoeffs, [], [], opt);
 
 end
 

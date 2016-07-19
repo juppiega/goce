@@ -9,7 +9,7 @@
 ! mex FCFLAGS="\$FCFLAGS -O3" -output dtm2013_mex t_dtm_date.F90 dtm_interfaces.F90 DTM_2012_subroutines.F90 dtm2013_mex.F90                                                             *
 !                                                                 *
 ! Usage:                                                          *
-! [tinf, tz, rho, rho_unc, wmm, d]                                *
+! [tinf, tz, rho, rho_unc, wmm, d, tg120]                         *
 ! = dtm2013_mex(day_of_year, altitude, latitude, longitude,       *
 !            local_solar_time, F10, F10A, Am3hAgo, Am24hAverage)  *
 ! *****************************************************************
@@ -84,6 +84,7 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
         plhs(3) = mxCreateDoubleScalar(dble(zero))
         plhs(4) = mxCreateDoubleScalar(dble(zero))
         plhs(5) = mxCreateDoubleScalar(dble(zero))
+        plhs(7) = mxCreateDoubleScalar(dble(zero))
     
         ! The sixth output is a matrix of concentrations: d
         plhs(6) = mxCreateDoubleMatrix(6,1,0) ! 6 by 1 real matrix
@@ -95,7 +96,7 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
         return
     endif
 
-    if(nlhs > 6) then
+    if(nlhs > 7) then
        call mexErrMsgTxt('DTM2013: Too many outputs!')
     endif
 
@@ -170,6 +171,8 @@ subroutine mexfunction(nlhs, plhs, nrhs, prhs)
     output_ptr = mxGetPr(plhs(6))
     output_size = 6
     call mxCopyReal8ToPtr(dble(d), output_ptr, output_size) 
+
+    plhs(7) = mxCreateDoubleScalar(dble(tg120))
 
     return
 end subroutine mexfunction

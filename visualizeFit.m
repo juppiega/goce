@@ -32,15 +32,17 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 
 z = 130;
 lat = -90:5:90;
-lst = 0;
-doy = 1:5:365;
+lst = 0:0.5:24;
+doy = 180;
 F = 150;
 FA = 150;
 aeInt = 20*ones(1,9);
-zonalMean = true;
+zonalMean = false;
 latitudeMean = false;
 devFromXmean = false;
-plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, 'yx', 'T0', coeffStruct, numBiasesStruct);
+sameColorBars = false;
+plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, ...
+    sameColorBars, 'yx', 'dT', coeffStruct, numBiasesStruct);
 
 if exist('comparisonRho.mat', 'file')
     load comparisonRho.mat
@@ -75,7 +77,8 @@ Tex = clamp(T0+1, Tex_est, 5000);
 
 end
 
-function [] = plotSurfs(altitude, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, paramOrder, paramName, coeffStruct, numBiasesStruct)
+function [] = plotSurfs(altitude, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, ...
+    devFromXmean, sameColorBars, paramOrder, paramName, coeffStruct, numBiasesStruct)
 
 [X, Y, xname, yname] = findSurfXY(altitude, lat, lst, doy, paramOrder);
 
@@ -212,19 +215,34 @@ end
 
 figure;
 
-subplot(3,1,1);
-%clims = plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16);
-clims = plotSurfSubplot(xmat, ymat, msisParam, paramName, titleAddition, xname, yname, 16);
+if sameColorBars
+    subplot(3,1,1);
+    %clims = plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16);
+    clims = plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 16);
 
-subplot(3,1,2);
-plotSurfSubplot(xmat, ymat, msisParam, paramName, ['MSIS ',titleAddition], xname, yname, 16, clims);
-%plotSurfSubplot(xmat, ymat, msisParam, ['MSIS ', paramName], FA, doy, altitude(a), 16, clims);
+    subplot(3,1,2);
+    plotSurfSubplot(xmat, ymat, msisParam, paramName, ['MSIS ',titleAddition], xname, yname, 16, clims);
+    %plotSurfSubplot(xmat, ymat, msisParam, ['MSIS ', paramName], FA, doy, altitude(a), 16, clims);
 
-subplot(3,1,3);
-plotSurfSubplot(xmat, ymat, dtmParam, paramName, ['DTM ',titleAddition], xname, yname, 16, clims);
-%plotSurfSubplot(xmat, ymat, dtmParam, ['DTM ', paramName], FA, doy, altitude(a), 16, clims);
-% plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
+    subplot(3,1,3);
+    plotSurfSubplot(xmat, ymat, dtmParam, paramName, ['DTM ',titleAddition], xname, yname, 16, clims);
+    %plotSurfSubplot(xmat, ymat, dtmParam, ['DTM ', paramName], FA, doy, altitude(a), 16, clims);
+    % plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
+else
+    subplot(3,1,1);
+    %clims = plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16);
+    plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 16);
 
+    subplot(3,1,2);
+    plotSurfSubplot(xmat, ymat, msisParam, paramName, ['MSIS ',titleAddition], xname, yname, 16);
+    %plotSurfSubplot(xmat, ymat, msisParam, ['MSIS ', paramName], FA, doy, altitude(a), 16, clims);
+
+    subplot(3,1,3);
+    plotSurfSubplot(xmat, ymat, dtmParam, paramName, ['DTM ',titleAddition], xname, yname, 16);
+    %plotSurfSubplot(xmat, ymat, dtmParam, ['DTM ', paramName], FA, doy, altitude(a), 16, clims);
+    % plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
+
+end
 
 
 end
@@ -609,7 +627,7 @@ end
 
 function [T0_msis, dT_msis, T0_dtm, dT_dtm] = computeMsisDtmLb(S)
 
-z0 = 130;
+z0 = S.altitude(1);
 dz = 0.1;
 
 N = length(S.latitude);
@@ -636,14 +654,11 @@ for i = 1:N
     dT_msis(i) = (T3-T1) / (2*dz);
     T0_msis(i) = T2;
     
-    [~,T1] = dtm2013_mex(S.doy(i), z0-dz, S.latitude(i), S.longitude(i), ...
+    [~,T0,~,~,~,~,dT0] = dtm2013_mex(S.doy(i), z0, S.latitude(i), S.longitude(i), ...
     S.solarTime(i), S.F(i), S.FA(i), S.ap3h(i), S.Ap(i));
-    [~,T2] = dtm2013_mex(S.doy(i), z0, S.latitude(i), S.longitude(i), ...
-    S.solarTime(i), S.F(i), S.FA(i), S.ap3h(i), S.Ap(i));
-    [~,T3] = dtm2013_mex(S.doy(i), z0+dz, S.latitude(i), S.longitude(i), ...
-    S.solarTime(i), S.F(i), S.FA(i), S.ap3h(i), S.Ap(i));
-    dT_dtm(i) = (T3-T1) / (2*dz);
-    T0_dtm(i) = T2;
+
+    dT_dtm(i) = dT0;
+    T0_dtm(i) = T0;
     
     if mod(i, 10000) == 0
         p.progress;
