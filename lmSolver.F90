@@ -155,7 +155,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
             if (successfulStep) lambda = max(lambda/10, dble(1E-10)) ! Decrease lambda.
             successfulStep = .true.
             flag = converged(costFuncVec, trialCostFunc, tolFun, norm2(X), norm2(step), tolX, &
-                      firstOrderOpt, tolOpt, iter, maxIter, numFuncEvals, maxFuncEvals)
+                      firstOrderOpt, tolOpt, lambda, iter, maxIter, numFuncEvals, maxFuncEvals)
             costFuncVec = trialCostFunc
             if (flag /= 0) exit
         else ! Trial point faired worse than the current point.
@@ -273,10 +273,10 @@ end subroutine
 
 ! Function to check convergence.
 integer function converged(costFuncVec, trialCostFunc, tolFun, norm2X, norm2step, tolX, &
-                       firstOrderOpt, tolOpt, iter, maxIter, numFuncEvals, maxFuncEvals)
+                       firstOrderOpt, tolOpt, lambda, iter, maxIter, numFuncEvals, maxFuncEvals)
     implicit none
     real(kind = 8), intent(in) :: costFuncVec(:), trialCostFunc(:), tolFun, norm2X, norm2step, tolX, &
-                                  firstOrderOpt, tolOpt
+                                  firstOrderOpt, tolOpt, lambda
     integer, intent(in) :: iter, maxIter, numFuncEvals, maxFuncEvals
     real(kind = 8) :: trialSumSq, sumSq
 
@@ -285,7 +285,7 @@ integer function converged(costFuncVec, trialCostFunc, tolFun, norm2X, norm2step
 
     if (firstOrderOpt < tolOpt) then
         converged = 1
-    elseif (norm2step < tolX * (sqrt(epsilon(tolX)) + norm2X)) then
+    elseif (1.0/lambda >= tolX .and. norm2step < tolX * (sqrt(epsilon(tolX)) + norm2X)) then
         converged = 2
     else if (abs(sumSq - trialSumSq) < tolFun * sumSq) then
         converged = 3
