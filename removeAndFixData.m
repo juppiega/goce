@@ -1,7 +1,7 @@
 function [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct)
 
-if exists('satScales.mat', 'file')
+if exist('satScales.mat', 'file')
     load satScales.mat
 else
     computeAccelerometerBiases(rhoStruct);
