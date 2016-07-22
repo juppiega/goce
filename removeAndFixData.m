@@ -1,8 +1,14 @@
 function [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct)
 
-
-rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 1.23;
+if exists('satScales.mat', 'file')
+    load satScales.mat
+else
+    computeAccelerometerBiases(rhoStruct);
+    load satScales.mat
+end
+rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * goceScale;
+rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * graceScale;
 rhoStruct.numBiases = 0;
 if aeThreshold <= 0
     removeInd = ~ismember(1:length(rhoStruct.data), 1:30:length(rhoStruct.data)) | rhoStruct.data' <= 0; % !!!!!!!!!! TESTAUS

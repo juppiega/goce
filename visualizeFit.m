@@ -30,19 +30,19 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 130;
-lat = 0;
+z = 800;
+lat = -90:5:90;
 lst = 0:0.5:24;
-doy = 1:5:365;
-F = 70;
-FA = 70;
+doy = 180;
+F = 200;
+FA = 200;
 aeInt = 20*ones(1,9);
 zonalMean = false;
-latitudeMean = true;
+latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
-plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'dT', coeffStruct, numBiasesStruct);
+%plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, ...
+%    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 
 if exist('comparisonRho.mat', 'file')
     load comparisonRho.mat
@@ -56,8 +56,8 @@ end
 
 modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
-% plot3DOM(rhoStruct.doy, 10, rhoStruct.FA, 20, rhoStruct.data,...
-%     modelStruct, 'rms', 'doy', 'FA');
+%plot3DOM(rhoStruct.aeInt(:,4), 50, rhoStruct.solarTime, 2, rhoStruct.data,...
+%    modelStruct, 'O/M', 'AE 16h', 'lst');
 
 %plot2DOM(rhoStruct.doy, 50, rhoStruct.data, modelStruct, 'O/M', 'DOY')
 
@@ -485,7 +485,7 @@ Title = ['MSIS ', baseTitle];
 title(Title);
 xlabel(xName)
 ylabel(yName)
-%caxis(clims);
+caxis(clims);
 
 subplot(4,1,4)
 surf(Xmat, Ymat, dtmMat, 'edgecolor', 'none')
@@ -496,7 +496,7 @@ Title = ['DTM ', baseTitle];
 title(Title);
 xlabel(xName)
 ylabel(yName)
-%caxis(clims);
+caxis(clims);
 
 end
 

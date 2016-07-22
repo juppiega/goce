@@ -1,6 +1,6 @@
 function [fixStruct] = removeDataPoints(fixStruct, removeInd, removeBiasMatRows, fixSatIndices, fixZ, fixWeights)
 
-if (length(fixStruct.data) ~= length(removeInd))
+if (islogical(removeInd) && length(fixStruct.data) ~= length(removeInd))
     error('Lengths of struct data and remove indices (logical vector) must be the same!')
 end
 

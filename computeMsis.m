@@ -1,5 +1,12 @@
 function [Tex, rho, O, N2, He, Ar, O2, T] = computeMsis(S)
 
+% Annual parameter.
+if ~isfield(S, 'doy')
+    [yr,~,~,~,~,~] = datevec(S.timestamps);
+    yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
+    S.doy = S.timestamps - datenum(yearVec) + 1;
+end
+
 N = length(S.latitude);
 Tex = zeros(N,1);
 T = zeros(N,1);
