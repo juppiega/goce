@@ -75,7 +75,7 @@ end
 
 if ~exist('ilData.mat', 'file') 
     fprintf('%s\n', 'Arranging satellite data by variable')
-    [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0);
+    [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, originalRhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0);
     fprintf('%s\n', 'Saving results to "ilData.mat" file')
     save('ilData.mat', 'TempStruct', '-v7.3')
     save('ilData.mat', 'OStruct', '-append')
@@ -84,6 +84,7 @@ if ~exist('ilData.mat', 'file')
     save('ilData.mat', 'ArStruct', '-append')
     save('ilData.mat', 'O2Struct', '-append')
     save('ilData.mat', 'rhoStruct', '-append')
+    save('ilData.mat', 'originalRhoStruct', '-append')
     save('ilData.mat', 'lbDTStruct', '-append')
     save('ilData.mat', 'lbT0Struct', '-append')
 end
@@ -157,7 +158,7 @@ end
 toc;
 end
 
-function [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberDT, T0)
+function [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, originalRhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberDT, T0)
 
 TempStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
@@ -236,6 +237,10 @@ rhoStruct.Ap = vertcat(combStruct.ApDaily);
 k = length(goceData.timestamps); rhoStruct.goce = 1:k;
 rhoStruct.champ = k+1 : k + length(champData.timestamps); k = k + length(champData.timestamps);
 rhoStruct.grace = k+1 : k + length(graceData.timestamps);
+
+originalRhoStruct = rhoStruct;
+
+rhoStruct = averageRho(rhoStruct);
 
 end
 

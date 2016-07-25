@@ -22,6 +22,11 @@ goceInd(goceChampNonCoplanar) = [];
 graceInd(graceChampNonCoplanar) = [];
 champGoce(goceChampNonCoplanar) = [];
 champGrace(graceChampNonCoplanar) = [];
+% 
+% goceInd = goceInd(1:10:end);
+% graceInd = graceInd(1:10:end);
+% champGoce = champGoce(1:10:end);
+% champGrace = champGrace(1:10:end);
 
 goceStruct = removeDataPoints(rhoStruct, goceInd + rhoStruct.goce(1) - 1);
 graceStruct = removeDataPoints(rhoStruct, graceInd + rhoStruct.grace(1) - 1);
