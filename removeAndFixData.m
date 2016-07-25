@@ -60,7 +60,7 @@ lbDTStruct.FA = lbDTStruct.F81A;
 lbDTStruct.ap12To33h = lbDTStruct.apAver12To33h;
 lbDTStruct.ap36To57h = lbDTStruct.apAver36To57h;
 lbDTStruct.Ap = lbDTStruct.ApDaily;
-lbDTStruct.altitude = lbDTStruct.altitude .* ones(size(lbDTStruct.data));
+lbDTStruct.altitude = lbDTStruct.altitude(1) * ones(size(lbDTStruct.data));
 
 removeInd = lbDTStruct.solarTime < 0;
 removeInd(lbDTStruct.data <= 1 | lbDTStruct.data > 20) = true;
