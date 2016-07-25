@@ -1,6 +1,9 @@
 function [addStruct] = computeVariablesForFit(addStruct)
 
 x = cosd(90 - addStruct.latitude);
+[magLat, magLon] = convertToMagneticCoordinates(addStruct.latitude, addStruct.longitude,...
+                                                addStruct.altitude);
+x_mag = cosd(90 - magLat);
 
 % First degree functions.
 P = legendre(1, x);
@@ -47,6 +50,37 @@ addStruct.P70 = P(1,:)';
 addStruct.P71 = P(2,:)';
 addStruct.P74 = P(5,:)';
 
+% First degree functions.
+P = legendre(1, x_mag);
+addStruct.mP10 = P(1,:)';
+addStruct.mP11 = P(2,:)';
+
+% Second degree.
+P = legendre(2, x_mag);
+addStruct.mP20 = P(1,:)';
+
+% Third degree.
+P = legendre(3, x_mag);
+addStruct.mP30 = P(1,:)';
+addStruct.mP31 = P(2,:)';
+
+% Fourth degree.
+P = legendre(4, x_mag);
+addStruct.mP40 = P(1,:)';
+
+% Fifth degree.
+P = legendre(5, x_mag);
+addStruct.mP50 = P(1,:)';
+addStruct.mP51 = P(2,:)';
+
+% Sixth degree.
+P = legendre(6, x_mag);
+addStruct.mP60 = P(1,:)';
+
+% Seventh degree.
+P = legendre(7, x_mag);
+addStruct.mP70 = P(1,:)';
+
 addStruct.F2 = addStruct.F.^2;
 addStruct.FA2 = addStruct.FA.^2;
 addStruct.FtimesFA = addStruct.F .* addStruct.FA;
@@ -57,11 +91,12 @@ if ~isfield(addStruct, 'doy')
     yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
     addStruct.doy = addStruct.timestamps - datenum(yearVec) + 1;
 end
+lstMag = computeMagneticTime(magLon, addStruct.doy, addStruct.timestamps);
 addStruct.yv = 2*pi*(addStruct.doy-1)/365;
 
 % Diurnal parameter
 addStruct.dv = 2*pi* (addStruct.solarTime) / 24;
-
+addStruct.dv_mag = 2*pi*lstMag / 24;
 addStruct.latitudeTerm = zeros(length(x),1);
 addStruct.solarTerm = zeros(length(x),1);
 addStruct.annual = zeros(length(x),1);

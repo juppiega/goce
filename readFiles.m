@@ -244,7 +244,7 @@ originalRhoStruct = rhoStruct;
     removeAndFixData(rhoStruct, 0, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
 
 rhoStruct = averageRho(rhoStruct, true);
-TempStruct = averageRho(TempStruct);
+TempStruct = averageRho(TempStruct, false);
 
 [OStruct, removeInd] = averageRho(OStruct, false);
 satInd = zeros(1, length(removeInd));
@@ -1749,24 +1749,5 @@ colorbar;
 
 morningLatDoy = interp2(morningDoyGrid, morningLatGrid, morningDensities, morningDoy, morningLatitude, 'spline');
 eveningLatDoy = interp2(eveningDoyGrid, eveningLatGrid, eveningDensities, eveningDoy, eveningLatitude, 'spline');
-
-end
-
-function [magneticLocalTime] = computeMagneticTime(magneticLongitude, doy, timestampsDatenum)
-%
-
-hours = (timestampsDatenum - floor(timestampsDatenum)) * 24;
-
-subSolarLat = 23.5 * sin(0.0172 * doy - 1.405);
-subSolarLon = 15 * (12 - hours);
-
-altitude = ones(size(doy)) * 270e3;
-[~, magneticSubSolarLon] = convertToMagneticCoordinates(subSolarLat, subSolarLon, altitude);
-
-magneticLocalTime = 12 + (magneticLongitude - magneticSubSolarLon) / 15;
-tooBigTimes = magneticLocalTime >= 24;
-tooSmallTimes = magneticLocalTime < 0;
-magneticLocalTime(tooBigTimes) = magneticLocalTime(tooBigTimes) - 24;
-magneticLocalTime(tooSmallTimes) = magneticLocalTime(tooSmallTimes) + 24;
 
 end

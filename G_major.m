@@ -41,9 +41,9 @@ S.quaterdiurnal = a(k+1)*S.P44.*cos(4*S.dv) + a(k+2)*S.P44.*sin(4*S.dv);
 k = k + 2;
 
 AE_base = sum(bsxfun(@times, [a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7), a(k+8)], S.aeInt(:,1:end-1)),2);
-geom_symmetric = AE_base + (a(k+9)*S.P20 + a(k+10)*S.P40 + a(k+11)*S.P60).*AE_base;
-geom_yearly = (a(k+12)*S.P10 + a(k+13)*S.P30 + a(k+14)*S.P50 + a(k+15)*S.P70).*AE_base.*cos(S.yv-pi*a(k+16));
-geom_lst = (a(k+17)*S.P11 + a(k+18)*S.P31 + a(k+19)*S.P51).*AE_base.*cos(S.dv-pi*a(k+20));
+geom_symmetric = AE_base + (a(k+9)*S.mP20 + a(k+10)*S.mP40 + a(k+11)*S.mP60).*AE_base;
+geom_yearly = (a(k+12)*S.mP10 + a(k+13)*S.mP30 + a(k+14)*S.mP50 + a(k+15)*S.mP70).*AE_base.*cos(S.yv-pi*a(k+16));
+geom_lst = (a(k+17)*S.mP11 + a(k+18)*S.mP31 + a(k+19)*S.mP51).*AE_base.*cos(S.dv_mag-pi*a(k+20));
 S.geomagnetic = geom_symmetric + geom_yearly + geom_lst + a(k+21)*AE_base.^2;% + a(k+21)*geom_symmetric.*AE_base + a(k+22)*geom_yearly.*AE_base + a(k+23)*geom_lst.*AE_base;
 % S.geomagnetic = sum(bsxfun(@times, [a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7), a(k+8)], S.aeInt(:,1:end-1)),2) .* (a(k+9) + a(k+10)*S.P40 + a(k+11)*S.P60 + (a(k+12)*S.P10 + a(k+13)*S.P30).*cos(S.yv-pi*a(dPh))) + ...
 %                 (a(k+15)*S.aeInt(:,1) + a(k+16)*S.aeInt(:,3) + a(k+17)*S.aeInt(:,6)) .* (a(k+18)*S.P11 + (a(k+19)*S.P21 + a(k+20)*S.P31).*cos(S.yv-pi*a(dPh))).*cos(S.dv) + ...
