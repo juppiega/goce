@@ -240,7 +240,59 @@ rhoStruct.grace = k+1 : k + length(graceData.timestamps);
 
 originalRhoStruct = rhoStruct;
 
-rhoStruct = averageRho(rhoStruct);
+[rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
+    removeAndFixData(rhoStruct, 0, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
+
+rhoStruct = averageRho(rhoStruct, true);
+TempStruct = averageRho(TempStruct);
+
+[OStruct, removeInd] = averageRho(OStruct);
+satInd = zeros(1, length(removeInd));
+satInd(OStruct.de2) = 1;
+satInd(OStruct.aeC) = 2;
+satInd(OStruct.aeENace) = 3;
+satInd(OStruct.aeEOss) = 4;
+satInd(removeInd) = [];
+OStruct.de2 = find(satInd == 1);
+OStruct.aeC = find(satInd == 2);
+OStruct.aeENace = find(satInd == 3);
+OStruct.aeEOss = find(satInd == 4);
+
+[N2Struct, removeInd] = averageRho(N2Struct);
+satInd = zeros(1, length(removeInd));
+satInd(N2Struct.de2) = 1;
+satInd(N2Struct.aeC) = 2;
+satInd(N2Struct.aeENace) = 3;
+satInd(N2Struct.aeEOss) = 4;
+satInd(N2Struct.aeros) = 5;
+satInd(removeInd) = [];
+N2Struct.de2 = find(satInd == 1);
+N2Struct.aeC = find(satInd == 2);
+N2Struct.aeENace = find(satInd == 3);
+N2Struct.aeEOss = find(satInd == 4);
+N2Struct.aeros = find(satInd == 5);
+
+[HeStruct, removeInd] = averageRho(HeStruct);
+satInd = zeros(1, length(removeInd));
+satInd(HeStruct.de2) = 1;
+satInd(HeStruct.aeC) = 2;
+satInd(HeStruct.aeENace) = 3;
+satInd(HeStruct.aeEOss) = 4;
+satInd(HeStruct.aeros) = 5;
+satInd(removeInd) = [];
+HeStruct.de2 = find(satInd == 1);
+HeStruct.aeC = find(satInd == 2);
+HeStruct.aeENace = find(satInd == 3);
+HeStruct.aeEOss = find(satInd == 4);
+HeStruct.aeros = find(satInd == 5);
+
+[ArStruct, removeInd] = averageRho(ArStruct);
+satInd = zeros(1, length(removeInd));
+satInd(ArStruct.de2) = 1;
+satInd(ArStruct.aeros) = 2;
+satInd(removeInd) = [];
+ArStruct.de2 = find(satInd == 1);
+ArStruct.aeros = find(satInd == 2);
 
 end
 

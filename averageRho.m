@@ -1,10 +1,10 @@
-function rhoStruct = averageRho(rhoStruct)
+function [S, removeInd] = averageRho(S, isRho)
 
 averTime = 120; % sec
 
-dt = diff(rhoStruct.timestamps); dt = [dt; dt(end)] * 86400;
+dt = diff(S.timestamps); dt = [dt; dt(end)] * 86400;
 averInterval = abs(averTime ./ dt); 
-removeInd = true(length(rhoStruct.data), 1);
+removeInd = true(length(S.data), 1);
 disconts = find(averInterval < 1); disconts = [0; disconts];
 
 targetCount = round(length(disconts) / 100);
@@ -21,21 +21,21 @@ for i = 2:length(disconts)
         interval = interval - 1; 
     end
     
-    rhoStruct.latitude(ind) = smooth(rhoStruct.latitude(ind), interval);
-    rhoStruct.longitude(ind) = smooth(rhoStruct.longitude(ind), interval);
-    rhoStruct.solarTime(ind) = smooth(rhoStruct.solarTime(ind), interval);
-    rhoStruct.altitude(ind) = smooth(rhoStruct.altitude(ind), interval);
-    rhoStruct.F(ind) = smooth(rhoStruct.F(ind), interval);
-    rhoStruct.FA(ind) = smooth(rhoStruct.FA(ind), interval);
-    rhoStruct.apNow(ind) = smooth(rhoStruct.apNow(ind), interval);
-    rhoStruct.ap3h(ind) = smooth(rhoStruct.ap3h(ind), interval);
-    rhoStruct.ap6h(ind) = smooth(rhoStruct.ap6h(ind), interval);
-    rhoStruct.ap9h(ind) = smooth(rhoStruct.ap9h(ind), interval);
-    rhoStruct.ap12To33h(ind) = smooth(rhoStruct.ap12To33h(ind), interval);
-    rhoStruct.ap36To57h(ind) = smooth(rhoStruct.ap36To57h(ind), interval);
-    rhoStruct.Ap(ind) = smooth(rhoStruct.Ap(ind), interval);
-    rhoStruct.data(ind) = smooth(rhoStruct.data(ind), interval);
-    rhoStruct.timestamps(ind) = smooth(rhoStruct.timestamps(ind), interval);
+    S.latitude(ind) = smooth(S.latitude(ind), interval);
+    S.longitude(ind) = smooth(S.longitude(ind), interval);
+    S.solarTime(ind) = smooth(S.solarTime(ind), interval);
+    S.altitude(ind) = smooth(S.altitude(ind), interval);
+    S.F(ind) = smooth(S.F(ind), interval);
+    S.FA(ind) = smooth(S.FA(ind), interval);
+    S.apNow(ind) = smooth(S.apNow(ind), interval);
+    S.ap3h(ind) = smooth(S.ap3h(ind), interval);
+    S.ap6h(ind) = smooth(S.ap6h(ind), interval);
+    S.ap9h(ind) = smooth(S.ap9h(ind), interval);
+    S.ap12To33h(ind) = smooth(S.ap12To33h(ind), interval);
+    S.ap36To57h(ind) = smooth(S.ap36To57h(ind), interval);
+    S.Ap(ind) = smooth(S.Ap(ind), interval);
+    S.data(ind) = smooth(S.data(ind), interval);
+    S.timestamps(ind) = smooth(S.timestamps(ind), interval);
     
     conserve = min((interval+1)/2, length(ind)) : interval : length(ind);
     conserve = conserve + ind(1) - 1;
@@ -47,6 +47,10 @@ for i = 2:length(disconts)
 end
 p.stop;
 
-rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
+if isRho
+    S = removeDataPoints(S, removeInd, false, true, false, false);
+else
+    S = removeDataPoints(S, removeInd);
+end
 
 end
