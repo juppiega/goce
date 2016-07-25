@@ -240,7 +240,7 @@ rhoStruct.grace = k+1 : k + length(graceData.timestamps);
 
 originalRhoStruct = rhoStruct;
 
-[rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
+[rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
     removeAndFixData(rhoStruct, 0, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
 
 rhoStruct = averageRho(rhoStruct, true);
