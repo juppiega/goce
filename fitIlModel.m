@@ -12,11 +12,11 @@ global numCoeffs;
 numCoeffs = 103;
 
 clear mex;
-
-poolobj = gcp('nocreate'); % If no pool, do not create new one.
-if isempty(poolobj)
-    parpool(24);
-end
+% 
+% poolobj = gcp('nocreate'); % If no pool, do not create new one.
+% if isempty(poolobj)
+%     parpool(24);
+% end
 
 % Check the existence of the data file.
 if exist('ilData.mat', 'file')
