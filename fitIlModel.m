@@ -556,9 +556,9 @@ fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, 
 
 setenv('OMP_NUM_THREADS', num2str(numThreads))
 disp('Calling LM solver')
-%tic;optCoeff = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
-[comp,J] = fun(initGuess); %disp([comp(1), optCoeff]);
-JTJ_diag = diag(J'*J);
+tic;optCoeff = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
+%[comp,J] = fun(initGuess); %disp([comp(1), optCoeff]);
+%JTJ_diag = diag(J'*J);
 
 %tic; [optCoeff] = lsqnonlin(fun, initGuess, lb, ub, options);toc;
 
@@ -578,8 +578,8 @@ function weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStru
 
 wTex = ones(size(TexStruct.data)); wTex(TexStruct.de2) = length(TexStruct.aeE) / length(TexStruct.de2);
 wO = ones(size(OStruct.data)); wO(OStruct.de2) = length(OStruct.aeENace) / length(OStruct.de2);
-wN2 = ones(size(N2Struct.data)); wN2(N2Struct.de2) = length(N2Struct.aeENace) / length(N2Struct.de2);
-wHe = ones(size(HeStruct.data)); wHe(HeStruct.de2) = length(HeStruct.aeENace) / length(HeStruct.de2);
+wN2 = ones(size(N2Struct.data)); wN2(N2Struct.de2) = length(N2Struct.aeENace) / length(N2Struct.de2); wN2(N2Struct.aeros) = 0.5*length(N2Struct.aeENace) / length(N2Struct.aeros);
+wHe = ones(size(HeStruct.data)); wHe(HeStruct.de2) = length(HeStruct.aeENace) / length(HeStruct.de2); wHe(HeStruct.aeros) = 0.5*length(HeStruct.aeENace) / length(HeStruct.aeros); 
 wAr = ones(size(ArStruct.data)); wAr(ArStruct.de2) = 2*length(ArStruct.aeros) / length(ArStruct.de2);
 wO2 = ones(size(O2Struct.data));
 tempSpecWeight = [wTex; wO; wN2; wHe; wAr; wO2];
@@ -601,8 +601,12 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 
 ae16h = [TexStruct.aeInt(:,4); OStruct.aeInt(:,4); N2Struct.aeInt(:,4); HeStruct.aeInt(:,4); ...
     ArStruct.aeInt(:,4); O2Struct.aeInt(:,4); rhoStruct.aeInt(:,4)];
-aeNormalized = 1 + (2 * ae16h / max(ae16h));
-weights = weights .* aeNormalized;
+aeThreshold = 500;
+ind = ae16h >= aeThreshold;
+w = sum(weights(~ind)) / sum(weights(ind));
+weights(ind) = w * weights(ind);
+% aeNormalized = 1 + (2 * ae16h / max(ae16h));
+% weights = weights .* aeNormalized;
 
 weights = sqrt(weights);
 
