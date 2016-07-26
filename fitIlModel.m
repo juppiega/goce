@@ -507,16 +507,16 @@ TexStruct.coeffInd = 1:numCoeffs;
 lb = [500, G_lb]; ub = [1500, G_ub];
 
 OStruct.coeffInd = TexStruct.coeffInd(end) + (1:numCoeffs+OStruct.numBiases);
-lb = [lb, log(0.5E10), zeros(1, OStruct.numBiases), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E11), zeros(1, OStruct.numBiases), G_ub];
+lb = [lb, log(0.5E10), zeros(1, OStruct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E11), zeros(1, OStruct.numBiases)-0.1, G_ub];
 
 N2Struct.coeffInd = OStruct.coeffInd(end) + (1:numCoeffs+N2Struct.numBiases);
-lb = [lb, log(0.5E11), zeros(1, N2Struct.numBiases), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E12), zeros(1, N2Struct.numBiases), G_ub];
+lb = [lb, log(0.5E11), zeros(1, N2Struct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E12), zeros(1, N2Struct.numBiases)-0.1, G_ub];
 
 HeStruct.coeffInd = N2Struct.coeffInd(end) + (1:numCoeffs+HeStruct.numBiases);
-lb = [lb, log(0.5E7), zeros(1, HeStruct.numBiases), G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E8), zeros(1, HeStruct.numBiases), G_ub];
+lb = [lb, log(0.5E7), zeros(1, HeStruct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E8), zeros(1, HeStruct.numBiases)-0.1, G_ub];
 
 ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numMinorCoeffs+ArStruct.numBiases);
 O2Struct.coeffInd = ArStruct.coeffInd(end) + 1;
