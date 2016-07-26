@@ -244,7 +244,16 @@ originalRhoStruct = rhoStruct;
     removeAndFixData(rhoStruct, 0, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
 
 rhoStruct = averageRho(rhoStruct, true);
-TempStruct = averageRho(TempStruct, false);
+
+[TempStruct, removeInd] = averageRho(TempStruct, false);
+satInd = zeros(1, length(removeInd));
+satInd(TempStruct.de2) = 1;
+satInd(TempStruct.aeC) = 2;
+satInd(TempStruct.aeE) = 3;
+satInd(removeInd) = [];
+TempStruct.de2 = find(satInd == 1);
+TempStruct.aeC = find(satInd == 2);
+TempStruct.aeE = find(satInd == 3);
 
 [OStruct, removeInd] = averageRho(OStruct, false);
 satInd = zeros(1, length(removeInd));
