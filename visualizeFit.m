@@ -56,8 +56,8 @@ end
 
 modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
-%plot3DOM(rhoStruct.aeInt(:,4), 50, rhoStruct.solarTime, 2, rhoStruct.data,...
-%    modelStruct, 'O/M', 'AE 16h', 'lst');
+plot3DOM(rhoStruct.aeInt(:,4), 50, rhoStruct.solarTime, 2, rhoStruct.data,...
+    modelStruct, 'O/M', 'AE 16h', 'lst');
 
 %plot2DOM(rhoStruct.doy, 50, rhoStruct.data, modelStruct, 'O/M', 'DOY')
 

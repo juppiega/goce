@@ -238,6 +238,9 @@ k = length(goceData.timestamps); rhoStruct.goce = 1:k;
 rhoStruct.champ = k+1 : k + length(champData.timestamps); k = k + length(champData.timestamps);
 rhoStruct.grace = k+1 : k + length(graceData.timestamps);
 
+rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 1.25;
+rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 1.20;
+
 originalRhoStruct = rhoStruct;
 
 [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
