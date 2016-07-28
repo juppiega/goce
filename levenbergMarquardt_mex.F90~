@@ -170,11 +170,11 @@ subroutine deallocateStruct(D, typename)
 
     deallocate(D%P10, D%P11, D%mP10, D%mP11)
     deallocate(D%P20, D%P21, D%P22, D%mP20)
-    deallocate(D%P30, D%P31, D%P32, D%P33, D%mP30, D%mP31)
-    deallocate(D%P40, D%P43, D%P44, D%mP40)
-    deallocate(D%P50, D%P51, D%P52, D%P53, D%P54, D%mP50, D%mP51)
-    deallocate(D%P60, D%P62, D%P63, D%P64, D%mP60)
-    deallocate(D%P70, D%P71, D%P74, D%mP70)
+    deallocate(D%P30, D%P31, D%P32, D%P33)
+    deallocate(D%P40, D%P43, D%P44)
+    deallocate(D%P50, D%P51, D%P52, D%P53, D%P54)
+    deallocate(D%P60, D%P62, D%P63, D%P64)
+    deallocate(D%P70, D%P71, D%P74)
     deallocate(D%yv, D%dv, D%latitudeTerm, D%solarTerm)
     deallocate(D%annual, D%diurnal, D%semidiurnal, D%terdiurnal)
     deallocate(D%quaterdiurnal, D%geomagnetic, D%data, D%Z, D%F, D%FA)
@@ -253,11 +253,11 @@ function G_major(a, S, numBiases)
     !i = mexPrintf('G:AE_base'//achar(13))
     AE_base = sumRowWise([a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7), a(k+8)], S%aeInt(:,1:numInts-1))
     !i = mexPrintf('G:symmetric'//achar(13))
-    geom_symmetric = AE_base + (a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base;
+    geom_symmetric = AE_base + (a(k+9)*S%P20 + a(k+10)*S%P40 + a(k+11)*S%P60)*AE_base;
     !i = mexPrintf('G:yearly'//achar(13))
-    geom_yearly = (a(k+12)*S%mP10 + a(k+13)*S%mP30 + a(k+14)*S%mP50 + a(k+15)*S%mP70)*AE_base*cos(S%yv-pi*a(k+16));
+    geom_yearly = (a(k+12)*S%P10 + a(k+13)*S%P30 + a(k+14)*S%P50 + a(k+15)*S%P70)*AE_base*cos(S%yv-pi*a(k+16));
     !i = mexPrintf('G:lst'//achar(13))
-    geom_lst = (a(k+17)*S%mP11 + a(k+18)*S%mP31 + a(k+19)*S%mP51)*cos(S%dv-pi*a(k+20))*AE_base;
+    geom_lst = (a(k+17)*S%P11 + a(k+18)*S%P31 + a(k+19)*S%P51)*cos(S%dv-pi*a(k+20))*AE_base;
     !i = mexPrintf('G:geomagnetic'//achar(13))
     geomagnetic = geom_symmetric + geom_yearly + geom_lst + a(k+21)*AE_base**2 
                    !a(k+21)*geom_symmetric*AE_base + &
