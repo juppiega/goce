@@ -1,10 +1,10 @@
 function [] = visualizeFit()
-aeThreshold = 500;
+aeThreshold = 0;
 
 
 % Check the existence of the data file.
 if exist('ilData.mat', 'file')
-    load('ilData.mat', 'rhoStruct')
+    load('ilData.mat', 'originalRhoStruct')
 else
     error('File ilData.mat not found!')
 end
@@ -15,7 +15,7 @@ else
     error('File optCoeff.mat not found!')
 end
 
-[rhoStruct] = removeAndFixData(rhoStruct, aeThreshold);
+[originalRhoStruct] = removeAndFixData(originalRhoStruct, aeThreshold);
 
 numBiasesStruct = struct('O', 4, 'N2', 5,...
     'He', 5, 'Ar', 2, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
@@ -47,7 +47,7 @@ sameColorBars = false;
 if exist('comparisonRho.mat', 'file')
     load comparisonRho.mat
 else
-    [ilRho, msisRho, dtmRho] = computeComparisonData(rhoStruct, coeffStruct, numBiasesStruct);
+    [ilRho, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
 
     save('comparisonRho.mat', 'ilRho')
     save('comparisonRho.mat', 'msisRho', '-append')
@@ -56,12 +56,12 @@ end
 
 modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
-plot3DOM(rhoStruct.aeInt(:,4), 50, rhoStruct.solarTime, 2, rhoStruct.data,...
-    modelStruct, 'O/M', 'AE 16h', 'lst');
+plot3DOM(originalRhoStruct.apNow, 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
+    modelStruct, 'O/M', 'AE 16h', 'lat');
 
 %plot2DOM(rhoStruct.doy, 50, rhoStruct.data, modelStruct, 'O/M', 'DOY')
 
-%computeStatistics(rhoStruct, ilRho, msisRho, dtmRho);
+computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho);
 
 %plotStormFig(rhoStruct, ilRho, msisRho, dtmRho, '2003-10-27', '2003-11-02', 'CHAMP', TexCoeff, OCoeff, N2Coeff, HeCoeff);
 
