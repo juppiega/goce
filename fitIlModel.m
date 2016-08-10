@@ -606,6 +606,11 @@ ind = ae16h >= aeThreshold;
 w = sum(weights(~ind)) / sum(weights(ind));
 weights(ind) = w * weights(ind);
 
+goceInd = TempAndSpectrometerLen + rhoStruct.goce;
+graceInd = TempAndSpectrometerLen + rhoStruct.grace;
+w = 0.25 * sum(weights(graceInd)) / sum(weights(goceInd));
+weights(goceInd) = w * weights(goceInd);
+
 % aeNormalized = 1 + (2 * ae16h / max(ae16h));
 % weights = weights .* aeNormalized;
 
