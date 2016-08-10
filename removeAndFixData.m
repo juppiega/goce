@@ -8,7 +8,8 @@ else
     removeInd = rhoStruct.aeInt(:,4) < aeThreshold;
 end
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
-goceWeight = 0.5*(1 - length(rhoStruct.goce) / length(rhoStruct.data));
+% GOCE has bad lst, F10.7 coverage.
+goceWeight = 0.5*0.5*(1 - length(rhoStruct.goce) / length(rhoStruct.data));
 champWeight = 1 - length(rhoStruct.champ)  / length(rhoStruct.data);
 graceWeight = 1 - length(rhoStruct.grace) / length(rhoStruct.data);
 rhoStruct.weights = zeros(length(rhoStruct.data),1);

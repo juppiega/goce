@@ -592,7 +592,7 @@ weights = ones(dataLen, 1);
 meanRhoWeight = mean(rhoStruct.weights); numRho = length(rhoStruct.weights);
 meanTempSpecWeight = mean(tempSpecWeight);
 
-w = meanRhoWeight * numRho / (TempAndSpectrometerLen * meanTempSpecWeight);
+w = 0.67 * meanRhoWeight * numRho / (TempAndSpectrometerLen * meanTempSpecWeight);
 wInd = 1:TempAndSpectrometerLen;
 weights(wInd) = tempSpecWeight * w;
 %weights(1:length(TexStruct.data)) = 0.5 * w;
@@ -605,6 +605,7 @@ aeThreshold = 500;
 ind = ae16h >= aeThreshold;
 w = sum(weights(~ind)) / sum(weights(ind));
 weights(ind) = w * weights(ind);
+
 % aeNormalized = 1 + (2 * ae16h / max(ae16h));
 % weights = weights .* aeNormalized;
 
