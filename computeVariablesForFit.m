@@ -1,4 +1,4 @@
-function [addStruct] = computeVariablesForFit(addStruct)
+function [addStruct] = computeVariablesForFit(addStruct, computeMagDiurnal)
 
 x = cosd(90 - addStruct.latitude);
 [magLat, magLon] = convertToMagneticCoordinates(addStruct.latitude, addStruct.longitude,...
@@ -86,17 +86,23 @@ addStruct.FA2 = addStruct.FA.^2;
 addStruct.FtimesFA = addStruct.F .* addStruct.FA;
 
 % Annual parameter.
-if ~isfield(addStruct, 'doy')
+if ~isfield(addStruct, 'doy') || length(addStruct.doy) ~= length(x_mag) 
     [yr,~,~,~,~,~] = datevec(addStruct.timestamps);
     yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
     addStruct.doy = addStruct.timestamps - datenum(yearVec) + 1;
 end
-lstMag = computeMagneticTime(magLon, addStruct.doy, addStruct.timestamps);
-addStruct.yv = 2*pi*(addStruct.doy-1)/365;
 
 % Diurnal parameter
 addStruct.dv = 2*pi* (addStruct.solarTime) / 24;
-addStruct.dv_mag = 2*pi*lstMag / 24;
+
+if nargin == 1 || computeMagDiurnal
+        lstMag = computeMagneticTime(magLon, addStruct.doy, addStruct.timestamps);
+    addStruct.dv_mag = 2*pi*lstMag / 24;
+else
+    addStruct.dv_mag = addStruct.dv;
+end
+
+addStruct.yv = 2*pi*(addStruct.doy-1)/365;
 addStruct.latitudeTerm = zeros(length(x),1);
 addStruct.solarTerm = zeros(length(x),1);
 addStruct.annual = zeros(length(x),1);
@@ -105,5 +111,9 @@ addStruct.semidiurnal = zeros(length(x),1);
 addStruct.terdiurnal = zeros(length(x),1);
 addStruct.quaterdiurnal = zeros(length(x),1);
 addStruct.geomagnetic = zeros(length(x),1);
+
+if length(addStruct.altitude) ~= length(addStruct.Z)
+    addStruct = computeGeopotentialHeight(addStruct);
+end
 
 end

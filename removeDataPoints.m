@@ -20,6 +20,9 @@ fixStruct.ap9h(removeInd) = [];
 fixStruct.ap12To33h(removeInd) = [];
 fixStruct.ap36To57h(removeInd) = [];
 fixStruct.Ap(removeInd) = [];
+if isfield(fixStruct, 'dst')
+    fixStruct.dst(removeInd) = [];
+end
 
 if nargin > 2
     if removeBiasMatRows
