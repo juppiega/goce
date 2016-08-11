@@ -71,21 +71,21 @@ end
 
 modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'lat', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'lst', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
-    10, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
-
-plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'lat', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'lst', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
+%     10, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
+% 
+% plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 
 % computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
 % 
@@ -95,7 +95,7 @@ plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 
 % plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder);
 % plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
 
-%analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder);
+analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder);
 
 end
 
@@ -366,7 +366,7 @@ cell2csv([saveFolder, '/storms.csv'], outputCell);
 fontsize = 15;
 figure('units','normalized','outerposition',[0 0 1 1])
 X = repmat(-minDst, 1, 2);
-h = plot(X, OACorr(:,1:2), 's');
+h = semilogx(X, OACorr(:,1:2), 's');
 set(h(1), 'markerFaceColor', 'b');
 set(h(2), 'markerFaceColor', 'g');
 xlabel('-1 * min Dst', 'fontsize', fontsize);
@@ -390,7 +390,7 @@ saveas(gcf, filename, 'png');
 
 figure('units','normalized','outerposition',[0 0 1 1])
 X = repmat(-minDst, 1, 2);
-h = plot(X, OAOM(:,1:2), 's');
+h = semilogx(X, OAOM(:,1:2), 's');
 set(h(1), 'markerFaceColor', 'b');
 set(h(2), 'markerFaceColor', 'g');
 xlabel('-1 * min Dst', 'fontsize', fontsize);
