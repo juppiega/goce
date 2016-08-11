@@ -9,7 +9,7 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 103;
+numCoeffs = 104;
 
 clear mex;
 % 
@@ -283,7 +283,7 @@ diurnal = ones(1, 21); diurnal([8, 19]) = 0.001;
 semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
-geomagnetic = ones(1,21); geomagnetic([1,9,12,17]) = 0.0002;
+geomagnetic = ones(1,22); geomagnetic([1,9,12,17,21]) = 0.0002;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, geomagnetic];
 lb = -ub;
@@ -556,9 +556,9 @@ fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, 
 
 setenv('OMP_NUM_THREADS', num2str(numThreads))
 disp('Calling LM solver')
-tic;optCoeff = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
-%[comp,J] = fun(initGuess); %disp([comp(1), optCoeff]);
-%JTJ_diag = diag(J'*J);
+%tic;optCoeff = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
+[comp,J] = fun(initGuess); %disp([comp(1), optCoeff]);
+JTJ_diag = diag(J'*J);
 
 %tic; [optCoeff] = lsqnonlin(fun, initGuess, lb, ub, options);toc;
 
