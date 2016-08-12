@@ -48,11 +48,14 @@ k = k + 2;
 % S.geomagnetic = geom_symmetric + geom_yearly + geom_lst + a(k+21)*AE_base.^2;
 
 % ATTEMPT #2
-AE_base = sum(bsxfun(@times, [a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7), a(k+8)], S.aeInt(:,1:end-1)),2);
-geom_symmetric = AE_base + (a(k+9)*S.mP20 + a(k+10)*S.mP40 + a(k+11)*S.mP60).*AE_base;
-geom_yearly = (a(k+12)*S.mP10 + a(k+13)*S.mP30 + a(k+14)*S.mP50 + a(k+15)*S.mP70).*AE_base.*cos(S.yv-pi*a(k+16));
-geom_lst = (a(k+17)*S.mP11 + a(k+18)*S.mP31 + a(k+19)*S.mP51).*AE_base.*cos(S.dv_mag-pi*a(k+20));
-S.geomagnetic = geom_symmetric + geom_yearly + geom_lst + a(k+21)*exp(a(k+22)*AE_base);
+% AE_base = sum(bsxfun(@times, [a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7), a(k+8)], S.aeInt(:,1:end-1)),2);
+% geom_symmetric = AE_base + (a(k+9)*S.mP20 + a(k+10)*S.mP40 + a(k+11)*S.mP60).*AE_base;
+% geom_yearly = (a(k+12)*S.mP10 + a(k+13)*S.mP30 + a(k+14)*S.mP50 + a(k+15)*S.mP70).*AE_base.*cos(S.yv-pi*a(k+16));
+% geom_lst = (a(k+17)*S.mP11 + a(k+18)*S.mP31 + a(k+19)*S.mP51).*AE_base.*cos(S.dv_mag-pi*a(k+20));
+% S.geomagnetic = geom_symmetric + geom_yearly + geom_lst + a(k+21)*exp(a(k+22)*AE_base);
+
+
+% ATTEMPT #3
 
 
 k = k + 21;

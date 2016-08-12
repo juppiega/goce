@@ -601,7 +601,7 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 
 ae16h = [TexStruct.aeInt(:,4); OStruct.aeInt(:,4); N2Struct.aeInt(:,4); HeStruct.aeInt(:,4); ...
     ArStruct.aeInt(:,4); O2Struct.aeInt(:,4); rhoStruct.aeInt(:,4)];
-aeThreshold = 500;
+aeThreshold = 400;
 ind = ae16h >= aeThreshold;
 w = sum(weights(~ind)) / sum(weights(ind));
 weights(ind) = w * weights(ind);
