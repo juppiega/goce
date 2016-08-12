@@ -259,7 +259,9 @@ function G_major(a, S, numBiases)
     !i = mexPrintf('G:lst'//achar(13))
     geom_lst = (a(k+17)*S%mP11 + a(k+18)*S%mP31 + a(k+19)*S%mP51)*cos(S%dv-pi*a(k+20))*AE_base;
     !i = mexPrintf('G:geomagnetic'//achar(13))
-    geomagnetic = geom_symmetric + geom_yearly + geom_lst + a(k+21)*exp(a(k+22)*AE_base)
+    geomagnetic = geom_symmetric + geom_yearly + geom_lst + a(k+21)*AE_base**2 
+                   !a(k+21)*geom_symmetric*AE_base + &
+                   ! a(k+22)*geom_yearly*AE_base + a(k+23)*geom_lst*AE_base
 
     k = k + 21;
 
