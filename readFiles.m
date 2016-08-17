@@ -1143,7 +1143,8 @@ end
 function [aeIntGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0] = ...
     computeAeIntegrals(ae, timestampsAe, timestampsGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0)
 %
-lags = [2 4 8 16 21 30 40 50 60];
+%lags = [2 4 8 16 21 30 40 50 60];
+lags = [2, 3, 6, 12, 24, 48, 72];
 aeIntGoce = zeros(length(timestampsGoce), length(lags));
 aeIntChamp = zeros(length(champData.timestamps), length(lags));
 aeIntGrace = zeros(length(graceData.timestamps), length(lags));

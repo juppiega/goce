@@ -33,19 +33,19 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 800;
+z = 150;
 lat = -90:5:90;
-lst = 0:0.5:24;
-doy = 180;
-F = 200;
-FA = 200;
+lst = 1;
+doy = 0:10:360;
+F = 150;
+FA = 150;
 aeInt = 20*ones(1,9);
-zonalMean = false;
+zonalMean = true;
 latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
-%plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, ...
-%    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
+plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, ...
+    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 
 if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat
@@ -71,21 +71,21 @@ end
 
 modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'lat', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'lst', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
-plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
-    10, originalRhoStruct.data,...
- modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
-
-plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'lat', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'lst', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
+% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
+%     10, originalRhoStruct.data,...
+%  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
+% 
+% plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 
 % computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
 % 

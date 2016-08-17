@@ -4,6 +4,7 @@ x = cosd(90 - addStruct.latitude);
 [magLat, magLon] = convertToMagneticCoordinates(addStruct.latitude, addStruct.longitude,...
                                                 addStruct.altitude);
 x_mag = cosd(90 - magLat);
+addStruct.lv = magLon * pi / 180;
 
 % First degree functions.
 P = legendre(1, x);
@@ -58,20 +59,24 @@ addStruct.mP11 = P(2,:)';
 % Second degree.
 P = legendre(2, x_mag);
 addStruct.mP20 = P(1,:)';
+addStruct.mP21 = P(2,:)';
 
 % Third degree.
 P = legendre(3, x_mag);
 addStruct.mP30 = P(1,:)';
 addStruct.mP31 = P(2,:)';
+addStruct.mP32 = P(3,:)';
 
 % Fourth degree.
 P = legendre(4, x_mag);
 addStruct.mP40 = P(1,:)';
+addStruct.mP41 = P(2,:)';
 
 % Fifth degree.
 P = legendre(5, x_mag);
 addStruct.mP50 = P(1,:)';
 addStruct.mP51 = P(2,:)';
+addStruct.mP52 = P(3,:)';
 
 % Sixth degree.
 P = legendre(6, x_mag);
@@ -112,7 +117,7 @@ addStruct.terdiurnal = zeros(length(x),1);
 addStruct.quaterdiurnal = zeros(length(x),1);
 addStruct.geomagnetic = zeros(length(x),1);
 
-if length(addStruct.altitude) ~= length(addStruct.Z)
+if isfield(addStruct,'Z') && length(addStruct.altitude) ~= length(addStruct.Z)
     addStruct = computeGeopotentialHeight(addStruct);
 end
 
