@@ -66,7 +66,7 @@ geom_lst = (a(k+23) + a(k+24)*S.mP21 + a(k+25)*S.mP41).*(1+a(k+26)*cos(S.yv-pi*d
 geom_solar = (a(k+33) + a(k+34)*S.mP10.*cos(S.yv-pi*dPy) + a(k+35).mP20).*AE_base.*(1./S.FA);
 S.geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
-k = k + 21;
+k = k + 35;
             
 result = S.latitudeTerm + S.solarTerm + S.annual + S.diurnal + S.semidiurnal + S.terdiurnal + S.quaterdiurnal + S.geomagnetic;
 
