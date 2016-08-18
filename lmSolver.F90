@@ -39,7 +39,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
     integer :: k, iter, numFuncEvals, flag
     integer(kind = 8) :: ierr, one = 1, numVars, numResid
     integer(kind = 4) :: mexPrintf, mexStat, mexEvalString, mexCallMATLAB
-    character(len = 300) :: line, numChar
+    character(len = 400) :: line, numChar
     character(len = 1) :: lower
     mwPointer mxCreateString
 
@@ -126,10 +126,10 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
         if (ierr /= 0) then
             line = 'Cholesky failed! JTJ_diag('
             write(numChar,*) ierr
-            line = trim(line)//trim(numChar)//') = '
+            line = trim(line)//adjustl(trim(numChar))//') = '
             JTJ_diag = A(AdiagElem)
             write(numChar,*) JTJ_diag(ierr)
-            line = line//trim(numChar)
+            line = trim(line)//adjustl(trim(numChar))
             mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
         end if
         !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('Solving the system'), 'disp')
