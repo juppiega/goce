@@ -13,7 +13,7 @@ module fitModule
                                      P52, P53, P54, P60, P62, P63, P64, P70, P71, P74, &
                                      mP10,mP20,mP30,mP40,mP50,mP60,mP70,mP11,mP31,mP51, &
                                      mP21, mP41, mP32, mP52, yv, dv, latitudeTerm, solarTerm, &
-                                     annual, lv, &
+                                     annual, lv, dv_mag &
                                      diurnal, semidiurnal, terdiurnal, quaterdiurnal,&
                                      geomagnetic, data, Z, F, FA
         integer(kind = 4), allocatable :: coeffInd(:)
@@ -61,7 +61,7 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     allocate(D%P50(N), D%P51(N), D%P52(N), D%P53(N), D%P54(N),D%mP50(N),D%mP51(N),D%mP52(N))
     allocate(D%P60(N), D%P62(N), D%P63(N), D%P64(N), D%mP60(N))
     allocate(D%P70(N), D%P71(N), D%P74(N), D%mP70(N))
-    allocate(D%yv(N), D%dv(N), D%lv(N), D%latitudeTerm(N), D%solarTerm(N))
+    allocate(D%yv(N), D%dv(N), D%lv(N), D%dv_mag(N), D%latitudeTerm(N), D%solarTerm(N))
     allocate(D%annual(N), D%diurnal(N), D%semidiurnal(N), D%terdiurnal(N))
     allocate(D%quaterdiurnal(N), D%geomagnetic(N), D%data(N), D%Z(N), D%F(N), D%FA(N))
 
@@ -110,6 +110,7 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P74')), D%P74, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'yv')), D%yv, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'dv')), D%dv, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'dv_mag')), D%dv_mag, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'lv')), D%lv, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'latitudeTerm')), D%latitudeTerm, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'solarTerm')), D%solarTerm, N)
@@ -181,7 +182,7 @@ subroutine deallocateStruct(D, typename)
     deallocate(D%P50, D%P51, D%P52, D%P53, D%P54, D%mP50, D%mP51, D%mP52)
     deallocate(D%P60, D%P62, D%P63, D%P64, D%mP60)
     deallocate(D%P70, D%P71, D%P74, D%mP70)
-    deallocate(D%yv, D%dv, D%lv, D%latitudeTerm, D%solarTerm)
+    deallocate(D%yv, D%dv, D%lv, D%dv_mag, D%latitudeTerm, D%solarTerm)
     deallocate(D%annual, D%diurnal, D%semidiurnal, D%terdiurnal)
     deallocate(D%quaterdiurnal, D%geomagnetic, D%data, D%Z, D%F, D%FA)
     deallocate(D%aeInt)
