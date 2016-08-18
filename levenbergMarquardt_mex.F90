@@ -202,7 +202,7 @@ function G_major(a, S, numBiases)
     real(kind = 8), allocatable :: G_major(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
                                    terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
                                    geom_lst(:), AE_base(:), geom_solar(:), geom_lon(:)
-    integer :: k, dPh, numInts
+    integer :: k, dPh, numInts, dPy
     integer(kind = 4) :: mexPrintf, i
     real(kind = 8) :: pi
     pi = 4.0 * atan(1.0)
@@ -281,7 +281,7 @@ function G_Tex(a, S, numBiases)
     real(kind = 8), allocatable :: G_Tex(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
                                    terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
                                    geom_lst(:), AE_base(:), geom_solar(:), geom_lon(:)
-    integer :: k, dPh, numInts
+    integer :: k, dPh, numInts, dPy
     integer(kind = 4) :: mexPrintf, i
     real(kind = 8) :: pi
     pi = 4.0 * atan(1.0)
