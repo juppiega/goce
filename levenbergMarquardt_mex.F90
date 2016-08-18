@@ -13,7 +13,7 @@ module fitModule
                                      P52, P53, P54, P60, P62, P63, P64, P70, P71, P74, &
                                      mP10,mP20,mP30,mP40,mP50,mP60,mP70,mP11,mP31,mP51, &
                                      mP21, mP41, mP32, mP52, yv, dv, latitudeTerm, solarTerm, &
-                                     annual, lv, dv_mag &
+                                     annual, lv, dv_mag, &
                                      diurnal, semidiurnal, terdiurnal, quaterdiurnal,&
                                      geomagnetic, data, Z, F, FA
         integer(kind = 4), allocatable :: coeffInd(:)
