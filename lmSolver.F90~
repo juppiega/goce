@@ -80,7 +80,6 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
 
     ! Allocate gradient
     allocate(gradient(numVars))
-    allocate(JTJ_diag(numVars))
 
     ! Allocate lower triangular A
     allocate(A((numVars*(numVars+1))/2))
@@ -127,9 +126,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
             line = 'Cholesky failed! JTJ_diag('
             write(numChar,*) ierr
             line = trim(line)//trim(numChar)//') = '
-            JTJ_diag = A(AdiagElem)
-            write(numChar,*) JTJ_diag(ierr)
-            line = line//trim(numChar)
+            write(numChar,*) ierr
             mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
         end if
         !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('Solving the system'), 'disp')

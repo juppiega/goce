@@ -253,7 +253,6 @@ function G_major(a, S, numBiases)
     quaterdiurnal = a(k+1)*S%P44*cos(4*S%dv) + a(k+2)*S%P44*sin(4*S%dv);
     k = k + 2;
 
-    dPh = k + 14;
     numInts = size(S%aeInt, 2)
     !i = mexPrintf('G:geomagnetic'//achar(13))
     
