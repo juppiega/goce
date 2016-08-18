@@ -262,8 +262,8 @@ function G_major(a, S, numBiases)
     dPy = a(k+16);
     geom_lon = (a(k+12) + a(k+13)*S%mP21 + a(k+14)*S%mP41)*(1+a(k+15)*cos(S%yv-pi*dPy))*AE_base*cos(S%lv-pi*a(k+17)) + &
            (a(k+18) + a(k+19)*S%mP32 + a(k+20)*S%mP52)*(1+a(k+21)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%lv-pi*a(k+22)));
-    geom_lst = (a(k+23) + a(k+24)*S%mP21 + a(k+25)*S%mP41)*(1+a(k+26)*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+27)) + &
-           (a(k+28) + a(k+29)*S%mP32 + a(k+30)*S%mP52)*(1+a(k+31)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%dv-pi*a(k+32)));
+    geom_lst = (a(k+23) + a(k+24)*S%mP21 + a(k+25)*S%mP41)*(1+a(k+26)*cos(S%yv-pi*dPy))*AE_base*cos(S%dv_mag-pi*a(k+27)) + &
+           (a(k+28) + a(k+29)*S%mP32 + a(k+30)*S%mP52)*(1+a(k+31)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%dv_mag-pi*a(k+32)));
     geom_solar = (a(k+33) + a(k+34)*S%mP10*cos(S%yv-pi*dPy) + a(k+35)*S%mP20)*AE_base*(1./S%FA);
     geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
@@ -341,8 +341,8 @@ function G_Tex(a, S, numBiases)
     dPy = a(k+16);
     geom_lon = (a(k+12) + a(k+13)*S%mP21 + a(k+14)*S%mP41)*(1+a(k+15)*cos(S%yv-pi*dPy))*AE_base*cos(S%lv-pi*a(k+17)) + &
            (a(k+18) + a(k+19)*S%mP32 + a(k+20)*S%mP52)*(1+a(k+21)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%lv-pi*a(k+22)));
-    geom_lst = (a(k+23) + a(k+24)*S%mP21 + a(k+25)*S%mP41)*(1+a(k+26)*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+27)) + &
-           (a(k+28) + a(k+29)*S%mP32 + a(k+30)*S%mP52)*(1+a(k+31)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%dv-pi*a(k+32)));
+    geom_lst = (a(k+23) + a(k+24)*S%mP21 + a(k+25)*S%mP41)*(1+a(k+26)*cos(S%yv-pi*dPy))*AE_base*cos(S%dv_mag-pi*a(k+27)) + &
+           (a(k+28) + a(k+29)*S%mP32 + a(k+30)*S%mP52)*(1+a(k+31)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%dv_mag-pi*a(k+32)));
     geom_solar = (a(k+33) + a(k+34)*S%mP10*cos(S%yv-pi*dPy) + a(k+35)*S%mP20)*AE_base*S%FA;
     geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
