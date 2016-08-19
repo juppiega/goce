@@ -126,10 +126,17 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
         if (ierr /= 0) then
             line = 'Cholesky failed! JTJ_diag('
             write(numChar,*) ierr
-            line = trim(line)//adjustl(trim(numChar))//') = '
+            line = trim(trim(line)//adjustl(trim(numChar)))//') = '
             JTJ_diag = A(AdiagElem)
             write(numChar,*) JTJ_diag(ierr)
             line = trim(line)//adjustl(trim(numChar))
+            mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
+            do k = 1, numVars
+                if (JTJ_diag(k) < 1E-14) then
+                    write(numChar,*) JTJ_diag(k)
+                    line = trim(adjustl(trim(line))//adjustl(trim(numChar)))//','
+                end if
+            end do
             mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
         end if
         !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('Solving the system'), 'disp')
