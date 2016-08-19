@@ -857,8 +857,8 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     !     Check for proper number of argumentS% 
     if(nrhs /= 11) then
         call mexErrMsgTxt ('Levenberg-Marquardt: Nine inputs required!')
-    elseif(nlhs .gt. 1) then
-        call mexErrMsgTxt ('Levenberg-Marquardt: At most one outputs allowed!')
+    elseif(nlhs .gt. 2) then
+        call mexErrMsgTxt ('Levenberg-Marquardt: At most two outputs allowed!')
     endif
 
     !     Validate inputs
