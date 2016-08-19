@@ -940,7 +940,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
 
     !k = mexPrintf('Before output'//achar(13))
-    y_output = solution
+    y_output = funVec ! !!!!!!!!
    
     !     Create matrix for the return argument.
     plhs(1) = mxCreateDoubleMatrix(size(y_output),1,0)
