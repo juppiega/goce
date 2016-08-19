@@ -138,6 +138,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
                 end if
             end do
             mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
+            exit
         end if
         !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('Solving the system'), 'disp')
         call DPPTRS(lower, numVars, one, A, step, numVars, ierr) ! Solve system using the above factorization.
