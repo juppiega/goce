@@ -133,7 +133,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
             mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
             do k = 1, numVars
                 if (JTJ_diag(k) < 1E-14) then
-                    write(numChar,*) JTJ_diag(k)
+                    write(numChar,*) k
                     line = trim(adjustl(trim(line))//adjustl(trim(numChar)))//','
                 end if
             end do
