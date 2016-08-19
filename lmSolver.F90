@@ -15,7 +15,7 @@ end interface
 contains
 
 subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, solution, &
-                   funVec, firstOrderOptAtSolution, JacobianAtSolution, exitFlag)
+                   funVec, firstOrderOptAtSolution, JacobianAtSolution, JTJ_diag_sol, exitFlag)
     implicit none
     ! Input arguments
     procedure(costFunction) :: FUN ! Cost function. Returns a vector of (weighted) residuals.
@@ -25,7 +25,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
     integer, optional :: maxFuncEvals, maxIter ! Maximum number of function evaluations (1000 * numVars), maximum iterations (100).
 
     ! Output arguments
-    real(kind = 8), allocatable, optional, intent(out) :: solution(:), funVec(:), JacobianAtSolution(:,:) ! Final X, final function value, Jacobian at solution.
+    real(kind = 8), allocatable, optional, intent(out) :: solution(:), funVec(:), JacobianAtSolution(:,:),JTJ_diag_sol(:) ! Final X, final function value, Jacobian at solution.
     real(kind = 8), optional, intent(out) :: firstOrderOptAtSolution ! Infinity norm of gradient at solution.
     integer, optional, intent(out) :: exitFlag ! Exit statue. -2 = Exceeded maxFuncEvals, -1 = Exceeded maxIter,
                                      ! 1 = First order optimality smaller than tolOpt, 2 = norm(step) < tolX * norm(X), 3 = changeSumSq < tolFun * oldSumSq.
@@ -115,6 +115,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
 
         ! Construct coeficient matrix.
         A = JTJ
+        JTJ_diag = JTJ(AdiagElem)
         ! Add lambda*JTJ to A's diagonal elements.
         A(AdiagElem) = JTJ(AdiagElem) * (lambda + 1.0)
 
@@ -127,7 +128,6 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
             line = 'Cholesky failed! JTJ_diag('
             write(numChar,*) ierr
             line = trim(trim(line)//adjustl(trim(numChar)))//') = '
-            JTJ_diag = A(AdiagElem)
             write(numChar,*) JTJ_diag(ierr)
             line = trim(line)//adjustl(trim(numChar))
             mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
@@ -212,6 +212,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
     mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('Before Jacobian'), 'disp')
     if (present(funVec)) funVec = costFuncVec
     if (present(solution)) solution = X
+    if(present(JTJ_diag_sol)) JTJ_diag_sol = JTJ_diag
     if (present(firstOrderOptAtSolution)) firstOrderOptAtSolution = firstOrderOpt
     if (present(JacobianAtSolution)) JacobianAtSolution = Jacobian
     if (present(exitFlag)) exitFlag = flag

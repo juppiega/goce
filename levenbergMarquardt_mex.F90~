@@ -932,7 +932,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
     call lmSolve(modelMinimizationFunction, initGuess, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
-                 firstOrderOptAtSolution = firstOrderOpt, JTJ_diag_sol = JTJ_diag)
+                 firstOrderOptAtSolution = firstOrderOpt, JTJ_diag = JTJ_diag)
 
 
 
@@ -955,7 +955,6 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     !k = mexPrintf('Output size: '//tempChar//achar(13)) 
     
     call mxCopyReal8ToPtr(y_output,y_ptr,size(y_output))
-    call mxCopyReal8ToPtr(JTJ_diag,JTJ_ptr,size(JTJ_diag))
     
     !k = mexPrintf('Begin deallocation'//achar(13))
     deallocate(weights, initGuess)
