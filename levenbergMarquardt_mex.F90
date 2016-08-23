@@ -930,7 +930,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     tolOpt = 1E4
     lambda0 = 1E-1
     maxFuncEvals = 5000 * size(initGuess)
-    maxIter = 100000
+    maxIter = 1 !!!!!!!!!!!!!!!!!!!!!!
     
     call lmSolve(modelMinimizationFunction, initGuess, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
@@ -942,7 +942,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
 
     !k = mexPrintf('Before output'//achar(13))
-    y_output = JTJ_diag ! !!!!!!!!   
+    y_output = solution ! !!!!!!!!   
     !     Create matrix for the return argument.
     plhs(1) = mxCreateDoubleMatrix(size(y_output),1,0)
     plhs(2) = mxCreateDoubleMatrix(size(JTJ_diag),1,0)
