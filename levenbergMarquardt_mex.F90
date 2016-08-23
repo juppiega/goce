@@ -940,8 +940,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
 
     !k = mexPrintf('Before output'//achar(13))
-    y_output = funVec ! !!!!!!!!
-   
+    y_output = JTJ_diag ! !!!!!!!!   
     !     Create matrix for the return argument.
     plhs(1) = mxCreateDoubleMatrix(size(y_output),1,0)
     plhs(2) = mxCreateDoubleMatrix(size(JTJ_diag),1,0)
