@@ -299,9 +299,9 @@ integer function converged(costFuncVec, trialCostFunc, tolFun, norm2X, norm2step
 
     if (firstOrderOpt < tolOpt) then
         converged = 1
-    elseif (1.0/lambda > tolX .and. norm2step < tolX * (sqrt(epsilon(tolX)) + norm2X)) then
+    elseif (1.0/lambda >= tolX .and. norm2step < tolX * (sqrt(epsilon(tolX)) + norm2X)) then
         converged = 2
-    else if (1.0/lambda > tolFun .and. abs(sumSq - trialSumSq) < tolFun * sumSq) then
+    else if (1.0/lambda >= tolFunabs(sumSq - trialSumSq) < tolFun * sumSq) then
         converged = 3
     else if (iter >= maxIter) then
         converged = -1
