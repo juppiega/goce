@@ -20,6 +20,13 @@ O_N2final = zeros(100*Nfiles,1);
 opt = optimoptions('lsqnonlin', 'Jacobian', 'off', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
                  'TolX', 1E-8, 'Display', 'off', 'FinDiffType', 'central');
 
+targetCount = round(length(guviFiles) / 10);
+barWidth = 50;
+p = TimedProgressBar( targetCount, barWidth, ...
+                    'Reading GUVI Files, ETA ', ...
+                    '. Now at ', ...
+                    'Completed in ' );
+             
 k = 0;
 for i = 1:length(guviFiles)
     load(['GUVI/',guviFiles(i).name]);
@@ -92,8 +99,12 @@ for i = 1:length(guviFiles)
         O_N2final(v) = O_N2(j);
         alt(v) = z0;
     end
+    if mod(i,10) == 0
+        p.progress;
+    end
     k = k + length(GLAT);
 end
+p.stop;
 
 rmInd = alt == 0;
 lat(rmInd) = [];
