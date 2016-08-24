@@ -1,22 +1,22 @@
 function [] = readGuvi()
 
 guviFiles = dir('GUVI/t_GUVI*');
-
+M = 200;
 Nfiles = length(guviFiles);
-lat = zeros(100*Nfiles,1);
-lon = zeros(100*Nfiles,1);
-sza = zeros(100*Nfiles,1);
-lst = zeros(100*Nfiles,1);
-timestamps = zeros(100*Nfiles,1);
-alt = zeros(100*Nfiles,1);
+lat = zeros(M*Nfiles,1);
+lon = zeros(M*Nfiles,1);
+sza = zeros(M*Nfiles,1);
+lst = zeros(M*Nfiles,1);
+timestamps = zeros(M*Nfiles,1);
+alt = zeros(M*Nfiles,1);
 
-Ofinal = zeros(100*Nfiles,1);
-N2final = zeros(100*Nfiles,1);
-O2final = zeros(100*Nfiles,1);
-sigO = zeros(100*Nfiles,1);
-sigN2 = zeros(100*Nfiles,1);
-sigO2 = zeros(100*Nfiles,1);
-O_N2final = zeros(100*Nfiles,1);
+Ofinal = zeros(M*Nfiles,1);
+N2final = zeros(M*Nfiles,1);
+O2final = zeros(M*Nfiles,1);
+sigO = zeros(M*Nfiles,1);
+sigN2 = zeros(M*Nfiles,1);
+sigO2 = zeros(M*Nfiles,1);
+O_N2final = zeros(M*Nfiles,1);
 opt = optimoptions('lsqnonlin', 'Jacobian', 'off', 'Algorithm', 'Levenberg-Marquardt', 'TolFun', 1E-8, ...
                  'TolX', 1E-8, 'Display', 'off', 'FinDiffType', 'central');
 
