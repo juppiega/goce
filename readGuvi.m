@@ -42,7 +42,7 @@ for i = 1:length(guviFiles)
     nameEnd = strfind(fname, '.mat');
     year = str2num(fname(nameEnd-16:nameEnd-13));
     t0 = datenum([year, 1, 1, 0, 0, 0]);
-    timestamps(ind) = t0 - 1 + double(IYD) + SEC/86400;
+    timestamps(ind) = t0 - 1 + double(IYD) + double(SEC)/86400;
     
     for j = 1:length(GLAT)
         if any(FLAG(:,j))
