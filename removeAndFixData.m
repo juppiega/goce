@@ -100,17 +100,20 @@ satInd(OStruct.de2) = 1;
 satInd(OStruct.aeC) = 2;
 satInd(OStruct.aeENace) = 3;
 satInd(OStruct.aeEOss) = 4;
+satInd(OStruct.guvi) = 5;
 satInd(removeInd) = [];
 OStruct.de2 = find(satInd == 1);
 OStruct.aeC = find(satInd == 2);
 OStruct.aeENace = find(satInd == 3);
 OStruct.aeEOss = find(satInd == 4);
-OStruct.numBiases = 4; % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+OStruct.guvi = find(satInd == 5);
+OStruct.numBiases = 5; % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 OStruct.biases = zeros(length(OStruct.data), OStruct.numBiases);
 OStruct.biases(OStruct.de2, 1) = 1;
 OStruct.biases(OStruct.aeC, 2) = 1;
 OStruct.biases(OStruct.aeENace, 3) = 1;
 OStruct.biases(OStruct.aeEOss, 4) = 1;
+OStruct.biases(OStruct.guvi, 5) = 1;
 OStruct.dataEnd = length(OStruct.data);
 OStruct.name = 'O';
 
@@ -123,19 +126,22 @@ satInd(N2Struct.aeC) = 2;
 satInd(N2Struct.aeENace) = 3;
 satInd(N2Struct.aeEOss) = 4;
 satInd(N2Struct.aeros) = 5;
+satInd(N2Struct.guvi) = 6;
 satInd(removeInd) = [];
 N2Struct.de2 = find(satInd == 1);
 N2Struct.aeC = find(satInd == 2);
 N2Struct.aeENace = find(satInd == 3);
 N2Struct.aeEOss = find(satInd == 4);
 N2Struct.aeros = find(satInd == 5);
-N2Struct.numBiases = 5;
+N2Struct.guvi = find(satInd == 6);
+N2Struct.numBiases = 6;
 N2Struct.biases = zeros(length(N2Struct.data), N2Struct.numBiases);
 N2Struct.biases(N2Struct.de2, 1) = 1;
 N2Struct.biases(N2Struct.aeC, 2) = 1;
 N2Struct.biases(N2Struct.aeENace, 3) = 1;
 N2Struct.biases(N2Struct.aeEOss, 4) = 1;
 N2Struct.biases(N2Struct.aeros, 5) = 1;
+N2Struct.biases(N2Struct.guvi, 6) = 1;
 N2Struct.dataEnd = length(N2Struct.data);
 N2Struct.name = 'N2';
 
