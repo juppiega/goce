@@ -97,7 +97,7 @@ for i = 1:length(guviFiles)
         end
         
         O_N2final(v) = O_N2(j);
-        alt(v) = z0;
+        alt(v) = z0/1000;
     end
     if mod(i,10) == 0
         p.progress;
