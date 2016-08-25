@@ -26,7 +26,7 @@ else
 end
 
 
-[~, ~, ~, ~, ~, ~, ~, lbDTStruct, lbT0Struct] = ...
+[rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
 
 if ~exist('dTCoeffs', 'var') || recomputeDT
@@ -581,8 +581,8 @@ end
 function weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct)
 
 wTex = ones(size(TexStruct.data)); wTex(TexStruct.de2) = length(TexStruct.aeE) / length(TexStruct.de2);
-wO = ones(size(OStruct.data)); wO(OStruct.de2) = length(OStruct.aeENace) / length(OStruct.de2);
-wN2 = ones(size(N2Struct.data)); wN2(N2Struct.de2) = length(N2Struct.aeENace) / length(N2Struct.de2); wN2(N2Struct.aeros) = 0.5*length(N2Struct.aeENace) / length(N2Struct.aeros);
+wO = ones(size(OStruct.data)); wO(OStruct.de2) = length(OStruct.aeENace) / length(OStruct.de2); wO(OStruct.guvi) = length(OStruct.aeENace) / length(OStruct.guvi);
+wN2 = ones(size(N2Struct.data)); wN2(N2Struct.de2) = length(N2Struct.aeENace) / length(N2Struct.de2); wN2(N2Struct.aeros) = 0.5*length(N2Struct.aeENace) / length(N2Struct.aeros); wN2(N2Struct.guvi) = length(N2Struct.aeENace) / length(N2Struct.guvi);
 wHe = ones(size(HeStruct.data)); wHe(HeStruct.de2) = length(HeStruct.aeENace) / length(HeStruct.de2); wHe(HeStruct.aeros) = 0.5*length(HeStruct.aeENace) / length(HeStruct.aeros); 
 wAr = ones(size(ArStruct.data)); wAr(ArStruct.de2) = 2*length(ArStruct.aeros) / length(ArStruct.de2);
 wO2 = ones(size(O2Struct.data));
