@@ -485,6 +485,9 @@ function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct
 global numCoeffs;
 numMinorCoeffs = 50;
 
+removeInd = rhoStruct.swarm;
+rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
+
 fprintf('%s\n', 'Computing final fit')
 
 %dataLen = length(TexStruct.data) + length(OStruct.data) +

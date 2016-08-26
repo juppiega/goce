@@ -9,6 +9,13 @@ alt = [];
 rho = [];
 timestamps = [];
 
+targetCount = round(length(swarmFiles) / 10);
+barWidth = 50;
+p = TimedProgressBar( targetCount, barWidth, ...
+                    'Reading SWARM, ETA ', ...
+                    '. Now at ', ...
+                    'Completed in ' );
+
 parfor i = 1:length(swarmFiles)
     f = cdfread(['swarm/', swarmFiles(i).name]);
     N = size(f,1);
@@ -36,7 +43,12 @@ parfor i = 1:length(swarmFiles)
     alt = [alt; tempAlt];
     rho = [rho; tempRho];
     timestamps = [timestamps; tempTimestamps];
+    
+    if mod(i,10) == 0
+        p.progress;
+    end
 end
+p.stop;
 
 [timestamps,order] = unique(timestamps);
 lat = lat(order);
