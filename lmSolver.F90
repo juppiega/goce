@@ -146,6 +146,9 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
         !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
 
         trialX = X - step ! Possible next point.
+        where (abs(trialX) < 1E-9)
+            trialX = sign(1E-9, trialX)
+        end where
 
         trialCostFunc = FUN(trialX) ! Evaluate function at trial point.
         numFuncEvals = numFuncEvals + 1
