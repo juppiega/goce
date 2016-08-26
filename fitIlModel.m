@@ -278,8 +278,8 @@ function [lb, ub] = G_bounds()
 
 latitude = ones(1,14);
 solarActivity = ones(1,5);
-annual = ones(1,15); annual(1) = 0.002; annual(8) = 0.0002;
-diurnal = ones(1, 21); diurnal([8, 19]) = 0.001;
+annual = ones(1,15); annual(1) = 0.002; annual(8) = 0.0001;
+diurnal = ones(1, 21); diurnal([8, 19]) = 0.003;
 semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
@@ -525,7 +525,7 @@ ub = [ub, log(2E9), zeros(1, ArStruct.numBiases)-0.1, G_ub];
 %ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numMinorCoeffs+ArStruct.numBiases);
 O2Struct.coeffInd = ArStruct.coeffInd(end) + 1;
 
-startPoints = createRandomStartPoints(lb, ub, numStartPoints);
+%startPoints = createRandomStartPoints(lb, ub, numStartPoints);
 %initGuess = list(startPoints);
 ind = ub < 0.5;
 %ind(1:numCoeffs) = ub(1:numCoeffs) < 100;
@@ -561,7 +561,7 @@ fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, 
 setenv('OMP_NUM_THREADS', num2str(numThreads))
 disp('Calling LM solver')
 tic;[optCoeff, JTJ_diag_fort] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
-[comp,~] = fun(initGuess); %disp([comp(1), optCoeff]);
+[comp] = fun(initGuess); %disp([comp(1), optCoeff]);
 %JTJ_diag_matlab = diag(J'*J);
 
 %tic; [optCoeff] = lsqnonlin(fun, initGuess, lb, ub, options);toc;
