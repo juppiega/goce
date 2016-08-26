@@ -28,6 +28,7 @@ goceData = struct('density', density * 1E-11, 'densityError', absDensityError * 
 
 
 [champData, graceData, de2Data, aeCData, aeEData, aerosData] = computeOtherDensities();
+swarmData = readSwarmFiles();
 
 load temperatureGradient.mat
 load T0.mat
@@ -37,16 +38,16 @@ T0 = vertcatStructFields(T0);
 
 [tiegcmDensityVariableAlt, tiegcmDensity270km] = readTiegcmFile(timestampsDensityDatenum);
 
-[aeIntegrals, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData] = ...
-    computeAeIntegrals(ae, timestampsAeDatenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData);
+[aeIntegrals, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData] = ...
+    computeAeIntegrals(ae, timestampsAeDatenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData);
 
 [apGoce, ap, timestampsAp, amGoce, dtc] = readApAndDtcFiles(timestampsDensityDatenum);
 
-[F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData] = ...
-    giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, F10datenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData);
+[F10, F81A, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData] = ...
+    giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, F10datenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData);
 
-[apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, ap, timestamps3h, timestamps3hFixed, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData] =...
-    giveApValsForMSIS(apGoce, amGoce, ap, timestampsAp, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData);
+[apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, ap, timestamps3h, timestamps3hFixed, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData] =...
+    giveApValsForMSIS(apGoce, amGoce, ap, timestampsAp, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData);
 
 if ~exist('goceVariables.mat', 'file')
 [densityNoBg, msisDensityVariableAlt, msisDensity270km, msisDensity270kmNoAp, jb2008DensityVariableAlt, jb2008Density270km, jb2008Density270kmNoDtc, ...
@@ -76,7 +77,7 @@ end
 
 if ~exist('ilData.mat', 'file') 
     fprintf('%s\n', 'Arranging satellite data by variable')
-    [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, originalRhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData);
+    [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, originalRhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData);
     fprintf('%s\n', 'Saving results to "ilData.mat" file')
     save('ilData.mat', 'TempStruct', '-v7.3')
     save('ilData.mat', 'OStruct', '-append')
@@ -159,7 +160,7 @@ end
 toc;
 end
 
-function [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, originalRhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberDT, T0, guviData)
+function [TempStruct, lbDTStruct, lbT0Struct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, originalRhoStruct] = arrangeByVar(goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberDT, T0, guviData, swarmData)
 
 TempStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
@@ -220,7 +221,7 @@ lbT0Struct = T0;
 rhoStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
 
-combStruct = [goceData; champData; graceData];
+combStruct = [goceData; champData; graceData; swarmData];
 rhoStruct.data = vertcat(combStruct.density);
 rhoStruct.timestamps = vertcat(combStruct.timestamps);
 rhoStruct.longitude = vertcat(combStruct.longitude);
@@ -239,7 +240,8 @@ rhoStruct.ap36To57h = vertcat(combStruct.apAver36To57h);
 rhoStruct.Ap = vertcat(combStruct.ApDaily);
 k = length(goceData.timestamps); rhoStruct.goce = 1:k;
 rhoStruct.champ = k+1 : k + length(champData.timestamps); k = k + length(champData.timestamps);
-rhoStruct.grace = k+1 : k + length(graceData.timestamps);
+rhoStruct.grace = k+1 : k + length(graceData.timestamps); k = k + length(graceData.timestamps);
+rhoStruct.swarm = k+1 : k + length(swarmData.timestamps);
 
 rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 1.25;
 rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 1.20;
@@ -1147,8 +1149,8 @@ indicesToRemove = timestampsDensityDatenum < nearest3hTime;
 
 end
 
-function [aeIntGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData] = ...
-    computeAeIntegrals(ae, timestampsAe, timestampsGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData)
+function [aeIntGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData] = ...
+    computeAeIntegrals(ae, timestampsAe, timestampsGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData)
 %
 %lags = [2 4 8 16 21 30 40 50 60];
 lags = [2, 3, 6, 12, 24, 48, 72];
@@ -1162,6 +1164,7 @@ aeIntAeros = zeros(length(aerosData.timestamps), length(lags));
 aeIntSaber = zeros(length(saberData.timestamps), length(lags));
 aeIntT0 = zeros(length(T0.timestamps), length(lags));
 aeIntGuvi = zeros(length(guviData.timestamps), length(lags));
+aeIntSwarm = zeros(length(swarmData.timestamps), length(lags));
 t = (timestampsAe - timestampsAe(1))*24*60; tInterp = t(1):t(end);
 aeInterp = interp1(t, ae, tInterp, 'linear', 0); tInterp = tInterp/1440 + timestampsAe(1);
 cumulativeAe = cumsum(aeInterp);
@@ -1181,6 +1184,7 @@ for i = 1:length(lags)
     aeIntSaber(:,i) = interp1(aeTime, aeInt, saberData.timestamps, 'linear', 0);
     aeIntT0(:,i) = interp1(aeTime, aeInt, T0.timestamps, 'linear', 0);
     aeIntGuvi(:,i) = interp1(aeTime, aeInt, guviData.timestamps, 'linear', 0);
+    aeIntSwarm(:,i) = interp1(aeTime, aeInt, swarmData.timestamps, 'linear', 0);
 end
 
 goceData.aeInt = aeIntGoce;
@@ -1193,11 +1197,12 @@ aerosData.aeInt = aeIntAeros;
 saberData.aeInt = aeIntSaber;
 T0.aeInt = aeIntT0;
 guviData.aeInt = aeIntGuvi;
+swarmData.aeInt = aeIntSwarm;
 
 end
 
-function [F10out, F81Aout, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData] = ...
-    giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, F10datenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData)
+function [F10out, F81Aout, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData] = ...
+    giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, F10datenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData)
 %
 fprintf('%s\n', 'Computing solar index values for models')
 
@@ -1246,10 +1251,13 @@ T0.F81A = interp1(F10datenum, F81A, T0.timestamps, 'previous', 100);
 guviData.F10 = interp1(F10datenum + 1, F10, guviData.timestamps, 'previous', 100);
 guviData.F81A = interp1(F10datenum, F81A, guviData.timestamps, 'previous', 100);
 
+swarmData.F10 = interp1(F10datenum + 1, F10, swarmData.timestamps, 'previous', 100);
+swarmData.F81A = interp1(F10datenum, F81A, swarmData.timestamps, 'previous', 100);
+
 end
 
-function [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, apAllFixed, timestamps3h, timestamps3hFixed, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData] = ...
-    giveApValsForMSIS(apGoce, amGoce, ap, timestampsAp, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData)
+function [apNow, ap3h, ap6h, ap9h, apAver12To33h, apAver36To57h, ApDaily, am3h, amAver24h, apAllFixed, timestamps3h, timestamps3hFixed, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData] = ...
+    giveApValsForMSIS(apGoce, amGoce, ap, timestampsAp, timestamps10sFixed, timestamps1minFixed, timestamps1min, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData)
 % 
 fprintf('%s\n', 'Computing ap values for msis')
 
@@ -1395,6 +1403,14 @@ guviData.ap9h = interp1(timestampsAp + 3*dt, ap, guviData.timestamps, 'previous'
 guviData.apAver12To33h = interp1(timestampsAp + 7.5*dt, ap24hSmooth, guviData.timestamps, 'previous', 'extrap');
 guviData.apAver36To57h = interp1(timestampsAp + 15.5*dt, ap24hSmooth, guviData.timestamps, 'previous', 'extrap');
 guviData.ApDaily = interp1(timestampsAp, ap24hSmooth, guviData.timestamps, 'previous', 'extrap');
+
+swarmData.apNow = interp1(timestampsAp, ap, swarmData.timestamps, 'previous', 'extrap');
+swarmData.ap3h = interp1(timestampsAp + dt, ap, swarmData.timestamps, 'previous', 'extrap');
+swarmData.ap6h = interp1(timestampsAp + 2*dt, ap, swarmData.timestamps, 'previous', 'extrap');
+swarmData.ap9h = interp1(timestampsAp + 3*dt, ap, swarmData.timestamps, 'previous', 'extrap');
+swarmData.apAver12To33h = interp1(timestampsAp + 7.5*dt, ap24hSmooth, swarmData.timestamps, 'previous', 'extrap');
+swarmData.apAver36To57h = interp1(timestampsAp + 15.5*dt, ap24hSmooth, swarmData.timestamps, 'previous', 'extrap');
+swarmData.ApDaily = interp1(timestampsAp, ap24hSmooth, swarmData.timestamps, 'previous', 'extrap');
 
 end
 

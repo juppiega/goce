@@ -33,10 +33,12 @@ if nargin > 2
         satInd(fixStruct.goce) = 1;
         satInd(fixStruct.champ) = 2;
         satInd(fixStruct.grace) = 3;
+        satInd(fixStruct.swarm) = 4;
         satInd(removeInd) = [];
         fixStruct.goce = find(satInd == 1);
         fixStruct.champ = find(satInd == 2);
         fixStruct.grace = find(satInd == 3);
+        fixStruct.swarm = find(satInd == 4);
     end
     if fixZ
         fixStruct.Z(removeInd) = [];

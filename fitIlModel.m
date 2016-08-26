@@ -414,7 +414,7 @@ residInd = residInd(end) + (1:length(rhoStruct.data));
 OlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(OStruct.coeffInd), OStruct.numBiases), 1E20);
 N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(N2Struct.coeffInd), N2Struct.numBiases), 1E20);
 HelbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(HeStruct.coeffInd), HeStruct.numBiases), 1E20);
-ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
+ArlbDens = clamp(10, evalMinorSpecies(rhoStruct, coeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
 O2lbDens = clamp(10, exp(coeff(O2Struct.coeffInd)), 1E20);
 modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
 residual(residInd) = (log(rhoStruct.data)./log(modelRho)) - 1;
@@ -518,11 +518,11 @@ HeStruct.coeffInd = N2Struct.coeffInd(end) + (1:numCoeffs+HeStruct.numBiases);
 lb = [lb, log(0.5E7), zeros(1, HeStruct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ub = [ub, log(1E8), zeros(1, HeStruct.numBiases)-0.1, G_ub];
 
-ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numCoeffs+ArStruct.numBiases);
-lb = [lb, log(0.5E9), zeros(1, ArStruct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(2E9), zeros(1, ArStruct.numBiases)-0.1, G_ub];
+% ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numCoeffs+ArStruct.numBiases);
+% lb = [lb, log(0.5E9), zeros(1, ArStruct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+% ub = [ub, log(2E9), zeros(1, ArStruct.numBiases)-0.1, G_ub];
 
-%ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numMinorCoeffs+ArStruct.numBiases);
+ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numMinorCoeffs+ArStruct.numBiases);
 O2Struct.coeffInd = ArStruct.coeffInd(end) + 1;
 
 %startPoints = createRandomStartPoints(lb, ub, numStartPoints);
@@ -531,9 +531,9 @@ ind = ub < 0.5;
 %ind(1:numCoeffs) = ub(1:numCoeffs) < 100;
 initGuess = mean([lb;ub]);% - 0.001;
 initGuess(ind) = -ub(ind);
-% ArCoeffs = zeros(numMinorCoeffs+ArStruct.numBiases, 1);
-% ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.002;
-% initGuess(ArStruct.coeffInd) = ArCoeffs;
+ArCoeffs = zeros(numMinorCoeffs+ArStruct.numBiases, 1);
+ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.002;
+initGuess(ArStruct.coeffInd) = ArCoeffs;
 
 initGuess(TexStruct.coeffInd(1)) = 1030;
 initGuess(OStruct.coeffInd(1)) = log(8E10);
