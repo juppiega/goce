@@ -147,7 +147,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
 
         trialX = X - step ! Possible next point.
         where (abs(trialX) < 1E-9)
-            trialX = sign(1E-9, trialX)
+            trialX = sign(dble(1E-9), trialX)
         end where
 
         trialCostFunc = FUN(trialX) ! Evaluate function at trial point.
