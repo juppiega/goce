@@ -486,7 +486,7 @@ global numCoeffs;
 numMinorCoeffs = 50;
 
 removeInd = rhoStruct.swarm;
-rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
+rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 
 fprintf('%s\n', 'Computing final fit')
 
@@ -608,7 +608,7 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 
 ae16h = [TexStruct.aeInt(:,4); OStruct.aeInt(:,4); N2Struct.aeInt(:,4); HeStruct.aeInt(:,4); ...
     ArStruct.aeInt(:,4); O2Struct.aeInt(:,4); rhoStruct.aeInt(:,4)];
-aeThreshold = 400;
+aeThreshold = 250;
 ind = ae16h >= aeThreshold;
 w = sum(weights(~ind)) / sum(weights(ind));
 weights(ind) = w * weights(ind);
