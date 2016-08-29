@@ -1,4 +1,4 @@
-function [] = visualizeFit(saveFolder)
+function [] = visualizeFit(saveFolder, includeSwarm)
 aeThreshold = 0;
 
 if ~exist(saveFolder, 'file')
@@ -20,7 +20,12 @@ end
 
 [originalRhoStruct] = removeAndFixData(originalRhoStruct, aeThreshold);
 
-numBiasesStruct = struct('O', 4, 'N2', 5,...
+if ~includeSwarm
+    removeInd = originalRhoStruct.swarm;
+    originalRhoStruct = removeDataPoints(originalRhoStruct, removeInd, false, true, false, false);
+end
+
+numBiasesStruct = struct('O', 5, 'N2', 6,...
     'He', 5, 'Ar', 2, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
 
 TexStruct.coeffInd = TexInd;
@@ -33,13 +38,13 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 150;
+z = 400;
 lat = -90:5:90;
-lst = 1;
-doy = 0:10:360;
+lst = 0:0.5:23;
+doy = 90;
 F = 150;
 FA = 150;
-aeInt = 20*ones(1,9);
+aeInt = 20*ones(1,7);
 zonalMean = true;
 latitudeMean = false;
 devFromXmean = false;
@@ -71,8 +76,8 @@ end
 
 modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
-% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
-%  modelStruct, 'O/M', 'AE16h', 'lat', saveFolder);
+plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
+ modelStruct, 'O/M', 'AE16h', 'lat', saveFolder);
 % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
 %  modelStruct, 'O/M', 'AE16h', 'lst', saveFolder);
 % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
@@ -89,12 +94,12 @@ modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
 % computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
 % 
-plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder);
-plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
-plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder);
-plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder);
-plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
-plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
+ plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder);
+% plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
+% plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder);
+% plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder);
+ plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
+ plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
 
 %analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder);
 
