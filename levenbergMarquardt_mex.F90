@@ -532,7 +532,7 @@ function fourier4(S, a)
     implicit none
     type(dataStruct), intent(in) :: S
     real(kind = 8), intent(in) :: a(:)
-    real(kind = 8) :: fourier4
+    real(kind = 8), allocatable :: fourier4(:)
     
     fourier4 = a(1) + a(2)*sin(S%yv) + a(3)*cos(S%yv) + a(4)*sin(2*S%yv) + a(5)*cos(2*S%yv)
 
