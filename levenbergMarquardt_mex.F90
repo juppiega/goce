@@ -256,11 +256,11 @@ function G_major(a, S, numBiases)
     quaterdiurnal = a(k+1)*S%P44*cos(4*S%dv) + a(k+2)*S%P44*sin(4*S%dv);
     k = k + 2;
 
-    longitudinal = (1.0 + a(k+1)*S%P44 + a(k+2)*S%P64)*cos(S%dv - 4*S%lv + a(k+3))*fourier4(S, a(k+4:k+8))+...
-                 (1.0 + a(k+9)*S%P44 + a(k+10)*S%P64)*cos(2*S%dv - 4*S%lv + a(k+11))*fourier4(S, a(k+12:k+16))+...
-                 (1.0 + a(k+17)*S%P33 + a(k+18)*S%P53)*cos(S%dv - 3*S%lv + a(k+19))*fourier4(S, a(k+20:k+24))+...
-                 (1.0 + a(k+25)*S%P22 + a(k+26)*S%P42)*cos(2*S%dv - 2*S%lv + a(k+27))*fourier4(S, a(k+28:k+32))+...
-                 (1.0 + a(k+33)*S%FA)*(a(k+34)*S%P21+a(k+35)*S%P31+a(k+36)*S%P41)*cos(S%lv)+...
+    longitudinal = (1.0 + a(k+1)*S%P44 + a(k+2)*S%P64)*cos(S%dv - 4*S%lv + a(k+3))*fourier4(S, a(k+4:k+8))+&
+                 (1.0 + a(k+9)*S%P44 + a(k+10)*S%P64)*cos(2*S%dv - 4*S%lv + a(k+11))*fourier4(S, a(k+12:k+16))+&
+                 (1.0 + a(k+17)*S%P33 + a(k+18)*S%P53)*cos(S%dv - 3*S%lv + a(k+19))*fourier4(S, a(k+20:k+24))+&
+                 (1.0 + a(k+25)*S%P22 + a(k+26)*S%P42)*cos(2*S%dv - 2*S%lv + a(k+27))*fourier4(S, a(k+28:k+32))+&
+                 (1.0 + a(k+33)*S%FA)*(a(k+34)*S%P21+a(k+35)*S%P31+a(k+36)*S%P41)*cos(S%lv)+&
                  (1.0 + a(k+37)*S%FA)*(a(k+38)*S%P21+a(k+39)*S%P31+a(k+40)*S%P41)*sin(S%lv);
     k = k + 40;
 
@@ -347,11 +347,11 @@ function G_Tex(a, S, numBiases)
     numInts = size(S%aeInt, 2)
     !i = mexPrintf('G:geomagnetic'//achar(13))
     
-    longitudinal = (1.0 + a(k+1)*S%P44 + a(k+2)*S%P64)*cos(S%dv - 4*S%lv + a(k+3))*fourier4(S, a(k+4:k+8))+...
-                 (1.0 + a(k+9)*S%P44 + a(k+10)*S%P64)*cos(2*S%dv - 4*S%lv + a(k+11))*fourier4(S, a(k+12:k+16))+...
-                 (1.0 + a(k+17)*S%P33 + a(k+18)*S%P53)*cos(S%dv - 3*S%lv + a(k+19))*fourier4(S, a(k+20:k+24))+...
-                 (1.0 + a(k+25)*S%P22 + a(k+26)*S%P42)*cos(2*S%dv - 2*S%lv + a(k+27))*fourier4(S, a(k+28:k+32))+...
-                 (1.0 + a(k+33)*S%FA)*(a(k+34)*S%P21+a(k+35)*S%P31+a(k+36)*S%P41)*cos(S%lv)+...
+    longitudinal = (1.0 + a(k+1)*S%P44 + a(k+2)*S%P64)*cos(S%dv - 4*S%lv + a(k+3))*fourier4(S, a(k+4:k+8))+&
+                 (1.0 + a(k+9)*S%P44 + a(k+10)*S%P64)*cos(2*S%dv - 4*S%lv + a(k+11))*fourier4(S, a(k+12:k+16))+&
+                 (1.0 + a(k+17)*S%P33 + a(k+18)*S%P53)*cos(S%dv - 3*S%lv + a(k+19))*fourier4(S, a(k+20:k+24))+&
+                 (1.0 + a(k+25)*S%P22 + a(k+26)*S%P42)*cos(2*S%dv - 2*S%lv + a(k+27))*fourier4(S, a(k+28:k+32))+&
+                 (1.0 + a(k+33)*S%FA)*(a(k+34)*S%P21+a(k+35)*S%P31+a(k+36)*S%P41)*cos(S%lv)+&
                  (1.0 + a(k+37)*S%FA)*(a(k+38)*S%P21+a(k+39)*S%P31+a(k+40)*S%P41)*sin(S%lv);
     k = k + 40;
 
