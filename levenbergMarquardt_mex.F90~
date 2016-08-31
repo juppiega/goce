@@ -57,7 +57,7 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     allocate(D%P10(N), D%P11(N), D%mP10(N), D%mP11(N))
     allocate(D%P20(N), D%P21(N), D%P22(N), D%mP20(N), D%mP21(N))
     allocate(D%P30(N), D%P31(N), D%P32(N), D%P33(N), D%mP30(N), D%mP31(N), D%mP32(N))
-    allocate(D%P40(N), D%P D%P43(N), D%P44(N), D%mP40(N), D%mP41(N))
+    allocate(D%P40(N), D%P41(N), D%P42(N), D%P43(N), D%P44(N), D%mP40(N), D%mP41(N))
     allocate(D%P50(N), D%P51(N), D%P52(N), D%P53(N), D%P54(N),D%mP50(N),D%mP51(N),D%mP52(N))
     allocate(D%P60(N), D%P62(N), D%P63(N), D%P64(N), D%mP60(N))
     allocate(D%P70(N), D%P71(N), D%P74(N), D%mP70(N))
@@ -87,6 +87,8 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P32')), D%P32, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P33')), D%P33, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P40')), D%P40, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P41')), D%P41, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P42')), D%P42, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP40')), D%mP40, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP41')), D%mP41, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P43')), D%P43, N)
@@ -178,7 +180,7 @@ subroutine deallocateStruct(D, typename)
     deallocate(D%P10, D%P11, D%mP10, D%mP11)
     deallocate(D%P20, D%P21, D%P22, D%mP20, D%mP21)
     deallocate(D%P30, D%P31, D%P32, D%P33, D%mP30, D%mP31, D%mP32)
-    deallocate(D%P40, D%P43, D%P44, D%mP40, D%mP41)
+    deallocate(D%P40, D%P41, D%P42, D%P43, D%P44, D%mP40, D%mP41)
     deallocate(D%P50, D%P51, D%P52, D%P53, D%P54, D%mP50, D%mP51, D%mP52)
     deallocate(D%P60, D%P62, D%P63, D%P64, D%mP60)
     deallocate(D%P70, D%P71, D%P74, D%mP70)
@@ -254,12 +256,12 @@ function G_major(a, S, numBiases)
     quaterdiurnal = a(k+1)*S%P44*cos(4*S%dv) + a(k+2)*S%P44*sin(4*S%dv);
     k = k + 2;
 
-    longitudinal = (1.0 + a(k+1)*S%P44 + a(k+2)*S%P64)*cos(S%dv - 4*S%longitude + a(k+3))*fourier4(S, a(k+4:k+8))+...
-                 (1.0 + a(k+9)*S%P44 + a(k+10)*S%P64)*cos(2*S%dv - 4*S%longitude + a(k+11))*fourier4(S, a(k+12:k+16))+...
-                 (1.0 + a(k+17)*S%P33 + a(k+18)*S%P53)*cos(S%dv - 3*S%longitude + a(k+19))*fourier4(S, a(k+20:k+24))+...
-                 (1.0 + a(k+25)*S%P22 + a(k+26)*S%P42)*cos(2*S%dv - 2*S%longitude + a(k+27))*fourier4(S, a(k+28:k+32))+...
-                 (1.0 + a(k+33)*S%FA)*(a(k+34)*S%P21+a(k+35)*S%P31+a(k+36)*S%P41)*cos(S%longitude)+...
-                 (1.0 + a(k+37)*S%FA)*(a(k+38)*S%P21+a(k+39)*S%P31+a(k+40)*S%P41)*sin(S%longitude);
+    longitudinal = (1.0 + a(k+1)*S%P44 + a(k+2)*S%P64)*cos(S%dv - 4*S%lv + a(k+3))*fourier4(S, a(k+4:k+8))+&
+                 (1.0 + a(k+9)*S%P44 + a(k+10)*S%P64)*cos(2*S%dv - 4*S%lv + a(k+11))*fourier4(S, a(k+12:k+16))+&
+                 (1.0 + a(k+17)*S%P33 + a(k+18)*S%P53)*cos(S%dv - 3*S%lv + a(k+19))*fourier4(S, a(k+20:k+24))+&
+                 (1.0 + a(k+25)*S%P22 + a(k+26)*S%P42)*cos(2*S%dv - 2*S%lv + a(k+27))*fourier4(S, a(k+28:k+32))+&
+                 (1.0 + a(k+33)*S%FA)*(a(k+34)*S%P21+a(k+35)*S%P31+a(k+36)*S%P41)*cos(S%lv)+&
+                 (1.0 + a(k+37)*S%FA)*(a(k+38)*S%P21+a(k+39)*S%P31+a(k+40)*S%P41)*sin(S%lv);
     k = k + 40;
 
     numInts = size(S%aeInt, 2)
@@ -273,13 +275,14 @@ function G_major(a, S, numBiases)
            (a(k+18) + a(k+19)*S%P32 + a(k+20)*S%P52)*(1+a(k+21)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%lv-pi*a(k+22)));
     geom_lst = (a(k+23) + a(k+24)*S%P21 + a(k+25)*S%P41)*(1+a(k+26)*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+27)) + &
            (a(k+28) + a(k+29)*S%P32 + a(k+30)*S%P52)*(1+a(k+31)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%dv-pi*a(k+32)));
-    geom_solar = (a(k+33) + a(k+34)*S%mP10*cos(S%yv-pi*dPy) + a(k+35)*S%mP20)*AE_base*S%FA;
+    geom_solar = (a(k+33) + a(k+34)*S%P10*cos(S%yv-pi*dPy) + a(k+35)*S%mP20)*AE_base*S%FA;
     geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
     k = k + 21;
 
     !i = mexPrintf('G:sum'//achar(13))
-    G_major = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + geomagnetic;
+    G_major = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + &
+              quaterdiurnal + longitudinal + geomagnetic;
     !i = mexPrintf('G End'//achar(13))
 end function
 
@@ -345,12 +348,12 @@ function G_Tex(a, S, numBiases)
     numInts = size(S%aeInt, 2)
     !i = mexPrintf('G:geomagnetic'//achar(13))
     
-    longitudinal = (1.0 + a(k+1)*S%P44 + a(k+2)*S%P64)*cos(S%dv - 4*S%longitude + a(k+3))*fourier4(S, a(k+4:k+8))+...
-                 (1.0 + a(k+9)*S%P44 + a(k+10)*S%P64)*cos(2*S%dv - 4*S%longitude + a(k+11))*fourier4(S, a(k+12:k+16))+...
-                 (1.0 + a(k+17)*S%P33 + a(k+18)*S%P53)*cos(S%dv - 3*S%longitude + a(k+19))*fourier4(S, a(k+20:k+24))+...
-                 (1.0 + a(k+25)*S%P22 + a(k+26)*S%P42)*cos(2*S%dv - 2*S%longitude + a(k+27))*fourier4(S, a(k+28:k+32))+...
-                 (1.0 + a(k+33)*S%FA)*(a(k+34)*S%P21+a(k+35)*S%P31+a(k+36)*S%P41)*cos(S%longitude)+...
-                 (1.0 + a(k+37)*S%FA)*(a(k+38)*S%P21+a(k+39)*S%P31+a(k+40)*S%P41)*sin(S%longitude);
+    longitudinal = (1.0 + a(k+1)*S%P44 + a(k+2)*S%P64)*cos(S%dv - 4*S%lv + a(k+3))*fourier4(S, a(k+4:k+8))+&
+                 (1.0 + a(k+9)*S%P44 + a(k+10)*S%P64)*cos(2*S%dv - 4*S%lv + a(k+11))*fourier4(S, a(k+12:k+16))+&
+                 (1.0 + a(k+17)*S%P33 + a(k+18)*S%P53)*cos(S%dv - 3*S%lv + a(k+19))*fourier4(S, a(k+20:k+24))+&
+                 (1.0 + a(k+25)*S%P22 + a(k+26)*S%P42)*cos(2*S%dv - 2*S%lv + a(k+27))*fourier4(S, a(k+28:k+32))+&
+                 (1.0 + a(k+33)*S%FA)*(a(k+34)*S%P21+a(k+35)*S%P31+a(k+36)*S%P41)*cos(S%lv)+&
+                 (1.0 + a(k+37)*S%FA)*(a(k+38)*S%P21+a(k+39)*S%P31+a(k+40)*S%P41)*sin(S%lv);
     k = k + 40;
 
     numInts = size(S%aeInt, 2)
@@ -360,17 +363,16 @@ function G_Tex(a, S, numBiases)
     AE_base = sumRowWise([a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7)], S%aeInt)
     geom_symmetric = (a(k+8) + a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base;
     dPy = a(k+16);
-    geom_lon = (a(k+12) + a(k+13)*S%P21 + a(k+14)*S%P41)*(1+a(k+15)*cos(S%yv-pi*dPy))*AE_base*cos(S%lv-pi*a(k+17)) + &
-           (a(k+18) + a(k+19)*S%P32 + a(k+20)*S%P52)*(1+a(k+21)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%lv-pi*a(k+22)));
-    geom_lst = (a(k+23) + a(k+24)*S%P21 + a(k+25)*S%P41)*(1+a(k+26)*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+27)) + &
-           (a(k+28) + a(k+29)*S%P32 + a(k+30)*S%P52)*(1+a(k+31)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%dv-pi*a(k+32)));
-    geom_solar = (a(k+33) + a(k+34)*S%mP10*cos(S%yv-pi*dPy) + a(k+35)*S%mP20)*AE_base*S%FA;
+    geom_lon = (a(k+12)*S%P21 + a(k+13)*S%P41 + a(k+14)*S%P61)*(1+a(k+15)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%lv-pi*a(k+17));
+    geom_lst = (a(k+18)*S%P21 + a(k+19)*S%P41 + a(k+20)*S%P61)*(1+a(k+21)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+22));
+    geom_solar = (a(k+23) + a(k+24)*S%P10*cos(S%yv-pi*dPy) + a(k+25)*S%P20 + a(k+26)*S%P40)*AE_base*S%FA;
     geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
-    k = k + 21;
+    k = k + 26;
 
     !i = mexPrintf('G:sum'//achar(13))
-    G_Tex = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + geomagnetic;
+    G_Tex = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + &
+            quaterdiurnal + longitudinal + geomagnetic;
     !i = mexPrintf('G End'//achar(13))
 end function
 
@@ -530,7 +532,7 @@ function fourier4(S, a)
     implicit none
     type(dataStruct), intent(in) :: S
     real(kind = 8), intent(in) :: a(:)
-    real(kind = 8) :: fourier4
+    real(kind = 8), allocatable :: fourier4(:)
     
     fourier4 = a(1) + a(2)*sin(S%yv) + a(3)*cos(S%yv) + a(4)*sin(2*S%yv) + a(5)*cos(2*S%yv)
 
@@ -959,7 +961,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     tolOpt = 1E4
     lambda0 = 1E-1
     maxFuncEvals = 5000 * size(initGuess)
-    maxIter = 100000 !!!!!!!!!!!!!!!!!!!!!!
+    maxIter = 0 !!!!!!!!!!!!!!!!!!!!!!
     
     call lmSolve(modelMinimizationFunction, initGuess, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
