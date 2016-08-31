@@ -57,7 +57,7 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     allocate(D%P10(N), D%P11(N), D%mP10(N), D%mP11(N))
     allocate(D%P20(N), D%P21(N), D%P22(N), D%mP20(N), D%mP21(N))
     allocate(D%P30(N), D%P31(N), D%P32(N), D%P33(N), D%mP30(N), D%mP31(N), D%mP32(N))
-    allocate(D%P40(N), D%P41(N), D%P42(N), D%P43(N), D%P44(N), D%mP40(N), D%mP41(N))
+    allocate(D%P40(N), D%P D%P43(N), D%P44(N), D%mP40(N), D%mP41(N))
     allocate(D%P50(N), D%P51(N), D%P52(N), D%P53(N), D%P54(N),D%mP50(N),D%mP51(N),D%mP52(N))
     allocate(D%P60(N), D%P62(N), D%P63(N), D%P64(N), D%mP60(N))
     allocate(D%P70(N), D%P71(N), D%P74(N), D%mP70(N))
@@ -87,8 +87,6 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P32')), D%P32, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P33')), D%P33, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P40')), D%P40, N)
-    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P41')), D%P41, N)
-    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P42')), D%P42, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP40')), D%mP40, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP41')), D%mP41, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P43')), D%P43, N)
@@ -180,7 +178,7 @@ subroutine deallocateStruct(D, typename)
     deallocate(D%P10, D%P11, D%mP10, D%mP11)
     deallocate(D%P20, D%P21, D%P22, D%mP20, D%mP21)
     deallocate(D%P30, D%P31, D%P32, D%P33, D%mP30, D%mP31, D%mP32)
-    deallocate(D%P40, D%P41, D%P42, D%P43, D%P44, D%mP40, D%mP41)
+    deallocate(D%P40, D%P43, D%P44, D%mP40, D%mP41)
     deallocate(D%P50, D%P51, D%P52, D%P53, D%P54, D%mP50, D%mP51, D%mP52)
     deallocate(D%P60, D%P62, D%P63, D%P64, D%mP60)
     deallocate(D%P70, D%P71, D%P74, D%mP70)
@@ -275,7 +273,7 @@ function G_major(a, S, numBiases)
            (a(k+18) + a(k+19)*S%P32 + a(k+20)*S%P52)*(1+a(k+21)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%lv-pi*a(k+22)));
     geom_lst = (a(k+23) + a(k+24)*S%P21 + a(k+25)*S%P41)*(1+a(k+26)*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+27)) + &
            (a(k+28) + a(k+29)*S%P32 + a(k+30)*S%P52)*(1+a(k+31)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%dv-pi*a(k+32)));
-    geom_solar = (a(k+33) + a(k+34)*S%P10*cos(S%yv-pi*dPy) + a(k+35)*S%mP20)*AE_base*S%FA;
+    geom_solar = (a(k+33) + a(k+34)*S%mP10*cos(S%yv-pi*dPy) + a(k+35)*S%mP20)*AE_base*S%FA;
     geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
     k = k + 21;
@@ -366,7 +364,7 @@ function G_Tex(a, S, numBiases)
            (a(k+18) + a(k+19)*S%P32 + a(k+20)*S%P52)*(1+a(k+21)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%lv-pi*a(k+22)));
     geom_lst = (a(k+23) + a(k+24)*S%P21 + a(k+25)*S%P41)*(1+a(k+26)*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+27)) + &
            (a(k+28) + a(k+29)*S%P32 + a(k+30)*S%P52)*(1+a(k+31)*cos(S%yv-pi*dPy))*AE_base*cos(2*(S%dv-pi*a(k+32)));
-    geom_solar = (a(k+33) + a(k+34)*S%P10*cos(S%yv-pi*dPy) + a(k+35)*S%mP20)*AE_base*S%FA;
+    geom_solar = (a(k+33) + a(k+34)*S%mP10*cos(S%yv-pi*dPy) + a(k+35)*S%mP20)*AE_base*S%FA;
     geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
     k = k + 21;
