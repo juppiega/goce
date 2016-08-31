@@ -281,7 +281,8 @@ function G_major(a, S, numBiases)
     k = k + 21;
 
     !i = mexPrintf('G:sum'//achar(13))
-    G_major = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + geomagnetic;
+    G_major = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + &
+              quaterdiurnal + longitudinal + geomagnetic;
     !i = mexPrintf('G End'//achar(13))
 end function
 
@@ -372,7 +373,8 @@ function G_Tex(a, S, numBiases)
     k = k + 21;
 
     !i = mexPrintf('G:sum'//achar(13))
-    G_Tex = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + geomagnetic;
+    G_Tex = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + &
+            quaterdiurnal + longitudinal + geomagnetic;
     !i = mexPrintf('G End'//achar(13))
 end function
 
