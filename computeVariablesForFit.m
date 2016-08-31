@@ -43,6 +43,7 @@ addStruct.P54 = P(5,:)';
 % Sixth degree.
 P = legendre(6, x);
 addStruct.P60 = P(1,:)';
+addStruct.P61 = P(2,:)';
 addStruct.P62 = P(3,:)';
 addStruct.P63 = P(4,:)';
 addStruct.P64 = P(5,:)';

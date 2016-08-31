@@ -10,7 +10,7 @@ module fitModule
     type dataStruct
         real(kind = 8), allocatable, dimension(:) :: P10, P11, P20, P21, P22, &
                                      P30, P31, P32, P33, P40, P41, P42, P43, P44, P50, P51, &
-                                     P52, P53, P54, P60, P62, P63, P64, P70, P71, P74, &
+                                     P52, P53, P54, P60, P61, P62, P63, P64, P70, P71, P74, &
                                      mP10,mP20,mP30,mP40,mP50,mP60,mP70,mP11,mP31,mP51, &
                                      mP21, mP41, mP32, mP52, yv, dv, latitudeTerm, solarTerm, &
                                      annual, lv, dv_mag, &
@@ -59,7 +59,7 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     allocate(D%P30(N), D%P31(N), D%P32(N), D%P33(N), D%mP30(N), D%mP31(N), D%mP32(N))
     allocate(D%P40(N), D%P41(N), D%P42(N), D%P43(N), D%P44(N), D%mP40(N), D%mP41(N))
     allocate(D%P50(N), D%P51(N), D%P52(N), D%P53(N), D%P54(N),D%mP50(N),D%mP51(N),D%mP52(N))
-    allocate(D%P60(N), D%P62(N), D%P63(N), D%P64(N), D%mP60(N))
+    allocate(D%P60(N), D%P61(N), D%P62(N), D%P63(N), D%P64(N), D%mP60(N))
     allocate(D%P70(N), D%P71(N), D%P74(N), D%mP70(N))
     allocate(D%yv(N), D%dv(N), D%lv(N), D%dv_mag(N), D%latitudeTerm(N), D%solarTerm(N))
     allocate(D%annual(N), D%diurnal(N), D%semidiurnal(N), D%terdiurnal(N))
@@ -102,6 +102,7 @@ function structToDerived_TexAndMajor(matlabStruct, typeName) result(D)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P53')), D%P53, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P54')), D%P54, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P60')), D%P60, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P61')), D%P61, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP60')), D%mP60, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P62')), D%P62, N)
     call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P63')), D%P63, N)
@@ -182,7 +183,7 @@ subroutine deallocateStruct(D, typename)
     deallocate(D%P30, D%P31, D%P32, D%P33, D%mP30, D%mP31, D%mP32)
     deallocate(D%P40, D%P41, D%P42, D%P43, D%P44, D%mP40, D%mP41)
     deallocate(D%P50, D%P51, D%P52, D%P53, D%P54, D%mP50, D%mP51, D%mP52)
-    deallocate(D%P60, D%P62, D%P63, D%P64, D%mP60)
+    deallocate(D%P60, D%P61, D%P62, D%P63, D%P64, D%mP60)
     deallocate(D%P70, D%P71, D%P74, D%mP70)
     deallocate(D%yv, D%dv, D%lv, D%dv_mag, D%latitudeTerm, D%solarTerm)
     deallocate(D%annual, D%diurnal, D%semidiurnal, D%terdiurnal)
