@@ -4,7 +4,7 @@ x = cosd(90 - addStruct.latitude);
 [magLat, magLon] = convertToMagneticCoordinates(addStruct.latitude, addStruct.longitude,...
                                                 addStruct.altitude);
 x_mag = cosd(90 - magLat);
-addStruct.lv = magLon * pi / 180;
+addStruct.lv = addStruct.longitude * pi / 180;
 
 % First degree functions.
 P = legendre(1, x);
@@ -27,6 +27,8 @@ addStruct.P33 = P(4,:)';
 % Fourth degree.
 P = legendre(4, x);
 addStruct.P40 = P(1,:)';
+addStruct.P41 = P(2,:)';
+addStruct.P42 = P(3,:)';
 addStruct.P43 = P(4,:)';
 addStruct.P44 = P(5,:)';
 
