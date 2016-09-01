@@ -564,8 +564,8 @@ fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, 
 
 setenv('OMP_NUM_THREADS', num2str(numThreads))
 disp('Calling LM solver')
-%tic;[optCoeff, JTJ_diag_fort] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
-[comp] = fun(initGuess); %disp([comp(1), optCoeff]);
+tic;[optCoeff, JTJ_diag_fort] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
+%[comp] = fun(initGuess); %disp([comp(1), optCoeff]);
 %JTJ_diag_matlab = diag(J'*J);
 
 %tic; [optCoeff] = lsqnonlin(fun, initGuess, lb, ub, options);toc;
