@@ -1,6 +1,8 @@
 function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeModel )
 % TODO: -Korjaa lämpötilaprofiili Bates-Walkeriksi (z0 = 120 km) ja painovoima 9.447:ksi.
 
+mex -O FCFLAGS="\$FCFLAGS -std=f2008" -output levenbergMarquardt_mex lmSolver.F90 levenbergMarquardt_mex.F90 -llapack
+
 rng(1, 'twister');
 %import java.lang.*
 %r = Runtime.getRuntime;
