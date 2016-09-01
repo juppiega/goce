@@ -270,15 +270,16 @@ function G_major(a, S, numBiases)
     
     !i = mexPrintf('G:AE_base'//achar(13))
     !i = mexPrintf('G:AE_base'//achar(13))
+
     AE_base = sumRowWise([a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7)], S%aeInt)
-    geom_symmetric = (a(k+8) + a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base;
-    dPy = a(k+16);
-    geom_lon = (a(k+12)*S%P21 + a(k+13)*S%P41 + a(k+14)*S%P61)*(1+a(k+15)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%lv-pi*a(k+17));
-    geom_lst = (a(k+18)*S%P21 + a(k+19)*S%P41 + a(k+20)*S%P61)*(1+a(k+21)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+22));
-    geom_solar = (a(k+23) + a(k+24)*S%P10*cos(S%yv-pi*dPy) + a(k+25)*S%P20 + a(k+26)*S%P40)*AE_base*S%FA;
+    geom_symmetric = (a(k+8) + a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base*(1+a(k+12)*S%FA);
+    dPy = a(k+17);
+    geom_lon = (a(k+13)*S%P21 + a(k+14)*S%P41 + a(k+15)*S%P61)*(1+a(k+16)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%lv-pi*a(k+18))*(1+a(k+19)*S%FA);
+    geom_lst = (a(k+20)*S%P21 + a(k+21)*S%P41 + a(k+22)*S%P61)*(1+a(k+23)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+24))*(1+a(k+25)*S%FA);
+    geom_solar = (a(k+26)*S%mP10*cos(S%yv-pi*dPy)*AE_base)*(1+a(k+27)*S%FA);
     geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
-    k = k + 26;
+    k = k + 27;
 
     !i = mexPrintf('G:sum'//achar(13))
     G_major = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + &
@@ -360,15 +361,17 @@ function G_Tex(a, S, numBiases)
     !i = mexPrintf('G:geomagnetic'//achar(13))
     
     !i = mexPrintf('G:AE_base'//achar(13))
+    ! ATTEMPT #4
+    
     AE_base = sumRowWise([a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7)], S%aeInt)
-    geom_symmetric = (a(k+8) + a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base;
-    dPy = a(k+16);
-    geom_lon = (a(k+12)*S%P21 + a(k+13)*S%P41 + a(k+14)*S%P61)*(1+a(k+15)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%lv-pi*a(k+17));
-    geom_lst = (a(k+18)*S%P21 + a(k+19)*S%P41 + a(k+20)*S%P61)*(1+a(k+21)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+22));
-    geom_solar = (a(k+23) + a(k+24)*S%P10*cos(S%yv-pi*dPy) + a(k+25)*S%P20 + a(k+26)*S%P40)*AE_base*S%FA;
+    geom_symmetric = (a(k+8) + a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base*(1+a(k+12)*S%FA);
+    dPy = a(k+17);
+    geom_lon = (a(k+13)*S%P21 + a(k+14)*S%P41 + a(k+15)*S%P61)*(1+a(k+16)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%lv-pi*a(k+18))*(1+a(k+19)*S%FA);
+    geom_lst = (a(k+20)*S%P21 + a(k+21)*S%P41 + a(k+22)*S%P61)*(1+a(k+23)*S%P10*cos(S%yv-pi*dPy))*AE_base*cos(S%dv-pi*a(k+24))*(1+a(k+25)*S%FA);
+    geom_solar = (a(k+26)*S%mP10*cos(S%yv-pi*dPy)*AE_base)*(1+a(k+27)*S%FA);
     geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
-    k = k + 26;
+    k = k + 27;
 
     !i = mexPrintf('G:sum'//achar(13))
     G_Tex = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + &

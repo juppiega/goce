@@ -77,12 +77,12 @@ k = k + 40;
 AE_base = sum(bsxfun(@times, [a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7)], S.aeInt),2);
 geom_symmetric = (a(k+8) + a(k+9)*S.mP20 + a(k+10)*S.mP40 + a(k+11)*S.mP60).*AE_base.*(1+a(k+12)*S.FA);
 dPy = a(k+17);
-geom_lon = (a(k+13)*S.P21 + a(k+14)*S.P41 + a(k+15)*S.P61).*(1+a(k+16)*S.P10.*cos(S.yv-pi*dPy)).*AE_base.*cos(S.lv-pi*a(k+18)).*(a(k+19)+a(k+20)*S.FA);
-geom_lst = (a(k+21)*S.P21 + a(k+22)*S.P41 + a(k+23)*S.P61).*(1+a(k+24)*S.P10.*cos(S.yv-pi*dPy)).*AE_base.*cos(S.dv-pi*a(k+25)).*(a(k+26)+a(k+27)*S.FA);
-geom_solar = (a(k+28)*S.mP10.*cos(S.yv-pi*dPy).*AE_base).*(1+a(k+29)*S.FA);
+geom_lon = (a(k+13)*S.P21 + a(k+14)*S.P41 + a(k+15)*S.P61).*(1+a(k+16)*S.P10.*cos(S.yv-pi*dPy)).*AE_base.*cos(S.lv-pi*a(k+18)).*(1+a(k+19)*S.FA);
+geom_lst = (a(k+20)*S.P21 + a(k+21)*S.P41 + a(k+22)*S.P61).*(1+a(k+23)*S.P10.*cos(S.yv-pi*dPy)).*AE_base.*cos(S.dv-pi*a(k+24)).*(1+a(k+25)*S.FA);
+geom_solar = (a(k+26)*S.mP10.*cos(S.yv-pi*dPy).*AE_base).*(1+a(k+27)*S.FA);
 S.geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
 
-k = k + 29;
+k = k + 27;
             
 result = S.latitudeTerm + S.solarTerm + S.annual + S.diurnal + S.semidiurnal + S.terdiurnal + S.quaterdiurnal + S.geomagnetic;
 
