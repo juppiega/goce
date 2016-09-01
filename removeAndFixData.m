@@ -17,7 +17,6 @@ rhoStruct.weights(rhoStruct.goce) = goceWeight;
 rhoStruct.weights(rhoStruct.champ) = champWeight;
 rhoStruct.weights(rhoStruct.grace) = graceWeight;
 rhoStruct.numBiases = 0;
-rhoStruct = computeGeopotentialHeight(rhoStruct);
 
 [yr,~,~,~,~,~] = datevec(rhoStruct.timestamps);
 yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
@@ -202,6 +201,7 @@ O2Struct.numBiases = 0;
 O2Struct.dataEnd = length(O2Struct.data);
 O2Struct.name = 'O2';
 
+rhoStruct = computeGeopotentialHeight(rhoStruct);
 TempStruct = computeGeopotentialHeight(TempStruct);
 OStruct = computeGeopotentialHeight(OStruct);
 N2Struct = computeGeopotentialHeight(N2Struct);

@@ -9,7 +9,7 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 157;
+numCoeffs = 149;
 
 clear mex;
 % 
