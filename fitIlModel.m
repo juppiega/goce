@@ -11,7 +11,7 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 149;
+numCoeffs = 121;
 
 clear mex;
 % 
@@ -285,8 +285,8 @@ diurnal = ones(1, 21); diurnal([8, 19]) = 0.003;
 semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
-longitudinal = ones(1,40); longitudinal([4,12,20,28,34,38]) = 1E-4;
-geomagnetic = ones(1,27); geomagnetic([1,8,13,20,26,16,23]) = 0.0001;
+longitudinal = ones(1,13); longitudinal([2,5,9,12]) = 1E-4;
+geomagnetic = ones(1,26); geomagnetic([1,8,13,16,19,22,25]) = 0.0001;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, longitudinal, geomagnetic];
 lb = -ub;
@@ -536,7 +536,7 @@ O2Struct.coeffInd = ArStruct.coeffInd(end) + 1;
 ind = ub < 0.5;
 %ind(1:numCoeffs) = ub(1:numCoeffs) < 100;
 initGuess = mean([lb;ub]);% - 0.001;
-initGuess(ind) = -ub(ind);
+initGuess(ind) = ub(ind);
 ArCoeffs = zeros(numMinorCoeffs+ArStruct.numBiases, 1);
 ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.002;
 initGuess(ArStruct.coeffInd) = ArCoeffs;
@@ -614,7 +614,7 @@ ae16h = [TexStruct.aeInt(:,4); OStruct.aeInt(:,4); N2Struct.aeInt(:,4); HeStruct
 aeThreshold = 250;
 ind = ae16h >= aeThreshold;
 w = sum(weights(~ind)) / sum(weights(ind));
-%weights(ind) = w * weights(ind);
+weights(ind) = w * weights(ind);
 
 goceInd = TempAndSpectrometerLen + rhoStruct.goce;
 graceInd = TempAndSpectrometerLen + rhoStruct.grace;

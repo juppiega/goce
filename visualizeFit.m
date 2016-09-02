@@ -40,16 +40,18 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 
 z = 400;
 lat = -90:5:90;
-lst = 0:0.5:23;
-doy = 90;
-F = 150;
-FA = 150;
-aeInt = 20*ones(1,7);
-zonalMean = true;
+lst = 0:0.5:24;
+lon = 0;
+doy = 180;
+F = 70;
+FA = 70;
+aeInt = 2500*ones(1,7);
+lstMean = false;
+lonMean = true;
 latitudeMean = false;
-devFromXmean = false;
+devFromXmean = true;
 sameColorBars = false;
-plotSurfs(z, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, devFromXmean, ...
+plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, lstMean, lonMean, latitudeMean, devFromXmean, ...
     sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 
 if exist('msisDtmComparison.mat', 'file')
@@ -92,14 +94,14 @@ modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 % % 
 % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 % 
-% % computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
+% %computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
 % % 
-%  plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder);
-% % plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
-% % plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder);
-% % plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder);
-%  plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
-%  plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
+% % plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder);
+%  plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
+%  plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder);
+%  plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder);
+% % plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
+% % plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder);
 
 %analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder);
 
@@ -115,17 +117,20 @@ Tex = clamp(T0+1, Tex_est, 5000);
 
 end
 
-function [] = plotSurfs(altitude, lat, lst, doy, F, FA, aeInt, zonalMean, latitudeMean, ...
+function [] = plotSurfs(altitude, lat, lst, lon, doy, F, FA, aeInt, lstMean, lonMean, latitudeMean, ...
     devFromXmean, sameColorBars, paramOrder, paramName, coeffStruct, numBiasesStruct)
 
-[X, Y, xname, yname] = findSurfXY(altitude, lat, lst, doy, paramOrder);
+[X, Y, xname, yname] = findSurfXY(altitude, lat, lst, lon, doy, paramOrder);
 
 averLsts = 0:1:23;
 averLats = -85:10:85;
-if zonalMean
+averLons = -180:10:170;
+if lstMean
     N = length(X)*length(Y)*length(averLsts);
 elseif latitudeMean
     N = length(X)*length(Y)*length(averLats);
+elseif lonMean
+    N = length(X)*length(Y)*length(averLons);
 else
     N = length(X)*length(Y);
 end
@@ -140,23 +145,26 @@ S.F = F * ones(N,1);
 S.FA = FA * ones(N,1);
 S.doy = zeros(N,1);
 
-if zonalMean
+if lstMean
     [xmat, ymat, zmat] = meshgrid(X, Y, averLsts);
     S.solarTime = zmat(:);
 elseif latitudeMean
     [xmat, ymat, zmat] = meshgrid(X, Y, averLats);
     S.latitude = zmat(:);
+elseif lonMean
+    [xmat, ymat, zmat] = meshgrid(X, Y, averLons);
+    S.longitude = zmat(:);
 else
     [xmat, ymat] = meshgrid(X, Y);
     if length(lst) == 1; S.solarTime(:) = lst; end
+    if length(lon) == 1; S.longitude(:) = lon; end
+    if length(lat) == 1; S.latitude(:) = lat; end
 end
 
-if length(lat) == 1; S.latitude(:) = lat; end
-S.longitude(:) = 0;
 if length(doy) == 1; S.doy(:) = doy; end
 if length(altitude) == 1; S.altitude(:) = altitude; end
 
-[S, titleAddition] = assignPlotVars(S, xmat(:), ymat(:), xname, yname, zonalMean, latitudeMean);
+[S, titleAddition] = assignPlotVars(S, xmat(:), ymat(:), xname, yname, lstMean, lonMean, latitudeMean);
 
 %TODO: ap:t parametrina
 S.Ap = 3*ones(N,1); S.apNow = 3*ones(N,1); S.ap3h = 3*ones(N,1); S.ap6h = 3*ones(N,1);
@@ -220,10 +228,19 @@ else
     error(['Unknown variable: ', paramName])
 end
 
-if zonalMean
+if lstMean
     param = reshape(param, length(Y), length(X), length(averLsts));
     msisParam = reshape(msisParam, length(Y), length(X), length(averLsts));
     dtmParam = reshape(dtmParam, length(Y), length(X), length(averLsts));
+    param = mean(param, 3); 
+    msisParam = mean(msisParam, 3);
+    dtmParam = mean(dtmParam, 3);
+    xmat = xmat(:,:,1);
+    ymat = ymat(:,:,1);
+elseif lonMean
+    param = reshape(param, length(Y), length(X), length(averLons));
+    msisParam = reshape(msisParam, length(Y), length(X), length(averLons));
+    dtmParam = reshape(dtmParam, length(Y), length(X), length(averLons));
     param = mean(param, 3); 
     msisParam = mean(msisParam, 3);
     dtmParam = mean(dtmParam, 3);
@@ -425,7 +442,7 @@ orbAver(rmInd) = [];
 
 end
 
-function [S, titleAddition] = assignPlotVars(S, X, Y, xname, yname, zonalMean, latitudeMean)
+function [S, titleAddition] = assignPlotVars(S, X, Y, xname, yname, lstMean, lonMean, latitudeMean)
 
 if strcmpi(xname, 'altitude')
     S.altitude = X; xNum = 1;
@@ -433,6 +450,8 @@ elseif strcmpi(xname, 'lat')
     S.latitude = X; xNum = 2;
 elseif strcmpi(xname, 'lst')
     S.solarTime = X; xNum = 3;
+elseif strcmpi(xname, 'lon')
+    S.longitude = X; xNum = 4;
 elseif strcmpi(xname, 'doy')
     S.doy = X; xNum = 4;
 end
@@ -443,16 +462,21 @@ elseif strcmpi(yname, 'lat')
     S.latitude = Y; yNum = 2;
 elseif strcmpi(yname, 'lst')
     S.solarTime = Y; yNum = 3;
+elseif strcmpi(yname, 'lon')
+    S.longitude = Y; yNum = 4;
 elseif strcmpi(yname, 'doy')
     S.doy = Y; yNum = 4;
 end
 
-names = {'z', 'lat', 'lst', 'doy'};
-nonVecInd = setdiff(1:4, [xNum, yNum]);
+names = {'z', 'lat', 'lst', 'lon', 'doy'};
+nonVecInd = setdiff(1:length(names), [xNum, yNum]);
 nonVecNames = names(nonVecInd);
-vals = [S.altitude(1), S.latitude(1), S.solarTime(1), S.doy(1)];
+vals = [S.altitude(1), S.latitude(1), S.solarTime(1), S.longitude(1), S.doy(1)];
 nonVecVals = vals(nonVecInd);
-if zonalMean
+if lonMean
+    otherInd = find(nonVecInd ~= 4);
+    titleAddition = [names{otherInd}, '=', num2str(vals(otherInd)), ', lon mean'];
+elseif lstMean
     otherInd = find(nonVecInd ~= 3);
     titleAddition = [names{otherInd}, '=', num2str(vals(otherInd)), ', zonal mean'];
 elseif latitudeMean
@@ -469,10 +493,10 @@ function [X, Y, xname, yname] = findSurfXY(varargin)
 % [X, Y] = findSurfXY(heights, lat, lst, doy, paramOrder)
 
 lh = length(varargin{1}); llat = length(varargin{2}); llst = length(varargin{3});...
-    ldoy = length(varargin{4});
-a = [lh, llat, llst, ldoy];
-names = {'altitude', 'lat', 'lst', 'doy'};
-if strcmpi(varargin{5}, 'xy')
+llon = length(varargin{4});    ldoy = length(varargin{5});
+a = [lh, llat, llst, llon, ldoy];
+names = {'altitude', 'lat', 'lst', 'lon', 'doy'};
+if strcmpi(varargin{6}, 'xy')
     xind = find(a > 1, 1, 'first');
     yind = find(a > 1, 1, 'last');
 else
