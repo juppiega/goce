@@ -274,10 +274,10 @@ function G_major(a, S, numBiases)
     geom_symmetric = (a(k+8) + a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base*(1+a(k+12)*S%FA);
     geom_lon = (a(k+13)*S%P21 + a(k+14)*S%P41 + a(k+15)*S%P61)*(1+a(k+16)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
                 cos(S%lv-pi*a(k+17))*(1+a(k+18)*S%FA);
-    geom_lst = (a(k+19)*S%P21 + a(k+20)*S%P41 + a(k+21)*S%P61)*(1+a(k+22)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
+    geom_lst = (a(k+19)*S%P11 + a(k+20)*S%P31 + a(k+21)*S%P51)*(1+a(k+22)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
                 cos(S%dv-pi*a(k+23))*(1+a(k+24)*S%FA);
     geom_solar = (a(k+25)*S%mP10*cos(S%yv-pi*dPy)*AE_base)*(1+a(k+26)*S%FA);
-    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar + a(k+27)*AE_base*AE_base;
+    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar! + a(k+27)*AE_base*AE_base;
 
     k = k + 28;
 
@@ -367,10 +367,10 @@ function G_Tex(a, S, numBiases)
     geom_symmetric = (a(k+8) + a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base*(1+a(k+12)*S%FA);
     geom_lon = (a(k+13)*S%P21 + a(k+14)*S%P41 + a(k+15)*S%P61)*(1+a(k+16)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
                 cos(S%lv-pi*a(k+17))*(1+a(k+18)*S%FA);
-    geom_lst = (a(k+19)*S%P21 + a(k+20)*S%P41 + a(k+21)*S%P61)*(1+a(k+22)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
+    geom_lst = (a(k+19)*S%P11 + a(k+20)*S%P31 + a(k+21)*S%P51)*(1+a(k+22)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
                 cos(S%dv-pi*a(k+23))*(1+a(k+24)*S%FA);
     geom_solar = (a(k+25)*S%mP10*cos(S%yv-pi*dPy)*AE_base)*(1+a(k+26)*S%FA);
-    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar + a(k+27)*AE_base*AE_base;
+    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar! + a(k+27)*AE_base*AE_base;
 
     k = k + 27;
 

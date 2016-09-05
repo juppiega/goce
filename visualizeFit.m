@@ -55,8 +55,8 @@ lonMean = true;
 latitudeMean = false;
 devFromXmean = true;
 sameColorBars = false;
-plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
+%plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, lstMean, lonMean, latitudeMean, devFromXmean, ...
+%    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 
 if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat
