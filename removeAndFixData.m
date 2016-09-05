@@ -21,7 +21,7 @@ rhoStruct.numBiases = 0;
 [yr,~,~,~,~,~] = datevec(rhoStruct.timestamps);
 yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
 rhoStruct.doy = rhoStruct.timestamps - datenum(yearVec) + 1;
-
+rhoStruct = computeGeopotentialHeight(rhoStruct);
 
 if nargin == 2 && nargout == 1
     return
@@ -201,7 +201,6 @@ O2Struct.numBiases = 0;
 O2Struct.dataEnd = length(O2Struct.data);
 O2Struct.name = 'O2';
 
-rhoStruct = computeGeopotentialHeight(rhoStruct);
 TempStruct = computeGeopotentialHeight(TempStruct);
 OStruct = computeGeopotentialHeight(OStruct);
 N2Struct = computeGeopotentialHeight(N2Struct);
