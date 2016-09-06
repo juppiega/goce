@@ -11,7 +11,7 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 121;
+numCoeffs = 122;
 
 clear mex;
 % 
@@ -286,7 +286,7 @@ semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
 longitudinal = ones(1,13); longitudinal([2,5,9,12]) = 1E-4;
-geomagnetic = ones(1,26); geomagnetic([1,8,13,16,19,22,25]) = 0.0001;
+geomagnetic = ones(1,27); geomagnetic([1,8,13,16,19,22,25]) = 0.0001;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, longitudinal, geomagnetic];
 lb = -ub;
@@ -488,8 +488,8 @@ function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct
 global numCoeffs;
 numMinorCoeffs = 50;
 
-removeInd = rhoStruct.swarm;
-rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
+%removeInd = rhoStruct.swarm;
+%rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 
 fprintf('%s\n', 'Computing final fit')
 
@@ -618,8 +618,11 @@ weights(ind) = w * weights(ind);
 
 goceInd = TempAndSpectrometerLen + rhoStruct.goce;
 graceInd = TempAndSpectrometerLen + rhoStruct.grace;
-w = 0.25 * sum(weights(graceInd)) / sum(weights(goceInd));
-weights(goceInd) = w * weights(goceInd);
+swarmInd = TempAndSpectrometerLen + rhoStruct.swarm;
+wGoce = 0.25 * sum(weights(graceInd)) / sum(weights(goceInd));
+wSwarm = 0.5 * sum(weights(goceInd)) / length(swarmInd);
+weights(goceInd) = wGoce * weights(goceInd);
+weights(swarmInd) = wSwarm;
 
 % aeNormalized = 1 + (2 * ae16h / max(ae16h));
 % weights = weights .* aeNormalized;

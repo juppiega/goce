@@ -277,7 +277,7 @@ function G_major(a, S, numBiases)
     geom_lst = (a(k+19)*S%P11 + a(k+20)*S%P31 + a(k+21)*S%P51)*(1+a(k+22)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
                 cos(S%dv-pi*a(k+23))*(1+a(k+24)*S%FA);
     geom_solar = (a(k+25)*S%mP10*cos(S%yv-pi*dPy)*AE_base)*(1+a(k+26)*S%FA);
-    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar! + a(k+27)*AE_base*AE_base;
+    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar + a(k+27)*AE_base*AE_base;
 
     k = k + 28;
 
@@ -370,7 +370,7 @@ function G_Tex(a, S, numBiases)
     geom_lst = (a(k+19)*S%P11 + a(k+20)*S%P31 + a(k+21)*S%P51)*(1+a(k+22)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
                 cos(S%dv-pi*a(k+23))*(1+a(k+24)*S%FA);
     geom_solar = (a(k+25)*S%mP10*cos(S%yv-pi*dPy)*AE_base)*(1+a(k+26)*S%FA);
-    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar! + a(k+27)*AE_base*AE_base;
+    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar + a(k+27)*AE_base*AE_base;
 
     k = k + 27;
 

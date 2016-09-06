@@ -49,14 +49,14 @@ lon = 0;
 doy = 180;
 F = 70;
 FA = 70;
-aeInt = 2500*ones(1,7);
+aeInt = 20*ones(1,7);
 lstMean = false;
 lonMean = true;
 latitudeMean = false;
 devFromXmean = true;
 sameColorBars = false;
-%plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, lstMean, lonMean, latitudeMean, devFromXmean, ...
-%    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
+plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, lstMean, lonMean, latitudeMean, devFromXmean, ...
+    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 
 if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat
@@ -82,30 +82,30 @@ end
 
 modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
-% plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
-%  modelStruct, 'O/M', 'AE16h', 'lat', saveFolder,fullscreenFigs);
-% % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
-% %  modelStruct, 'O/M', 'AE16h', 'lst', saveFolder);
-% % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
-% %  modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
-% % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
-% %  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
-% % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
-% %  modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
-% % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
-% %     10, originalRhoStruct.data,...
-% %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
+%  plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
+%   modelStruct, 'O/M', 'AE16h', 'lat', saveFolder,fullscreenFigs);
+%  plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
+%   modelStruct, 'O/M', 'AE16h', 'lst', saveFolder,fullscreenFigs);
+% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
+% % %  modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
+% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
+% % %  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
+% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
+% % %  modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
+% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
+% % %     10, originalRhoStruct.data,...
+% % %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
+% % % 
+% % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 % % 
-% % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
-% 
-%  %computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
-% % 
-%   plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-%   plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-%   plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-%   plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-%   plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-%   plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+% %  %computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
+% % % 
+%    plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%    plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%    plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%    plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%    plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%    plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 
 analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs);
 
@@ -356,13 +356,13 @@ for i = 1:length(stormBeginInd)
     OAOM(i,2) = mean(measuredOrbAver ./ msisOrbAver);
     OAOM(i,3) = mean(measuredOrbAver ./ dtmOrbAver);
     
-    rawRMS(i,1) = mean(measuredRho ./ ilRho-1);
-    rawRMS(i,2) = mean(measuredRho ./ msisRho-1);
-    rawRMS(i,3) = mean(measuredRho ./ dtmRho-1);
+    rawRMS(i,1) = rms(measuredRho ./ ilRho-1);
+    rawRMS(i,2) = rms(measuredRho ./ msisRho-1);
+    rawRMS(i,3) = rms(measuredRho ./ dtmRho-1);
     
-    OARMS(i,1) = mean(measuredOrbAver ./ ilOrbAver-1);
-    OARMS(i,2) = mean(measuredOrbAver ./ msisOrbAver-1);
-    OARMS(i,3) = mean(measuredOrbAver ./ dtmOrbAver-1);
+    OARMS(i,1) = rms(measuredOrbAver ./ ilOrbAver-1);
+    OARMS(i,2) = rms(measuredOrbAver ./ msisOrbAver-1);
+    OARMS(i,3) = rms(measuredOrbAver ./ dtmOrbAver-1);
     
     minDst(i) = min(rhoStruct.dst(ind));
     averF81A(i) = mean(rhoStruct.FA(ind));
@@ -407,17 +407,21 @@ legend('AE', 'MSIS', 'location', 'southeast')
 filename = [saveFolder, '/OACorr'];
 saveas(gcf, filename, 'png');
 
-% figure('units','normalized','outerposition',[0 0 1 1])
-% X = repmat(-minDst, 1, 2);
-% h = plot(X, OARMS(:,1:2), 's');
-% set(h(1), 'markerFaceColor', 'b');
-% set(h(2), 'markerFaceColor', 'g');
-% xlabel('-1 * min Dst', 'fontsize', fontsize);
-% ylabel('Orb. aver. RMS', 'fontsize', fontsize);
-% set(gca, 'fontsize', fontsize);
-% legend('AE', 'MSIS', 'location', 'southeast')
-% filename = [saveFolder, '/OARMS'];
-% saveas(gcf, filename, 'png');
+if fullscreenFigs
+    figure('units','normalized','outerposition',[0 0 1 1])
+else
+    figure;
+end
+X = repmat(-minDst, 1, 2);
+h = plot(X, OARMS(:,1:2), 's');
+set(h(1), 'markerFaceColor', 'b');
+set(h(2), 'markerFaceColor', 'g');
+xlabel('-1 * min Dst', 'fontsize', fontsize);
+ylabel('Orb. aver. RMS', 'fontsize', fontsize);
+set(gca, 'fontsize', fontsize);
+legend('AE', 'MSIS', 'location', 'southeast')
+filename = [saveFolder, '/OARMS'];
+saveas(gcf, filename, 'png');
 
 if fullscreenFigs
     figure('units','normalized','outerposition',[0 0 1 1])
