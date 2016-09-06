@@ -620,8 +620,8 @@ goceInd = TempAndSpectrometerLen + rhoStruct.goce;
 graceInd = TempAndSpectrometerLen + rhoStruct.grace;
 swarmInd = TempAndSpectrometerLen + rhoStruct.swarm;
 wGoce = 0.25 * sum(weights(graceInd)) / sum(weights(goceInd));
-wSwarm = 0.5 * sum(weights(goceInd)) / length(swarmInd);
 weights(goceInd) = wGoce * weights(goceInd);
+wSwarm = 0.5 * sum(weights(goceInd)) / length(swarmInd);
 weights(swarmInd) = wSwarm;
 
 % aeNormalized = 1 + (2 * ae16h / max(ae16h));
