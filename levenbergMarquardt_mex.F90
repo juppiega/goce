@@ -530,6 +530,7 @@ function geomParametrization(S, a, aeInt)
     implicit none
     type(dataStruct), intent(in) :: S
     real(kind = 8), intent(in) :: a(:)
+    real(kind = 8), intent(in) :: aeInt(:)
     real(kind = 8), allocatable :: geomParametrization(:)
     geomParametrization = (a(1) + a(2)*cos(S%yv-a(3))*S%P10 + a(4)*S%P20 + a(5)*S%P40)*(1 + a(6)*S%FA)*aeInt;
 
