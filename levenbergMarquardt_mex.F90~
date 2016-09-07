@@ -270,16 +270,14 @@ function G_major(a, S, numBiases)
     !i = mexPrintf('G:AE_base'//achar(13))
     !i = mexPrintf('G:AE_base'//achar(13))
 
-    AE_base = sumRowWise([a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7)], S%aeInt)
-    geom_symmetric = (a(k+8) + a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base*(1+a(k+12)*S%FA);
-    geom_lon = (a(k+13)*S%P21 + a(k+14)*S%P41 + a(k+15)*S%P61)*(1+a(k+16)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
-                cos(S%lv-pi*a(k+17))*(1+a(k+18)*S%FA);
-    geom_lst = (a(k+19)*S%P21 + a(k+20)*S%P41 + a(k+21)*S%P61)*(1+a(k+22)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
-                cos(S%dv-pi*a(k+23))*(1+a(k+24)*S%FA);
-    geom_solar = (a(k+25)*S%mP10*cos(S%yv-pi*dPy)*AE_base)*(1+a(k+26)*S%FA);
-    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar + a(k+27)*exp(a(k+28)*AE_base);
+    geomagnetic = geomParametrization(S, a(k+1:k+6), S.aeInt(:,1)) +&
+                geomParametrization(S, a(k+7:k+12), S.aeInt(:,2)) +&
+                geomParametrization(S, a(k+13:k+8), S.aeInt(:,3)) +&
+                geomParametrization(S, a(k+19:k+24), S.aeInt(:,5)) +&
+                geomParametrization(S, a(k+25:k+30), S.aeInt(:,6));
 
-    k = k + 27;
+    k = k + 30;
+            
 
     !i = mexPrintf('G:sum'//achar(13))
     G_major = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + &
@@ -362,17 +360,13 @@ function G_Tex(a, S, numBiases)
     !i = mexPrintf('G:AE_base'//achar(13))
     ! ATTEMPT #4
     
-    AE_base = sumRowWise([a(k+1), a(k+2), a(k+3), a(k+4), a(k+5), a(k+6), a(k+7)], S%aeInt)
+    geomagnetic = geomParametrization(S, a(k+1:k+6), S.aeInt(:,1)) +&
+                geomParametrization(S, a(k+7:k+12), S.aeInt(:,2)) +&
+                geomParametrization(S, a(k+13:k+8), S.aeInt(:,3)) +&
+                geomParametrization(S, a(k+19:k+24), S.aeInt(:,5)) +&
+                geomParametrization(S, a(k+25:k+30), S.aeInt(:,6));
 
-    geom_symmetric = (a(k+8) + a(k+9)*S%mP20 + a(k+10)*S%mP40 + a(k+11)*S%mP60)*AE_base*(1+a(k+12)*S%FA);
-    geom_lon = (a(k+13)*S%P21 + a(k+14)*S%P41 + a(k+15)*S%P61)*(1+a(k+16)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
-                cos(S%lv-pi*a(k+17))*(1+a(k+18)*S%FA);
-    geom_lst = (a(k+19)*S%P21 + a(k+20)*S%P41 + a(k+21)*S%P61)*(1+a(k+22)*S%P10*cos(S%yv-pi*dPy))*AE_base*&
-                cos(S%dv-pi*a(k+23))*(1+a(k+24)*S%FA);
-    geom_solar = (a(k+25)*S%mP10*cos(S%yv-pi*dPy)*AE_base)*(1+a(k+26)*S%FA);
-    geomagnetic = geom_symmetric + geom_lon + geom_lst + geom_solar;
-
-    k = k + 27;
+    k = k + 30;
 
     !i = mexPrintf('G:sum'//achar(13))
     G_Tex = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + &
@@ -530,6 +524,15 @@ function G_lbDT(a, S, numBiases)
     !i = mexPrintf('G:sum'//achar(13))
     G_lbDT = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal
     !i = mexPrintf('G End'//achar(13))
+end function
+
+function geomParametrization(S, a, aeInt)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: a(:)
+    real(kind = 8), allocatable :: geomParametrization(:)
+    geomParametrization = (a(1) + a(2)*cos(S.yv-a(3))*S%P10 + a(4)*S%P20 + a(5)*S%P40)*(1 + a(6)*S.FA).*aeInt;
+
 end function
 
 function fourier4(S, a)
@@ -965,7 +968,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     tolOpt = 1E4
     lambda0 = 1E-1
     maxFuncEvals = 5000 * size(initGuess)
-    maxIter = 0 !!!!!!!!!!!!!!!!!!!!!!
+    maxIter = 1000000 !!!!!!!!!!!!!!!!!!!!!!
     
     call lmSolve(modelMinimizationFunction, initGuess, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&

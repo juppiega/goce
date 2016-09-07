@@ -44,18 +44,19 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 
 z = 400;
 lat = -90:5:90;
-lst = 0:0.5:24;
+lst = 9;
 lon = 0;
-doy = 180;
-F = 70;
-FA = 70;
+doy = 0:10:360;
+F = 150;
+FA = 150;
 aeInt = 20*ones(1,7);
+Ap = 3;
 lstMean = false;
-lonMean = true;
+lonMean = false;
 latitudeMean = false;
-devFromXmean = true;
+devFromXmean = false;
 sameColorBars = false;
-plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, lstMean, lonMean, latitudeMean, devFromXmean, ...
+plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
     sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 
 if exist('msisDtmComparison.mat', 'file')
@@ -82,32 +83,32 @@ end
 
 modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
-%  plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
-%   modelStruct, 'O/M', 'AE16h', 'lat', saveFolder,fullscreenFigs);
-%  plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
-%   modelStruct, 'O/M', 'AE16h', 'lst', saveFolder,fullscreenFigs);
-% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
-% % %  modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
-% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
-% % %  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
-% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
-% % %  modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
-% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
-% % %     10, originalRhoStruct.data,...
-% % %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
+%   plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
+%    modelStruct, 'O/M', 'AE16h', 'lat', saveFolder,fullscreenFigs);
+% %  plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
+% %   modelStruct, 'O/M', 'AE16h', 'lst', saveFolder,fullscreenFigs);
+% % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
+% % % %  modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
+% % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
+% % % %  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
+% % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
+% % % %  modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
+% % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
+% % % %     10, originalRhoStruct.data,...
+% % % %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
+% % % % 
+% % % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 % % % 
-% % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
-% % 
-% %  %computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
-% % % 
+% % %  %computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
+% % % % 
 %    plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %    plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %    plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %    plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %    plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %    plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-
-analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs);
+% 
+% analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs);
 
 end
 
@@ -121,7 +122,7 @@ Tex = clamp(T0+1, Tex_est, 5000);
 
 end
 
-function [] = plotSurfs(altitude, lat, lst, lon, doy, F, FA, aeInt, lstMean, lonMean, latitudeMean, ...
+function [] = plotSurfs(altitude, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, ...
     devFromXmean, sameColorBars, paramOrder, paramName, coeffStruct, numBiasesStruct)
 
 [X, Y, xname, yname] = findSurfXY(altitude, lat, lst, lon, doy, paramOrder);
@@ -171,8 +172,8 @@ if length(altitude) == 1; S.altitude(:) = altitude; end
 [S, titleAddition] = assignPlotVars(S, xmat(:), ymat(:), xname, yname, lstMean, lonMean, latitudeMean);
 
 %TODO: ap:t parametrina
-S.Ap = 3*ones(N,1); S.apNow = 3*ones(N,1); S.ap3h = 3*ones(N,1); S.ap6h = 3*ones(N,1);
-S.ap9h = 3*ones(N,1); S.ap12To33h = 3*ones(N,1); S.ap36To57h = 3*ones(N,1);
+S.Ap = Ap*ones(N,1); S.apNow = Ap*ones(N,1); S.ap3h = Ap*ones(N,1); S.ap6h = Ap*ones(N,1);
+S.ap9h = Ap*ones(N,1); S.ap12To33h = Ap*ones(N,1); S.ap36To57h = Ap*ones(N,1);
 
 % [lstGrid, latGrid] = meshgrid(lst, lat);
 % S = computeLatLstGrid(S, lat, lst);
