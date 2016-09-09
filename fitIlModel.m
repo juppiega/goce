@@ -548,7 +548,7 @@ initGuess(HeStruct.coeffInd(1)) = log(2.5E7);
 initGuess(ArStruct.coeffInd(1)) = log(1.2E9);
 initGuess(O2Struct.coeffInd) = log(3E10);
 
-load optCoeff.mat
+load optCoeff.individualAE.mat
 nonGeomEnd = 95;
 initGuess(TexStruct.coeffInd(1:nonGeomEnd)) = optCoeff(TexInd(1:nonGeomEnd));
 b=OStruct.numBiases; initGuess(OStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(OInd(1:nonGeomEnd+b));
