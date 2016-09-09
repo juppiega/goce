@@ -442,23 +442,6 @@ saveas(gcf, filename, 'png');
 
 end
 
-function orbAver = computeOrbitAverage(x, lat, timestampsDatenum)
-
-eqCrossings = find((lat(1:end-1) .* lat(2:end) < 0) & lat(1:end-1) < 0);
-timestamps1min = (timestampsDatenum - timestampsDatenum(1)) * 1440;
-eqCrossings = [1; eqCrossings];
-orbAver = zeros(length(eqCrossings)-1, 1);
-
-for i = 2:length(eqCrossings)
-    ind = eqCrossings(i-1):eqCrossings(i);
-    orbAver(i-1) = mean(x(ind));
-end
-
-rmInd = [1; find(diff(timestamps1min(eqCrossings)) > 150)];
-orbAver(rmInd) = [];
-
-end
-
 function [S, titleAddition] = assignPlotVars(S, X, Y, xname, yname, lstMean, lonMean, latitudeMean)
 
 if strcmpi(xname, 'altitude')

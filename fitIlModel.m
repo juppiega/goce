@@ -548,14 +548,14 @@ initGuess(HeStruct.coeffInd(1)) = log(2.5E7);
 initGuess(ArStruct.coeffInd(1)) = log(1.2E9);
 initGuess(O2Struct.coeffInd) = log(3E10);
 
-load optCoeff.individualAE.mat
-nonGeomEnd = 95;
-initGuess(TexStruct.coeffInd(1:nonGeomEnd)) = optCoeff(TexInd(1:nonGeomEnd));
-b=OStruct.numBiases; initGuess(OStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(OInd(1:nonGeomEnd+b));
-b=N2Struct.numBiases; initGuess(N2Struct.coeffInd(1:nonGeomEnd+b)) = optCoeff(N2Ind(1:nonGeomEnd+b));
-b=HeStruct.numBiases; initGuess(HeStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(HeInd(1:nonGeomEnd+b));
-initGuess(ArStruct.coeffInd(1:end)) = optCoeff(ArInd(1:length(ArInd)));
-initGuess(O2Struct.coeffInd(1:end)) = optCoeff(O2Ind(1:length(O2Ind)));
+% load optCoeff.individualAE.mat
+% nonGeomEnd = 95;
+% initGuess(TexStruct.coeffInd(1:nonGeomEnd)) = optCoeff(TexInd(1:nonGeomEnd));
+% b=OStruct.numBiases; initGuess(OStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(OInd(1:nonGeomEnd+b));
+% b=N2Struct.numBiases; initGuess(N2Struct.coeffInd(1:nonGeomEnd+b)) = optCoeff(N2Ind(1:nonGeomEnd+b));
+% b=HeStruct.numBiases; initGuess(HeStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(HeInd(1:nonGeomEnd+b));
+% initGuess(ArStruct.coeffInd(1:end)) = optCoeff(ArInd(1:length(ArInd)));
+% initGuess(O2Struct.coeffInd(1:end)) = optCoeff(O2Ind(1:length(O2Ind)));
 
 % ub(ind) = mode(ub(~ind));
 % TexInd = 2:numCoeffs; ub(TexInd) = mode(ub(TexInd));

@@ -275,7 +275,7 @@ function G_major(a, S, numBiases)
                 geomParametrization(S, a(k+13:k+18), S%aeInt(:,3)) +&
                 geomParametrization(S, a(k+19:k+24), S%aeInt(:,5)) +&
                 geomParametrization(S, a(k+25:k+30), S%aeInt(:,6)) +&
-                geomParametrization(S, a(k+31:k+36), S%aeInt(:,2)*S%aeInt(:,3));
+                geomParametrization(S, a(k+31:k+36), S%aeInt(:,5)*S%aeInt(:,6));
 
     k = k + 30;
             
@@ -366,7 +366,7 @@ function G_Tex(a, S, numBiases)
                 geomParametrization(S, a(k+13:k+18), S%aeInt(:,3)) +&
                 geomParametrization(S, a(k+19:k+24), S%aeInt(:,5)) +&
                 geomParametrization(S, a(k+25:k+30), S%aeInt(:,6)) +&
-                geomParametrization(S, a(k+31:k+36), S%aeInt(:,2)*S%aeInt(:,3));
+                geomParametrization(S, a(k+31:k+36), S%aeInt(:,5)*S%aeInt(:,6));
 
     k = k + 30;
 

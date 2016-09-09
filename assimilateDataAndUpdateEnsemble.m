@@ -1,5 +1,6 @@
-function ensemble = assimilateDataAndUpdateEnsemble(ensemble, observationOperator, ...
-                                                    observationsStruct)
+function [ensemble,innovations,residuals,covariance] = ...
+                    assimilateDataAndUpdateEnsemble(ensemble, observationOperator, ...
+                                                    observationsStruct, statistics)
 % INPUT: 
 %     ensemble: Ensemble of models. Double matrix size nxN, where n is the number of
 %               states and N the number of members (size of the ensemble).
@@ -12,6 +13,7 @@ function ensemble = assimilateDataAndUpdateEnsemble(ensemble, observationOperato
 %                         describing the 1-sigma uncertainty (not variance) and "data",
 %                         which contains the values. "data" and "sigma"
 %                         must be in absolute (not relative) units (e.g. Kelvin).
+%     statistics:         Compute additional statistics (boolean).
 %     IMPORTANT NOTE: ONLY ASSIMILATE ONE TYPE OF DATA AT A TIME! THE DATA
 %     IN THE STRUCT MUST HAVE THE SAME UNIT (e.g. kg/m^-3 or K etc.).
 
@@ -43,7 +45,11 @@ A = bsxfun(@minus, ensemble, mean(ensemble, 2));
 % Simulate observations using the background ensemble members.
 Hx = zeros(numData, numMembers);
 for i = 1:numMembers
-    Hx(:,i) = observationOperator(ensemble(:,i), observationsStruct);
+    simObs = observationOperator(ensemble(:,i), observationsStruct);
+    if any(isnan(simObs) | ~isfinite(simObs) | ~isreal(simObs) | simObs <= 0)
+        error('Observation operator returned unphysical value!')
+    end
+    Hx(:,i) = simObs;
 end
 
 % Simulated data perturbations from ensemble mean.
@@ -55,5 +61,21 @@ P = (1./(numMembers-1)) * HA*(HA') + diag(observationsStruct.sigma.^2);
 % CREATE ANALYSIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ensemble = ensemble + (1./(numMembers-1)) * A * (HA') * (P \ (D - Hx));%!
 % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+if statistics
+    innovations = mean(bsxfun(@minus, observationsStruct.data, Hx),2);
+
+    residuals = zeros(numData, 1);
+    for i = 1:numMembers
+        simObs = observationOperator(ensemble(:,i), observationsStruct);
+        if any(isnan(simObs) | ~isfinite(simObs) | ~isreal(simObs) | simObs <= 0)
+            error('Observation operator returned unphysical value!')
+        end
+        residuals = residuals + (observationsStruct.data - simObs)/numMembers;
+    end
+
+    % Model covariance.
+    covariance = (1./(numMembers-1)) * A * (A');
+end
                                                 
 end

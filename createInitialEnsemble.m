@@ -1,6 +1,6 @@
 function ensemble = createInitialEnsemble(modelString, numMembers, initialGuess, parameter1sigmaError)
 
-load optCoeff
+load optCoeff.individualAE.mat
 
 if strcmpi(modelString,'dummy')
     rhoGuess = [optCoeff(OInd(1)), optCoeff(N2Ind(1)), optCoeff(HeInd(1))];
