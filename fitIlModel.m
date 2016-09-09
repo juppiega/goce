@@ -538,7 +538,7 @@ ind = ub < 0.5;
 initGuess = mean([lb;ub]);% - 0.001;
 initGuess(ind) = -ub(ind);
 ArCoeffs = zeros(numMinorCoeffs+ArStruct.numBiases, 1);
-ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.002;
+ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
 initGuess(ArStruct.coeffInd) = ArCoeffs;
 
 initGuess(TexStruct.coeffInd(1)) = 1030;
@@ -548,6 +548,14 @@ initGuess(HeStruct.coeffInd(1)) = log(2.5E7);
 initGuess(ArStruct.coeffInd(1)) = log(1.2E9);
 initGuess(O2Struct.coeffInd) = log(3E10);
 
+load optCoeff.mat
+nonGeomEnd = 95;
+initGuess(TexStruct.coeffInd(1:nonGeomEnd)) = optCoeff(TexInd(1:nonGeomEnd));
+b=OStruct.numBiases; initGuess(OStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(OInd(1:nonGeomEnd+b));
+b=N2Struct.numBiases; initGuess(N2Struct.coeffInd(1:nonGeomEnd+b)) = optCoeff(N2Ind(1:nonGeomEnd+b));
+b=HeStruct.numBiases; initGuess(HeStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(HeInd(1:nonGeomEnd+b));
+b=ArStruct.numBiases; initGuess(ArStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(ArInd(1:nonGeomEnd+b));
+b=O2Struct.numBiases; initGuess(O2Struct.coeffInd(1:nonGeomEnd+b)) = optCoeff(O2Ind(1:nonGeomEnd+b));
 
 % ub(ind) = mode(ub(~ind));
 % TexInd = 2:numCoeffs; ub(TexInd) = mode(ub(TexInd));
