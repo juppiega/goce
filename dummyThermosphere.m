@@ -1,12 +1,12 @@
 function [simulatedObservations, outputStruct] =...
     dummyThermosphere(state, observationStruct)
 
-T0 = clamp(300,state(1),700);
-dT0 = clamp(1,state(2),30);
-Tex = max(state(3), T0+1);
-OlbDens = max(state(4), log(1E8));
-N2lbDens = max(state(5), log(1E9));
-HelbDens = max(state(6), log(1E6));
+T0 = 507;
+dT0 = 12;
+Tex = max(state(1), T0+1);
+OlbDens = max(state(2), log(1E8));
+N2lbDens = max(state(3), log(1E9));
+HelbDens = log(2.5E7);
 ArlbDens = log(8.6E8);
 O2lbDens = log(1.3E5);
 Z = computeGeopotentialHeight(observationStruct.altitude);

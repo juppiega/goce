@@ -1,4 +1,4 @@
-function [ensemble,innovations,residuals,covariance] = ...
+function [ensemble,innovations,residuals,covariance,P] = ...
                     assimilateDataAndUpdateEnsemble(ensemble, observationOperator, ...
                                                     observationsStruct, statistics)
 % INPUT: 
@@ -61,6 +61,10 @@ P = (1./(numMembers-1)) * HA*(HA') + diag(observationsStruct.sigma.^2);
 % CREATE ANALYSIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ensemble = ensemble + (1./(numMembers-1)) * A * (HA') * (P \ (D - Hx));%!
 % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+% ensemble(1,:) = clamp(500, ensemble(1,:), 4000);
+% ensemble(2,:) = clamp(log(1E8), ensemble(2,:), log(1E11));
+% ensemble(3,:) = clamp(log(1E9), ensemble(2,:), log(1E12));
 
 if statistics
     innovations = mean(bsxfun(@minus, observationsStruct.data, Hx),2);

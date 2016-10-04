@@ -83,32 +83,32 @@ end
 
 modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
-  plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
-   modelStruct, 'O/M', 'AE16h', 'lat', saveFolder,fullscreenFigs);
-%  plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
-%   modelStruct, 'O/M', 'AE16h', 'lst', saveFolder,fullscreenFigs);
-% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
-% % %  modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
-% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
-% % %  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
-% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
-% % %  modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
-% % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
-% % %     10, originalRhoStruct.data,...
-% % %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
+%   plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
+%    modelStruct, 'O/M', 'Kp3h', 'lat', saveFolder,fullscreenFigs);
+% %  plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
+% %   modelStruct, 'O/M', 'AE16h', 'lst', saveFolder,fullscreenFigs);
+% % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.altitude, 25, originalRhoStruct.data,...
+% % % %  modelStruct, 'O/M', 'AE16h', 'alt', saveFolder);
+% % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
+% % % %  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
+% % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.FA, 10, originalRhoStruct.data,...
+% % % %  modelStruct, 'O/M', 'AE16h', 'FA', saveFolder);
+% % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.F - originalRhoStruct.FA, ...
+% % % %     10, originalRhoStruct.data,...
+% % % %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
+% % % % 
+% % % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 % % % 
-% % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
-% % 
-% %  %computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
-% % % 
-   plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-   plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-   plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-   plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-   plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-   plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-
-analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs);
+% % %  %computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
+% % % % 
+%     plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%     plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%     plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%     plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%     plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%     plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%  
+ analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs);
 
 end
 
@@ -327,11 +327,16 @@ for i = 1:length(stormBeginInd)
     
     lat = rhoStruct.latitude(ind);
     timestamps = rhoStruct.timestamps(ind);
+    firstDay = timestamps < timestamps(1) + 1;
     
     measuredRho = rhoStruct.data(ind);
-    ilRho = modelStruct.il(ind);
+    ilRho = modelStruct.il(ind); 
     msisRho = modelStruct.msis(ind);
     dtmRho = modelStruct.dtm(ind);
+    
+    ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
+    msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
+    dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
     
     measuredOrbAver = computeOrbitAverage(measuredRho, lat, timestamps);
     ilOrbAver = computeOrbitAverage(ilRho, lat, timestamps);
@@ -382,7 +387,7 @@ outputCell(2:end, 15:17) = num2cell(OACorr);
 outputCell(2:end, 18:20) = num2cell(OAOM);
 outputCell(2:end, 21:23) = num2cell(OARMS);
 
-outputCell(1,1:end) = {'Begin', 'End', 'Mean F10.7', 'Min Dst', 'SatInfo (0=GO,1=CH,2=GR)',...
+outputCell(1,1:end) = {'Begin', 'End', 'Mean F10.7', 'Min Dst', 'SatInfo (0=GO:1=CH:2=GR:3=SW)',...
                         'Corr. IL','Corr. MSIS','Corr. DTM','O/M IL','O/M MSIS','O/M DTM',...
                         'RMS IL','RMS MSIS','RMS DTM', ...
                         'OA Corr. IL', 'OA Corr. MSIS', 'OA Corr. DTM',...

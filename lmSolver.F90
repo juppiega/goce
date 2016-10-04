@@ -15,7 +15,7 @@ end interface
 contains
 
 subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, solution, &
-                   funVec, firstOrderOptAtSolution, JacobianAtSolution, JTJ_diag_sol, exitFlag)
+                   funVec, firstOrderOptAtSolution, JacobianAtSolution, JTWJ, exitFlag)
     implicit none
     ! Input arguments
     procedure(costFunction) :: FUN ! Cost function. Returns a vector of (weighted) residuals.
@@ -25,7 +25,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
     integer, optional :: maxFuncEvals, maxIter ! Maximum number of function evaluations (1000 * numVars), maximum iterations (100).
 
     ! Output arguments
-    real(kind = 8), allocatable, optional, intent(out) :: solution(:), funVec(:), JacobianAtSolution(:,:),JTJ_diag_sol(:) ! Final X, final function value, Jacobian at solution.
+    real(kind = 8), allocatable, optional, intent(out) :: solution(:), funVec(:), JacobianAtSolution(:,:),JTWJ(:,:) ! Final X, final function value, Jacobian at solution.
     real(kind = 8), optional, intent(out) :: firstOrderOptAtSolution ! Infinity norm of gradient at solution.
     integer, optional, intent(out) :: exitFlag ! Exit statue. -2 = Exceeded maxFuncEvals, -1 = Exceeded maxIter,
                                      ! 1 = First order optimality smaller than tolOpt, 2 = norm(step) < tolX * norm(X), 3 = changeSumSq < tolFun * oldSumSq.
@@ -215,7 +215,9 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
     mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('Before Jacobian'), 'disp')
     if (present(funVec)) funVec = costFuncVec
     if (present(solution)) solution = X
-    if(present(JTJ_diag_sol)) JTJ_diag_sol = JTJ_diag
+    if (present(JTWJ)) then
+        JTWJ = computeCovarianceInverse(costFuncVec, JTJ, size(Jacobian, 2))
+    end if
     if (present(firstOrderOptAtSolution)) firstOrderOptAtSolution = firstOrderOpt
     if (present(JacobianAtSolution)) JacobianAtSolution = Jacobian
     if (present(exitFlag)) exitFlag = flag
@@ -348,6 +350,37 @@ function find(logicVec) result(trueIndices)
             k = k + 1
         end if
     end do
+end function
+
+function computeCovarianceInverse(costFuncVec, JTJ, numParams) result(JTWJ)
+    implicit none
+    real(kind = 8), intent(inout) :: costFuncVec(:), JTJ(:)
+    integer, intent(in) :: numParams
+    real(kind = 8), allocatable :: JTWJ(:,:)
+    real(kind = 8) :: fitVariance
+    integer(kind = 8) :: numData, i, j
+    
+    numData = size(costFuncVec)
+    numParams = size(Jacobian,2)
+
+    allocate(JTWJ(numParams, numParams))
+
+    fitVariance = sum(costFuncVec**2) / (numData - numParams + 1)
+    JTJ = JTJ / fitVariance
+
+    do i = 1, numParams
+        do j = 1, i
+            ind = i + (2*numParams-j)*(j-1)/2
+            JTWJ(i,j) = JTJ(ind)
+        end do
+    end do
+    
+    do j = 2, numParams
+        do i = 1, j-1
+            JTWJ(i,j) = JTWJ(j,i)
+        end do
+    end do
+
 end function
 
 end module lmSolverModule

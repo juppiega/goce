@@ -894,7 +894,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
 
     integer(kind = 4) :: mexPrintf, k, mexEvalString, mexCallMATLAB, i,j
 
-    real(kind = 8), allocatable :: y_output(:), solution(:), funVec(:), Jacobian(:,:), JTJ(:,:),JTJ_diag(:)
+    real(kind = 8), allocatable :: y_output(:), solution(:), funVec(:), Jacobian(:,:), JTJ(:,:),JTWJ(:)
 
     !-----------------------------------------------------------------------
     !     Check for proper number of argumentS% 
@@ -975,7 +975,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
     call lmSolve(modelMinimizationFunction, initGuess, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
-                 firstOrderOptAtSolution = firstOrderOpt, JTJ_diag_sol = JTJ_diag)
+                 firstOrderOptAtSolution = firstOrderOpt, JTWJ = JTWJ)
 
 
 
@@ -986,7 +986,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     y_output = solution ! !!!!!!!!   
     !     Create matrix for the return argument.
     plhs(1) = mxCreateDoubleMatrix(size(y_output),1,0)
-    plhs(2) = mxCreateDoubleMatrix(size(JTJ_diag),1,0)
+    plhs(2) = mxCreateDoubleMatrix(size(JTWJ,1),size(JTWJ,2),0)
     !k = mexPrintf('Before mxGetPr'//achar(13)) 
     y_ptr = mxGetPr(plhs(1))
     JTJ_ptr = mxGetPr(plhs(2))
@@ -997,7 +997,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     !k = mexPrintf('Output size: '//tempChar//achar(13)) 
     
     call mxCopyReal8ToPtr(y_output,y_ptr,size(y_output))
-    call mxCopyReal8ToPtr(JTJ_diag,JTJ_ptr,size(JTJ_diag))
+    call mxCopyReal8ToPtr(JTWJ,JTJ_ptr,size(JTWJ))
     
     !k = mexPrintf('Begin deallocation'//achar(13))
     deallocate(weights, initGuess)
