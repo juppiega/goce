@@ -3,11 +3,10 @@ function ensemble = createInitialEnsemble(modelString, numMembers, initialGuess,
 load optCoeff.individualAE.mat
 
 if strcmpi(modelString,'dummy')
-    rhoGuess = [optCoeff(OInd(1)), optCoeff(N2Ind(1))];
-    initialGuess =  [1000, rhoGuess];
+    initialGuess = zeros(11, 1);
     stateLength = length(initialGuess);
-    lb = [700, rhoGuess*0.99];
-    ub = [1400, rhoGuess*1.01];
+    lb = [-100, -5, zeros(1,9)-50];
+    ub = [100, 5, zeros(1,9)+50];
     ensemble = zeros(stateLength, numMembers);
     for i = 1:stateLength
         d = (ub(i)-lb(i))/2;

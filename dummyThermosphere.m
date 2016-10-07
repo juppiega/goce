@@ -1,11 +1,11 @@
 function [simulatedObservations, outputStruct] =...
     dummyThermosphere(state, observationStruct)
 
-T0 = 507;
-dT0 = 12;
-Tex = max(state(1), T0+1);
-OlbDens = max(state(2), log(1E8));
-N2lbDens = max(state(3), log(1E9));
+T0 = clamp(300, 507 + state(1), 700);
+dT0 = clamp(1, 12 + state(2), 20);
+Tex = clamp(T0+1, 1030 + bulge(state(3:11), observationStruct), 5000);
+OlbDens = log(8.47E10);
+N2lbDens = log(3.2E11);
 HelbDens = log(2.5E7);
 ArlbDens = log(8.6E8);
 O2lbDens = log(1.3E5);
