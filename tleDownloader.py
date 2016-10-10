@@ -38,7 +38,7 @@ def downloader():
     "&query=https://www.space-track.org/basicspacedata/query/"+
     "class/tle/NORAD_CAT_ID/"+str(objectID).zfill(5)+
     "/EPOCH/"+beginDate[0:10]+"%20"+beginDate[11:20]+"--"+
-    endDate[0:10]+"%20"+endDate[11:20]+"/format/tle' "+ 
+    endDate[0:10]+"%20"+endDate[11:20]+"/orderby/EPOCH asc/format/tle' "+ 
     "--cookies=on --no-check-certificate --keep-session-cookies --save-cookies=cookies.txt "+
     "'https://www.space-track.org/ajaxauth/login' -O "+outputName)
     
