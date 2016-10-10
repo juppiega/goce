@@ -1,5 +1,10 @@
 function tleMap = downloadTLEs(objectIDs, beginDatenums, endDatenums)
 
+load Bfactors.dat
+
+satellites = Bfactors(:,1);
+B = Bfactors(:,2);
+
 if length(beginDatenums) == 1
     beginDatenums = beginDatenums * ones(size(objectIDs));
 end
@@ -49,7 +54,17 @@ for i = 1:length(objectIDs)
         sgp4SatInfos(j) = twoline2rv(72, tleLine1, tleLine2, '0', '0');
     end
     
-    tleMap(objectIDs(i)) = sgp4SatInfos;
+    Bind = satellites == objectIDs(i);
+    if sum(ind) == 0
+        error(['Could not find Btrue for object: ', objectIDs(i)]);
+    end
+    if sum(ind) > 1
+        error(['File contained Btrue twice (or more) for object: ', objectIDs(i), '. A satellite must have only one Btrue value!']);
+    end
+    Btrue = B(Bind);
+    
+    satelliteData = struct('sgp4info', sgp4SatInfos, 'Btrue', Btrue);
+    tleMap(objectIDs(i)) = satelliteData;
     
     fclose(tleFile);
     delete(outputName);
