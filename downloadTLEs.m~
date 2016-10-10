@@ -8,6 +8,8 @@ if length(endDatenums) == 1
     endDatenums = endDatenums * ones(size(objectIDs));
 end
 
+tleMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
+
 for i = 1:length(objectIDs)
     beginString = datestr(beginDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
     endString = datestr(endDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
@@ -45,6 +47,11 @@ for i = 1:length(objectIDs)
         tleLine2 = fgetl(tleFile);
         sgp4SatInfos(j) = twoline2rv(72, tleLine1, tleLine2, '0', '0');
     end
+    
+    tleMap(objectIDs(i)) = sgp4SatInfos;
+    
+    fclose(tleFile);
+    
 end
 
 end

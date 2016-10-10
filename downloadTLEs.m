@@ -30,6 +30,7 @@ for i = 1:length(objectIDs)
     tleLine1 = fgetl(tleFile);
     if length(tleLine1) ~= 69
         warning(['Something wrong with TLE download or object ',num2str(objectIDs(i)),' does not have any elements between given dates.'])
+        fclose(tleFile);
         continue;
     end
     
@@ -49,6 +50,9 @@ for i = 1:length(objectIDs)
     end
     
     tleMap(objectIDs(i)) = sgp4SatInfos;
+    
+    fclose(tleFile);
+    delete(outputName);
 end
 
 end
