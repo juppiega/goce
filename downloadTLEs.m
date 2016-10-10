@@ -19,6 +19,19 @@ for i = 1:length(objectIDs)
     if status ~= 0
         error(['Something wrong with python script tleDownloader.py. System output: ', output])
     end
+    
+    beginString = datestr(beginDatenums(i), 'yyyy-mm-dd-HHMMSS');
+    endString = datestr(endDatenums(i), 'yyyy-mm-dd-HHMMSS');
+    
+    outputName = ['TLE_',sprintf('%05d',objectIDs(i)),'_',beginString,'--',endString,'.txt'];
+    tleFile = fopen(outputName);
+    tleLine = fgetl(tleFile);
+    if length(tleLine) ~= 69
+        warning(['Object ',num2str(objectIDs(i)),' does not have any elements between given dates.'])
+    end
+    
+    satrec = twoline2rv( 72, ...
+                       longstr1, longstr2, typerun, typeinput);
 end
 
 end

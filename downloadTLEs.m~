@@ -17,8 +17,18 @@ for i = 1:length(objectIDs)
             
     [status, output] = system(command);
     if status ~= 0
-        error('Something wrong with python script tleDownloader.p
+        error(['Something wrong with python script tleDownloader.py. System output: ', output])
     end
+    
+    beginString = datestr(beginDatenums(i), 'yyyy-mm-dd-HHMMSS');
+    endString = datestr(endDatenums(i), 'yyyy-mm-dd-HHMMSS');
+    
+    outputName = ['TLE_',sprintf('%05d',objectIDs(i)),'_',beginString,'--',endString,'.txt'];
+    tleFile = fopen(outputName);
+    
+    
+    satrec = twoline2rv( 72, ...
+                       longstr1, longstr2, typerun, typeinput);
 end
 
 end
