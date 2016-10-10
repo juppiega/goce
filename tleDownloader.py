@@ -39,7 +39,9 @@ def downloader():
     "class/tle/NORAD_CAT_ID/"+str(objectID).zfill(5)+
     "/EPOCH/"+beginDate[0:10]+"%20"+beginDate[11:20]+"--"+
     endDate[0:10]+"%20"+endDate[11:20]+"/format/tle' "+ 
-    "--cookies=on --keep-session-cookies --save-cookies=cookies.txt "+
+    "--cookies=on --no-check-certificate --keep-session-cookies 
+--save-cookies=cookies.txt 
+"+
     "'https://www.space-track.org/ajaxauth/login' -O "+outputName)
     
     downloadCommand = re.sub('[\n]','',downloadCommand)    
