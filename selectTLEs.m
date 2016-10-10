@@ -8,13 +8,13 @@ else
 end
 
 for i = 1:length(objects)
-    sgp4Info = tleMap(objects(i));
+    sgp4Info = tleMap(objects{i});
     if oldest
         sgp4InfoReduced = sgp4Info(1);
     else
         sgp4InfoReduced = sgp4Info(end);
     end
-    tleMap(objects(i)) = sgp4InfoReduced;
+    tleMap(objects{i}) = sgp4InfoReduced;
 end
 
 end
