@@ -23,7 +23,10 @@ for i = 1:length(objects)
     else
         sgp4InfoReduced = sgp4Info(end);
     end
-    newTleMap(objects{i}).sgp4info = sgp4InfoReduced;
+    newTleMap(objects{i}).sgp4info(1) = sgp4InfoReduced;
+    if length(newTleMap(objects{i}).sgp4info) > 1
+        newTleMap(objects{i}).sgp4info(2:end) = [];
+    end
 end
 
 end
