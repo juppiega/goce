@@ -7,7 +7,7 @@ else
     oldest = false;
 end
 
-newTleMap = tleMap;
+newTleMap = [tleMap; containers.Map()];
 
 for i = 1:length(objects)
     sgp4Info = tleMap(objects{i});
