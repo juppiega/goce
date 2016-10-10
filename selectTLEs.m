@@ -1,4 +1,4 @@
-function tleMap = selectTLEs(tleMap, oldestOrNewest)
+function newTleMap = selectTLEs(tleMap, oldestOrNewest)
 
 objects = keys(tleMap);
 if strcmpi(oldestOrNewest, 'oldest')
@@ -7,6 +7,8 @@ else
     oldest = false;
 end
 
+newTleMap = tleMap;
+
 for i = 1:length(objects)
     sgp4Info = tleMap(objects{i});
     if oldest
@@ -14,7 +16,7 @@ for i = 1:length(objects)
     else
         sgp4InfoReduced = sgp4Info(end);
     end
-    tleMap(objects{i}) = sgp4InfoReduced;
+    newTleMap(objects{i}) = sgp4InfoReduced;
 end
 
 end
