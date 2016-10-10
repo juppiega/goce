@@ -55,10 +55,10 @@ for i = 1:length(objectIDs)
     end
     
     Bind = satellites == objectIDs(i);
-    if sum(ind) == 0
+    if sum(Bind) == 0
         error(['Could not find Btrue for object: ', objectIDs(i)]);
     end
-    if sum(ind) > 1
+    if sum(Bind) > 1
         error(['File contained Btrue twice (or more) for object: ', objectIDs(i), '. A satellite must have only one Btrue value!']);
     end
     Btrue = B(Bind);
