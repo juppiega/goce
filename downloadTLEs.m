@@ -8,7 +8,7 @@ if length(endDatenums) == 1
     endDatenums = endDatenums * ones(size(objectIDs));
 end
 
-tleMap = containers.Map;
+tleMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
 
 for i = 1:length(objectIDs)
     beginString = datestr(beginDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
