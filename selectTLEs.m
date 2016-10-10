@@ -7,7 +7,7 @@ else
     oldest = false;
 end
 
-for i = 1:lenth(objects)
+for i = 1:length(objects)
     sgp4Info = tleMap(objects(i));
     if oldest
         sgp4InfoReduced = sgp4Info(1);
