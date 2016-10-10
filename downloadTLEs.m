@@ -8,6 +8,8 @@ if length(endDatenums) == 1
     endDatenums = endDatenums * ones(size(objectIDs));
 end
 
+tleMap = containers.Map;
+
 for i = 1:length(objectIDs)
     beginString = datestr(beginDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
     endString = datestr(endDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
@@ -25,13 +27,28 @@ for i = 1:length(objectIDs)
     
     outputName = ['TLE_',sprintf('%05d',objectIDs(i)),'_',beginString,'--',endString,'.txt'];
     tleFile = fopen(outputName);
-    tleLine = fgetl(tleFile);
-    if length(tleLine) ~= 69
-        warning(['Object ',num2str(objectIDs(i)),' does not have any elements between given dates.'])
+    tleLine1 = fgetl(tleFile);
+    if length(tleLine1) ~= 69
+        warning(['Something wrong with TLE download or object ',num2str(objectIDs(i)),' does not have any elements between given dates.'])
+        continue;
     end
     
-    satrec = twoline2rv( 72, ...
-                       longstr1, longstr2, typerun, typeinput);
+    tleLine2 = fgetl(tleFile);
+    satrec = twoline2rv(72, tleLine1, tleLine2, '0', '0');
+    
+    [~,output] = system(['wc -l ', outputName]);
+    c = strsplit(output);
+    numTLEs = str2num(c{1}) / 2;
+    
+    sgp4SatInfos = repmat(satrec, numTLEs, 1);
+    
+    for j = 2:numTLEs
+        tleLine1 = fgetl(tleFile);
+        tleLine2 = fgetl(tleFile);
+        sgp4SatInfos(j) = twoline2rv(72, tleLine1, tleLine2, '0', '0');
+    end
+    
+    tleMap(objectIDs(i)) = sgp4SatInfos;
 end
 
 end
