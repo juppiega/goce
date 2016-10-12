@@ -23,7 +23,7 @@ function [lat, lon, alt] = eciToGeodetic(x, y, z, julianDate)
         s = sin(lat);
         C = 1./(sqrt(1 - e2*s.^2));
         latBetter = atan2(z + a*C*e2*s, R); 
-        if abs(latBetter - lat) < latTol; break; end
+        if all(abs(latBetter - lat) < latTol); break; end
         lat = latBetter;
     end
 

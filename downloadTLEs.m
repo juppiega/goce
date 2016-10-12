@@ -4,6 +4,7 @@ load Bfactors.dat
 
 satellites = Bfactors(:,1);
 B = Bfactors(:,2);
+sig_B = Bfactors(:,3);
 
 if length(beginDatenums) == 1
     beginDatenums = beginDatenums * ones(size(objectIDs));
@@ -62,8 +63,9 @@ for i = 1:length(objectIDs)
         error(['File contained Btrue twice (or more) for object: ', objectIDs(i), '. A satellite must have only one Btrue value!']);
     end
     Btrue = B(Bind);
+    sig_Btrue = sig_B(Bind);
     
-    satelliteData = struct('sgp4info', sgp4SatInfos, 'Btrue', Btrue);
+    satelliteData = struct('sgp4info', sgp4SatInfos, 'Btrue', Btrue, 'sig_Btrue', sig_Btrue);
     tleMap(objectIDs(i)) = satelliteData;
     
     fclose(tleFile);

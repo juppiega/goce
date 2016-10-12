@@ -12,7 +12,7 @@ else
     custom = false;
 end
 
-newTleMap = [tleMap; containers.Map()]; % Trick to get a deep copy.
+newTleMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
 
 for i = 1:length(objects)
     sgp4Info = tleMap(objects{i}).sgp4info;
@@ -23,10 +23,7 @@ for i = 1:length(objects)
     else
         sgp4InfoReduced = sgp4Info(end);
     end
-    newTleMap(objects{i}).sgp4info(1) = sgp4InfoReduced;
-    if length(newTleMap(objects{i}).sgp4info) > 1
-        newTleMap(objects{i}).sgp4info(2:end) = [];
-    end
+    newTleMap(objects{i}) = struct('sgp4info', sgp4InfoReduced, 'Btrue', tleMap(objects{i}).Btrue);
 end
 
 end

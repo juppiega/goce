@@ -89,9 +89,11 @@ addStruct.mP60 = P(1,:)';
 P = legendre(7, x_mag);
 addStruct.mP70 = P(1,:)';
 
-addStruct.F2 = addStruct.F.^2;
-addStruct.FA2 = addStruct.FA.^2;
-addStruct.FtimesFA = addStruct.F .* addStruct.FA;
+if isfield(addStruct, 'F') && isfield(addStruct, 'FA')
+    addStruct.F2 = addStruct.F.^2;
+    addStruct.FA2 = addStruct.FA.^2;
+    addStruct.FtimesFA = addStruct.F .* addStruct.FA;
+end
 
 % Annual parameter.
 if ~isfield(addStruct, 'doy') || length(addStruct.doy) ~= length(x_mag) 
@@ -120,7 +122,7 @@ addStruct.terdiurnal = zeros(length(x),1);
 addStruct.quaterdiurnal = zeros(length(x),1);
 addStruct.geomagnetic = zeros(length(x),1);
 
-if isfield(addStruct,'Z') && length(addStruct.altitude) ~= length(addStruct.Z)
+if ~isfield(addStruct,'Z') || (isfield(addStruct,'Z') && length(addStruct.altitude) ~= length(addStruct.Z))
     addStruct = computeGeopotentialHeight(addStruct);
 end
 
