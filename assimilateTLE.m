@@ -47,7 +47,7 @@ endJul = jday(year,month,day,hh,mm,ss);
 TLEsInWindow = containers.Map('KeyType', 'double', 'ValueType', 'any');
 obj = keys(tleMap);
 for i = 1:length(obj)
-    tles = tleMap(obj(i));
+    tles = tleMap(obj{i});
     ind = [];
     for j = 1:length(tles)
         tle = tles(j);
@@ -56,15 +56,15 @@ for i = 1:length(obj)
         end
     end
     if ~isempty(ind)
-        TLEsInWindow(obj(i)) = tles(ind);
+        TLEsInWindow(obj{i}) = tles(ind);
     end
 end
 
 assimilatableTLEs = containers.Map('KeyType', 'double', 'ValueType', 'any');
 obj = keys(TLEsInWindow);
 for i = 1:length(obj)
-    tles = tleMap(obj(i));
-    oldTime = oldTLEs(obj(i)).jdsatepoch;
+    tles = tleMap(obj{i});
+    oldTime = oldTLEs(obj{i}).jdsatepoch;
     ind = [];
     for j = 1:length(tles)
         tle = tles(j);
@@ -74,7 +74,7 @@ for i = 1:length(obj)
         end
     end
     if ~isempty(ind)
-        assimilatableTLEs(obj(i)) = tles(ind);
+        assimilatableTLEs(obj{i}) = tles(ind);
     end
 end
 
