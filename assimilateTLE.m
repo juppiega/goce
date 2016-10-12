@@ -49,32 +49,34 @@ obj = keys(tleMap);
 for i = 1:length(obj)
     tles = tleMap(obj{i});
     ind = [];
-    for j = 1:length(tles)
-        tle = tles(j);
-        if beginJul <= tle.sgp4info.jdsatepoch && tle.sgp4info.jdsatepoch <= endJul
+    for j = 1:length(tles.sgp4info)
+        sgp4tle = tles.sgp4info(j);
+        if beginJul <= sgp4tle.jdsatepoch && sgp4tle.jdsatepoch <= endJul
             ind = [ind;j];
         end
     end
     if ~isempty(ind)
-        TLEsInWindow(obj{i}) = tles(ind);
+        TLEsInWindow(obj{i}) = struct('Btrue',tles.Btrue,'sig_Btrue',tles.sig_Btrue,...
+                                      'sgp4info', tles.sgp4info(ind));
     end
 end
 
 assimilatableTLEs = containers.Map('KeyType', 'double', 'ValueType', 'any');
 obj = keys(TLEsInWindow);
 for i = 1:length(obj)
-    tles = tleMap(obj{i});
+    tles = TLEsInWindow(obj{i});
     oldTime = oldTLEs(obj{i}).sgp4info.jdsatepoch;
     ind = [];
-    for j = 1:length(tles)
-        tle = tles(j);
-        if tle.sgp4info.jdsatepoch >= oldTime + intWindow
+    for j = 1:length(tles.sgp4info)
+        sgp4tle = tles.sgp4info(j);
+        if sgp4tle.jdsatepoch >= oldTime + intWindow
             ind = j;
             break;
         end
     end
     if ~isempty(ind)
-        assimilatableTLEs(obj{i}) = tles(ind);
+        assimilatableTLEs(obj{i}) = struct('Btrue',tles.Btrue,'sig_Btrue',tles.sig_Btrue,...
+                                      'sgp4info', tles.sgp4info(ind));
     end
 end
 
