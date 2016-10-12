@@ -1,8 +1,8 @@
 function [] = assimilateTLE(beginDateStr, endDateStr, assimilationWindow, intWindow, plotID)
 % [assimilationWindow] = days, [intWindow] = days
 
-beginDate = datenum(beginDate);
-endDate = datenum(endDate);
+beginDate = datenum(beginDateStr);
+endDate = datenum(endDateStr);
 
 load Bfactors.dat
 objectIDs = Bfactors(:,1);
