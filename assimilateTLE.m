@@ -51,7 +51,7 @@ for i = 1:length(obj)
     ind = [];
     for j = 1:length(tles)
         tle = tles(j);
-        if beginJul <= tle.jdsatepoch && tle.jdsatepoch <= endJul
+        if beginJul <= tle.sgp4info.jdsatepoch && tle.sgp4info.jdsatepoch <= endJul
             ind = [ind;j];
         end
     end
@@ -64,11 +64,11 @@ assimilatableTLEs = containers.Map('KeyType', 'double', 'ValueType', 'any');
 obj = keys(TLEsInWindow);
 for i = 1:length(obj)
     tles = tleMap(obj{i});
-    oldTime = oldTLEs(obj{i}).jdsatepoch;
+    oldTime = oldTLEs(obj{i}).sgp4info.jdsatepoch;
     ind = [];
     for j = 1:length(tles)
         tle = tles(j);
-        if tle.jdsatepoch >= oldTime + intWindow
+        if tle.sgp4info.jdsatepoch >= oldTime + intWindow
             ind = j;
             break;
         end
