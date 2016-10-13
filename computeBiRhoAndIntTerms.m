@@ -89,11 +89,14 @@ for i = 1:length(recentObjects)
                                'altitude', alt, 'timestamps', tDatenum);
     observationStruct = computeVariablesForFit(observationStruct);
     
-    densityMatrix = zeros(m, size(ensemble,2));
+    densityMatrix = zeros(length(rMag), size(ensemble,2));
     
     for j = 1:size(ensemble,2)
         densityMatrix(:,j) = modelFunction(ensemble(:,j), observationStruct);
     end
+    
+    observationStruct = struct('latitude', lat, 'longitude', lon, 'solarTime', lst,...
+                               'altitude', alt, 'timestamps', tDatenum);
     
     integralMatrix = bsxfun(@times, ((1E3*vMag).^3).*windFac, densityMatrix);
     
