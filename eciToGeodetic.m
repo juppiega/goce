@@ -22,12 +22,12 @@ function [lat, lon, alt] = eciToGeodetic(x, y, z, julianDate)
     while true
         s = sin(lat);
         C = 1./(sqrt(1 - e2*s.^2));
-        latBetter = atan2(z + a*C*e2*s, R); 
+        latBetter = atan2(z + a.*C.*e2.*s, R); 
         if all(abs(latBetter - lat) < latTol); break; end
         lat = latBetter;
     end
 
-    alt = R./cos(lat) - a*C;
+    alt = R./cos(lat) - a.*C;
     
     lat = rad2deg(lat);
     lon = rad2deg(lon);
