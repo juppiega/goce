@@ -9,7 +9,7 @@ objectIDs = Bfactors(:,1);
 
 tleMap = downloadTLEs(objectIDs, beginDate, endDate);
 
-M = floor((beginDate-endDate)/assimilationWindow) + 3;
+M = floor((endDate-beginDate)/assimilationWindow) + 3;
 plotTimes = zeros(M,1);
 plotOM = zeros(M,1);
 
