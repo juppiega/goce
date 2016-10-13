@@ -18,7 +18,7 @@ rhoModel = zeros(length(recentObjects));
 for i = 1:length(recentObjects)
     
     object = recentObjects(i);
-    if ~iskey(previousTLEs, object)
+    if ~isKey(previousTLEs, object)
         warning(['Object ', object, ' could not be found in the previousTLEs!'])
         continue;
     end
