@@ -82,7 +82,7 @@ for i = 1:length(recentObjects)
     
     windFac = (1 - omega_E*rMag.*cos(incl)./vMag).^2;
     
-    tDatenum = zros(size(tJulDay));
+    tDatenum = zeros(size(tJulDay));
     for j = 1:length(tJulDay)
         [yyyy,mo,dd,hh,mins,ss] = invjday(tJulDay(j));
         tDatenum(j) = datenum([yyyy,mo,dd,hh,mins,ss]);
