@@ -69,6 +69,9 @@ for i = 1:length(recentObjects)
     vVec = vVec(ind);
     
     [lat, lon, alt] = eciToGeodetic(r(:,1), r(:,2), r(:,3), tJulDay);
+    if length(lat) ~= length(lon)
+        error('Lat is of wrong length!')
+    end
     UT = 12 + mod(tJulDay, 1.0);
     lst = lon/15 + UT;
     lst(lst>=24) = lst(lst>=24) - 24;
@@ -79,8 +82,11 @@ for i = 1:length(recentObjects)
     
     windFac = (1 - omega_E*rMag.*cos(incl)./vMag).^2;
     
-    [yyyy,mo,dd,hh,mins,ss] = invjday(tJulDay);
-    tDatenum = datenum([yyyy,mo,dd,hh,mins,ss]);
+    tDatenum = zros(size(tJulDay));
+    for j = 1:length(tJulDay)
+        [yyyy,mo,dd,hh,mins,ss] = invjday(tJulDay(j));
+        tDatenum(j) = datenum([yyyy,mo,dd,hh,mins,ss]);
+    end
     
     observationStruct = struct('latitude', lat, 'longitude', lon, 'solarTime', lst,...
                                'altitude', alt, 'timestamps', tDatenum);
