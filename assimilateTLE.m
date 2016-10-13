@@ -13,6 +13,13 @@ M = floor((beginDate-endDate)/assimilationWindow) + 3;
 plotTimes = zeros(M,1);
 plotOM = zeros(M,1);
 
+targetCount = round(M);
+barWidth = 50;
+p = TimedProgressBar( targetCount, barWidth, ...
+                    'Running TLE asimilation, ETA ', ...
+                    '. Now at ', ...
+                    'Completed in ' );
+
 date = beginDate;
 oldTLEs = selectTLEs(tleMap, 'oldest');
 k = 1;
@@ -27,7 +34,9 @@ while date <= endDate
     end
     date = date + assimilationWindow;
     k = k + 1;
+    p.progress;
 end
+p.stop;
 ind = plotTimes > 0;
 plotTimes = plotTimes(ind);
 plotOM = plotOM(ind);
