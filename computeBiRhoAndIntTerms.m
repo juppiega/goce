@@ -65,8 +65,8 @@ for i = 1:length(recentObjects)
     
     ind = tJulDay > 0;
     tJulDay = tJulDay(ind);
-    rVec = rVec(ind);
-    vVec = vVec(ind);
+    rVec = rVec(ind,:);
+    vVec = vVec(ind,:);
     
     [lat, lon, alt] = eciToGeodetic(rVec(:,1), rVec(:,2), rVec(:,3), tJulDay);
     UT = 12 + mod(tJulDay, 1.0);
