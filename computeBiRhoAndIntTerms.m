@@ -68,10 +68,7 @@ for i = 1:length(recentObjects)
     rVec = rVec(ind);
     vVec = vVec(ind);
     
-    [lat, lon, alt] = eciToGeodetic(r(:,1), r(:,2), r(:,3), tJulDay);
-    if length(lat) ~= length(lon)
-        error('Lat is of wrong length!')
-    end
+    [lat, lon, alt] = eciToGeodetic(rVec(:,1), rVec(:,2), rVec(:,3), tJulDay);
     UT = 12 + mod(tJulDay, 1.0);
     lst = lon/15 + UT;
     lst(lst>=24) = lst(lst>=24) - 24;
