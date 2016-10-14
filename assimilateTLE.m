@@ -1,6 +1,10 @@
 function [] = assimilateTLE(beginDateStr, endDateStr, assimilationWindow, intWindow, plotID)
 % [assimilationWindow] = days, [intWindow] = days
 
+if iscolumn(plotID)
+    plotID = plotID';
+end
+
 beginDate = datenum(beginDateStr);
 endDate = datenum(endDateStr);
 
@@ -11,7 +15,7 @@ tleMap = downloadTLEs(objectIDs, beginDate, endDate);
 
 M = floor((endDate-beginDate)/assimilationWindow) + 3;
 plotTimes = zeros(M,1);
-plotOM = zeros(M,1);
+plotOM = zeros(M,length(plotID));
 
 targetCount = round(M);
 barWidth = 50;
@@ -30,7 +34,7 @@ while date <= endDate
         ind = S.objectIDs == plotID;
         OM = S.rhoObs(ind)./S.rhoModel(ind);
         plotTimes(k) = date + assimilationWindow/2;
-        plotOM(k) = OM;
+        plotOM(k,:) = OM;
     end
     date = date + assimilationWindow;
     k = k + 1;
@@ -39,10 +43,11 @@ end
 p.stop;
 ind = plotTimes > 0;
 plotTimes = plotTimes(ind);
-plotOM = plotOM(ind);
+plotOM = plotOM(ind,:);
 
 figure;
-plot(plotTimes, plotOM,'linewidth', 2.0)
+plot(repmat(plotTimes,1,length(plotID)), plotOM,'linewidth', 2.0)
+legend(strsplit(num2str(plotID)));
 datetick('x')
 
 
