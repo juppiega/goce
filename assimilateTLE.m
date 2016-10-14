@@ -27,7 +27,7 @@ p = TimedProgressBar( targetCount, barWidth, ...
                     'Running TLE asimilation, ETA ', ...
                     '. Now at ', ...
                     'Completed in ' );
-
+               
 date = beginDate;
 oldTLEs = selectTLEs(tleMap, 'oldest');
 k = 1;
@@ -35,7 +35,7 @@ while date <= endDate
     assimilatableTLEs = findAssimilatableTLEs(tleMap, oldTLEs, date, date + assimilationWindow, intWindow);
     if ~isempty(keys(assimilatableTLEs))
         S = computeBiRhoAndIntTerms(zeros(11,1), @dummyThermosphere, oldTLEs, assimilatableTLEs, 0.5, 100);
-        ind = S.objectIDs == plotID;
+        ind = ismember(S.objectIDs,plotID);
         OM = S.rhoObs(ind)./S.rhoModel(ind);
         plotTimes(k) = date + assimilationWindow/2;
         plotOM(k,:) = OM;
