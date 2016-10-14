@@ -12,7 +12,7 @@ load Bfactors.dat
 objectIDs = Bfactors(:,1);
 
 if ~all(ismember(plotID, objectIDs))
-    error(['Could not find requested object(s): ', plotID(~ismember(plotID, objectIDs)),' in Bfactors.dat'])
+    error(['Could not find requested object(s): ', num2str(plotID(~ismember(plotID, objectIDs))),' in Bfactors.dat'])
 end
 
 tleMap = downloadTLEs(objectIDs, beginDate, endDate);
