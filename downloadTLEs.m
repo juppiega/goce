@@ -20,7 +20,7 @@ for i = 1:length(objectIDs)
     beginString = datestr(beginDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
     endString = datestr(endDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
     
-    command = ['python3 tleDownloader.py ',num2str(objectIDs(i)),' ',...
+    command = ['python tleDownloader.py ',num2str(objectIDs(i)),' ',...
                 beginString,' ',endString, ' tleAccess.txt'];
             
     [status, output] = system(command);

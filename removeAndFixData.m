@@ -1,11 +1,21 @@
 function [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
-    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct)
+    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData)
+
+aeQuietLimit = 500;
 
 rhoStruct.numBiases = 0;
 if aeThreshold <= 0
     removeInd = ~ismember(1:length(rhoStruct.data), 1:1:length(rhoStruct.data)) | rhoStruct.data' <= 0; % !!!!!!!!!! TESTAUS
 else
     removeInd = rhoStruct.aeInt(:,4) < aeThreshold;
+end
+if nargin == 11
+    quietInd = all(rhoStruct.aeInt < aeQuietLimit, 2);
+    if quietData
+        removeInd(~quietInd) = true;
+    else
+        removeInd(quietInd) = true;
+    end
 end
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
 % GOCE has bad lst, F10.7 coverage.
@@ -34,6 +44,14 @@ removeInd = TempStruct.data <= 300 | TempStruct.data > 10000;
 removeInd(TempStruct.solarTime > 24 | TempStruct.solarTime < 0) = true(1);
 % Remove observations with altitude > 900 km or < 250 or temperature > 3000 K.
 removeInd(TempStruct.data > 3000 | TempStruct.altitude > 900 | TempStruct.altitude < 250) = true(1);
+if nargin == 11
+    quietInd = all(TempStruct.aeInt < aeQuietLimit, 2);
+    if quietData
+        removeInd(~quietInd) = true;
+    else
+        removeInd(quietInd) = true;
+    end
+end
 TempStruct = removeDataPoints(TempStruct, removeInd);
 satInd = zeros(1, length(removeInd));
 satInd(TempStruct.de2) = 1;
@@ -60,6 +78,14 @@ removeInd(85 < lbDTStruct.zenithAngle & lbDTStruct.zenithAngle < 95) = true;
 removeInd(lbDTStruct.apNow > 15) = true;
 %removeInd(lbDTStruct.nightObservation == 2) = true; % Remove twilight observations.
 %removeInd(lbDTStruct.nightObservation == 1 & abs(lbDTStruct.latitude) > 52) = true;
+if nargin == 11
+    quietInd = all(lbDTStruct.aeInt < aeQuietLimit, 2);
+    if quietData
+        removeInd(~quietInd) = true;
+    else
+        removeInd(quietInd) = true;
+    end
+end
 lbDTStruct = removeDataPoints(lbDTStruct, removeInd);
 lbDTStruct.auroraFlag(removeInd) = [];
 lbDTStruct.zenithAngle(removeInd) = [];
@@ -78,6 +104,14 @@ removeInd = lbT0Struct.apNow > 15;
 removeInd(lbT0Struct.data <= 200) = true;
 %removeInd(lbT0Struct.Ti_err > 200 | lbT0Struct.Tn_err > 200) = true(1);
 removeInd(lbT0Struct.fundPulseLen > 100*1E-6) = true; % Remove > 100 us (>~15 km) pulses.
+if nargin == 11
+    quietInd = all(lbT0Struct.aeInt < aeQuietLimit, 2);
+    if quietData
+        removeInd(~quietInd) = true;
+    else
+        removeInd(quietInd) = true;
+    end
+end
 lbT0Struct = removeDataPoints(lbT0Struct, removeInd);
 lbT0Struct.snr(removeInd) = [];
 lbT0Struct.chiSq(removeInd) = [];
@@ -93,6 +127,14 @@ lbT0Struct.numBiases = 0;
 
 % Remove bad oxygen observations
 removeInd = OStruct.data <= 1E6 | OStruct.data > 0.8E10;
+if nargin == 11
+    quietInd = all(OStruct.aeInt < aeQuietLimit, 2);
+    if quietData
+        removeInd(~quietInd) = true;
+    else
+        removeInd(quietInd) = true;
+    end
+end
 OStruct = removeDataPoints(OStruct, removeInd);
 satInd = zeros(1, length(removeInd));
 satInd(OStruct.de2) = 1;
@@ -118,6 +160,14 @@ OStruct.name = 'O';
 
 % Remove N2 observations.
 removeInd = N2Struct.data <= 1E2 | N2Struct.data > 0.5E12 | N2Struct.altitude > 600 | N2Struct.altitude < 140;
+if nargin == 11
+    quietInd = all(N2Struct.aeInt < aeQuietLimit, 2);
+    if quietData
+        removeInd(~quietInd) = true;
+    else
+        removeInd(quietInd) = true;
+    end
+end
 N2Struct = removeDataPoints(N2Struct, removeInd);
 satInd = zeros(1, length(removeInd));
 satInd(N2Struct.de2) = 1;
@@ -146,6 +196,14 @@ N2Struct.name = 'N2';
 
 % Remove He observations
 removeInd = HeStruct.data <= 1E5 | HeStruct.data > 1E10;
+if nargin == 11
+    quietInd = all(HeStruct.aeInt < aeQuietLimit, 2);
+    if quietData
+        removeInd(~quietInd) = true;
+    else
+        removeInd(quietInd) = true;
+    end
+end
 HeStruct = removeDataPoints(HeStruct, removeInd);
 satInd = zeros(1, length(removeInd));
 satInd(HeStruct.de2) = 1;
@@ -171,6 +229,14 @@ HeStruct.name = 'He';
 
 % Remove Ar observations
 removeInd = ArStruct.data <= 100 | ArStruct.data > 1E16; % KORJAA!!!!
+if nargin == 11
+    quietInd = all(ArStruct.aeInt < aeQuietLimit, 2);
+    if quietData
+        removeInd(~quietInd) = true;
+    else
+        removeInd(quietInd) = true;
+    end
+end
 ArStruct = removeDataPoints(ArStruct, removeInd);
 satInd = zeros(1, length(removeInd));
 satInd(ArStruct.de2) = 1;
@@ -187,6 +253,14 @@ ArStruct.name = 'Ar';
 
 % Remove O2 observations
 removeInd = O2Struct.data <= 0 | O2Struct.data > 1E17; % KORJAA!!!!
+if nargin == 11
+    quietInd = all(O2Struct.aeInt < aeQuietLimit, 2);
+    if quietData
+        removeInd(~quietInd) = true;
+    else
+        removeInd(quietInd) = true;
+    end
+end
 removeInd(O2Struct.aeEOss) = true;
 removeInd(O2Struct.apNow > 15) = true;
 removeInd(O2Struct.altitude > 220) = true;

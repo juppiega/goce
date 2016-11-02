@@ -14,12 +14,13 @@ end interface
 
 contains
 
-subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, solution, &
+subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, solution, &
                    funVec, firstOrderOptAtSolution, JacobianAtSolution, JTWJ, exitFlag)
     implicit none
     ! Input arguments
     procedure(costFunction) :: FUN ! Cost function. Returns a vector of (weighted) residuals.
     real(kind = 8), intent(in) :: X0(:)
+    integer, intent(in) :: paramsToFit(:)
     real(kind = 8), optional :: tolX, tolFun, tolOpt, lambda0 ! X-tolerance (1E-6), function tolerance (1E-6), first-order opt. tolerance (1E-14)
                                                               ! (all tolerances are optional. TolX and TolFun are relative, TolOpt is absolute), initial damping factor (1E-2) (optional).
     integer, optional :: maxFuncEvals, maxIter ! Maximum number of function evaluations (1000 * numVars), maximum iterations (100).
@@ -38,7 +39,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
     real(kind = 8) :: lambda, firstOrderOpt
     integer :: k, iter, numFuncEvals, flag
     integer(kind = 8) :: ierr, one = 1, numVars, numResid
-    integer(kind = 4) :: mexPrintf, mexStat, mexEvalString, mexCallMATLAB
+    integer(kind = 4) :: mexPrintf, mexStat, mexEvalString, mexCallMATLAB, fitInd
     character(len = 400) :: line, numChar
     character(len = 1) :: lower
     mwPointer mxCreateString
@@ -60,7 +61,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
     done = .false.
     X = X0
     lambda = lambda0
-    numVars = size(X0)
+    numVars = size(paramsToFit)
     iter = 0
     numFuncEvals = 0
     allocate(step(numVars))
@@ -93,7 +94,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
     end do
 
     ! Compute Jacobian at initial point.
-    call computeJacobian(FUN, X, tolX, numVars, numResid, Jacobian)
+    call computeJacobian(FUN, X, tolX, numVars, numResid, paramsToFit, Jacobian)
     numFuncEvals = numFuncEvals + 2*numVars
     call computeJTJ(Jacobian, numVars, JTJ) ! JTJ = Jacobian^T * Jacobian (lower triangular).
     !$omp parallel do
@@ -133,7 +134,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
             mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
             do k = 1, numVars
                 if (JTJ_diag(k) < 1E-14) then
-                    write(numChar,*) k
+                    write(numChar,*) paramsToFit(k)
                     line = trim(adjustl(trim(line))//adjustl(trim(numChar)))//','
                 end if
             end do
@@ -145,7 +146,11 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
         !write(line,*) ierr
         !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
 
-        trialX = X - step ! Possible next point.
+        ! Possible next point.
+        do k = 1, numVars
+            fitInd = paramsToFit(k)
+            trialX(fitInd) = X(fitInd) - step(k)
+        end
         where (abs(trialX) < 1E-9)
             trialX = sign(dble(1E-9), trialX)
         end where
@@ -158,7 +163,7 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
         if (sum(trialCostFunc**2) < sum(costFuncVec**2) .and. .not. containsInfs) then
             X = trialX
 
-            call computeJacobian(FUN, X, tolX, numVars, numResid, Jacobian)
+            call computeJacobian(FUN, X, tolX, numVars, numResid, paramsToFit, Jacobian)
             numFuncEvals = numFuncEvals + 2*numVars
             call computeJTJ(Jacobian, numVars, JTJ) ! JTJ = Jacobian^T * Jacobian (lower triangular).
             !$omp parallel do
@@ -226,16 +231,17 @@ subroutine lmSolve(FUN, X0, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter
 end subroutine
 
 ! Subroutine to compute Jacobian using central finite difference.
-subroutine computeJacobian(FUN, X, tolX, numVars, numResid, Jacobian)
+subroutine computeJacobian(FUN, X, tolX, numVars, numResid, paramsToFit, Jacobian)
     use omp_lib
     implicit none
     procedure(costFunction) :: FUN
     real(kind = 8), intent(in) :: X(:), tolX
+    integer, intent(in) :: paramsToFit(:)
     integer(kind = 8), intent(in) :: numVars, numResid
     real(kind = 8), intent(inout) :: Jacobian(:,:)
-    real(kind = 8) :: dx(numVars), xForw(numVars), xBackw(numVars)
+    real(kind = 8) :: dx(size(X)), xForw(size(X)), xBackw(size(X))
     real(kind = 8), allocatable :: deriv(:)
-    integer :: i
+    integer :: i, fitInd
     logical, allocatable :: infInd(:)
     mwPointer :: mxCreateString
     integer(kind = 4) :: mexStat, mexCallMATLAB
@@ -249,10 +255,11 @@ subroutine computeJacobian(FUN, X, tolX, numVars, numResid, Jacobian)
     !$omp parallel do private(xForw, xBackw, deriv, infInd)
     do i = 1, numVars
         xForw = X; xBackw = X
-        xForw(i) = X(i) + dx(i)
-        xBackw(i) = X(i) - dx(i)
+        fitInd = paramsToFit(i)
+        xForw(fitInd) = X(fitInd) + dx(fitInd)
+        xBackw(fitInd) = X(fitInd) - dx(fitInd)
 
-        deriv = (FUN(xForw) - FUN(xBackw)) / (2.0 * dx(i))
+        deriv = (FUN(xForw) - FUN(xBackw)) / (2.0 * dx(fitInd))
 
         infInd = .not. isfinite(deriv)
         if(any(infInd)) then

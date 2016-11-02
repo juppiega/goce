@@ -3,7 +3,6 @@
 import sys
 import os
 import re
-from subprocess import check_output
 
 def downloader():
     if len(sys.argv) < 5 :
@@ -49,7 +48,8 @@ def downloader():
     dwnCmd.write(downloadCommand)
     dwnCmd.close()
     
-    commandOutput = check_output(downloadCommand, shell=True)
+    #commandOutput = check_output(downloadCommand, shell=True)
+    os.system(downloadCommand)
     
     #print(commandOutput)
     

@@ -1,5 +1,7 @@
-function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeModel )
+function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeQuietModel, recomputeStormModel, recomputeAlsoInsign )
 % TODO: -Korjaa lämpötilaprofiili Bates-Walkeriksi (z0 = 120 km) ja painovoima 9.447:ksi.
+
+quietData = true;
 
 mex -O FCFLAGS="\$FCFLAGS -std=f2008" -output levenbergMarquardt_mex lmSolver.F90 levenbergMarquardt_mex.F90 -llapack
 
@@ -11,7 +13,7 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 131;
+numCoeffs = 142;
 
 clear mex;
 % 
@@ -29,7 +31,7 @@ end
 
 
 [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
-    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
+    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);
 
 if ~exist('dTCoeffs', 'var') || recomputeDT
     dTCoeffs = fitTemeratureGradient(lbDTStruct); 
@@ -77,8 +79,21 @@ numStartPoints = 1;
 % end
 % % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-if recomputeModel
-    fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads)
+if recomputeQuietModel
+    fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign)
+    
+    fprintf('Quiet time fitted.\n')
+end
+
+if recomputeStormModel
+    load ilData.mat
+    quietData = false;
+    [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
+    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);
+
+    load quietCoeffs.mat
+    fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign, optCoeff)
+    fprintf('Storm time fitted.\n')
 end
 
 end
@@ -193,16 +208,16 @@ lbDTStruct.Ap = [lbDTStruct.Ap(1:2:end); lbDTStruct.Ap(1:2:end)];
 
 lbDTStruct = computeVariablesForFit(lbDTStruct);
 
-numCoeffs = 82;
 latitude = zeros(1,14);
 solarActivity = zeros(1,5);
-annual = zeros(1,15); annual(1) = 0.002; annual(8) = 0.0002;
+annual = zeros(1,32); annual([1,7,12,16,19,25,30]) = 0.001;
 diurnal = zeros(1, 21); diurnal([8, 19]) = 0.001;
 semidiurnal = zeros(1,16);
 terdiurnal = zeros(1,8);
 quaterdiurnal = zeros(1,2);
+longitudinal = zeros(1,13); longitudinal([2,5,9,12]) = 1E-4;
 dTCoeffs = [zeros(1,1), latitude, solarActivity, annual, diurnal, semidiurnal, ...
-    terdiurnal, quaterdiurnal];
+    terdiurnal, quaterdiurnal, longitudinal];
 
 dTCoeffs(1) = mean(lbDTStruct.data);
 
@@ -243,13 +258,20 @@ lbT0Struct.type = [lbT0Struct.type; lbT0Struct.type];
 
 lbT0Struct = computeVariablesForFit(lbT0Struct);
 
-numCoeffs = 50;
-lbT0Coeffs = zeros(numCoeffs, 1);
-
+numCoeffs = 112;
+latitude = zeros(1,14);
+solarActivity = zeros(1,5);
+annual = zeros(1,32); annual([1,7,12,16,19,25,30]) = 0.001;
+diurnal = zeros(1, 21); diurnal([8, 19]) = 0.001;
+semidiurnal = zeros(1,16);
+terdiurnal = zeros(1,8);
+quaterdiurnal = zeros(1,2);
+longitudinal = zeros(1,13); longitudinal([2,5,9,12]) = 1E-4;
+lbT0Coeffs = [zeros(1,1), latitude, solarActivity, annual, diurnal, semidiurnal, ...
+    terdiurnal, quaterdiurnal, longitudinal];
 lbT0Coeffs(1) = mean(lbT0Struct.data);
-lbT0Coeffs([17, 25, 28, 32, 35, 39, 41, 45, 46, 50]) = 0.01;
-ub = [600, 1.0*ones(1, numCoeffs-1)];
-lb = [400, -1.0*ones(1, numCoeffs-1)];
+ub = [650, 5.0*ones(1, numCoeffs-1)];
+lb = [400, -5.0*ones(1, numCoeffs-1)];
 
 opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-reflective', 'TolFun', 1E-8, ...
                  'TolX', 1E-7, 'Display', 'iter', 'MaxIter', 10000);
@@ -280,13 +302,13 @@ function [lb, ub] = G_bounds()
 
 latitude = ones(1,14);
 solarActivity = ones(1,5);
-annual = ones(1,15); annual(1) = 0.002; annual(8) = 0.0001;
+annual = ones(1,32); annual([1,7,12,16,19,25,30]) = 0.001;
 diurnal = ones(1, 21); diurnal([8, 19]) = 0.003;
 semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
 longitudinal = ones(1,13); longitudinal([2,5,9,12]) = 1E-4;
-geomagnetic = ones(1,36); geomagnetic([1,2,7,8,13,14,19,20,25,26,31,32]) = 0.0001;
+geomagnetic = ones(1,30); geomagnetic([1,7,13,19,25]) = 0.0001;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, longitudinal, geomagnetic];
 lb = -ub;
@@ -417,7 +439,7 @@ residInd = residInd(end) + (1:length(rhoStruct.data));
 OlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(OStruct.coeffInd), OStruct.numBiases), 1E20);
 N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(N2Struct.coeffInd), N2Struct.numBiases), 1E20);
 HelbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(HeStruct.coeffInd), HeStruct.numBiases), 1E20);
-ArlbDens = clamp(10, evalMinorSpecies(rhoStruct, coeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
+ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
 O2lbDens = clamp(10, exp(coeff(O2Struct.coeffInd)), 1E20);
 modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
 residual(residInd) = (log(rhoStruct.data)./log(modelRho)) - 1;
@@ -484,9 +506,10 @@ end
 
 end
 
-function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, options, multiStartSolver, numStartPoints, numThreads)
+function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, options, multiStartSolver, numStartPoints, numThreads, quietData, fitBaseAgain, quietCoeffs)
 global numCoeffs;
 numMinorCoeffs = 50;
+numQuietCoeffs = 99;
 
 removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
@@ -528,7 +551,7 @@ ub = [ub, log(1E8), zeros(1, HeStruct.numBiases)-0.1, G_ub];
 % lb = [lb, log(0.5E9), zeros(1, ArStruct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 % ub = [ub, log(2E9), zeros(1, ArStruct.numBiases)-0.1, G_ub];
 
-ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numMinorCoeffs+ArStruct.numBiases);
+ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numCoeffs+ArStruct.numBiases);
 O2Struct.coeffInd = ArStruct.coeffInd(end) + 1;
 
 %startPoints = createRandomStartPoints(lb, ub, numStartPoints);
@@ -548,47 +571,75 @@ initGuess(HeStruct.coeffInd(1)) = log(2.5E7);
 initGuess(ArStruct.coeffInd(1)) = log(1.2E9);
 initGuess(O2Struct.coeffInd) = log(3E10);
 
-% load optCoeff.individualAE.mat
-% nonGeomEnd = 95;
-% initGuess(TexStruct.coeffInd(1:nonGeomEnd)) = optCoeff(TexInd(1:nonGeomEnd));
-% b=OStruct.numBiases; initGuess(OStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(OInd(1:nonGeomEnd+b));
-% b=N2Struct.numBiases; initGuess(N2Struct.coeffInd(1:nonGeomEnd+b)) = optCoeff(N2Ind(1:nonGeomEnd+b));
-% b=HeStruct.numBiases; initGuess(HeStruct.coeffInd(1:nonGeomEnd+b)) = optCoeff(HeInd(1:nonGeomEnd+b));
-% initGuess(ArStruct.coeffInd(1:end)) = optCoeff(ArInd(1:length(ArInd)));
-% initGuess(O2Struct.coeffInd(1:end)) = optCoeff(O2Ind(1:length(O2Ind)));
+quietInd = [TexStruct.coeffInd(1:numQuietCoeffs),...
+            OStruct.coeffInd(1:numQuietCoeffs+OStruct.numBiases),...
+            N2Struct.coeffInd(1:numQuietCoeffs+N2Struct.numBiases),...
+            HeStruct.coeffInd(1:numQuietCoeffs+HeStruct.numBiases),...
+            ArStruct.coeffInd(1:numQuietCoeffs+ArStruct.numBiases),...
+            OStruct.coeffInd(1)];
+stormInd = setdiff(1:length(initGuess), quietInd);
 
-% ub(ind) = mode(ub(~ind));
-% TexInd = 2:numCoeffs; ub(TexInd) = mode(ub(TexInd));
-% lb = -ub;
+if quietData
+    paramsToFit = quietInd;
+    initGuess(stormInd) = 0;
+else
+    paramsToFit = stormInd;
+    initGuess = quietCoeffs;
+end
+
 tolX = options.TolX;
-%fun = @(coeff)sum(modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, rhoStruct, weights, tolX, coeff).^2);
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff);
-%problem = createOptimProblem('lsqnonlin', 'x0', initGuess, 'objective', fun, 'options', options);
 
-%tic;[optCoeff, fmin, flag, output, allmins] = run(multiStartSolver, problem, startPoints);toc;
+if quietData
+    filename = 'quietCoeffsAll.mat';
+else
+    filename = 'stormCoeffsAll.mat';
+end
 
-%tic;[optCoeff, fval, flag, output] = patternsearch(fun, initGuess, [],[],[],[], lb, ub, [], options);toc
-%tic;[optCoeff, fval, flag, output] = patternsearch(fun, initGuess, [],[],[],[], [], [], [], options);toc
+if fitBaseAgain
+    setenv('OMP_NUM_THREADS', num2str(numThreads))
+    disp('Calling LM solver')
+    tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit);toc;
+    %[comp] = fun(initGuess); %disp([comp(1), optCoeff]);
+    %JTJ_diag_matlab = diag(J'*J);
 
-%tic;[optCoeff, fval, flag, output] = fmincon(fun, initGuess, [],[],[],[], lb, ub, [], options);toc
+    saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
+    fprintf('All parameters refitted.\n');
+else
+    load(filename)
+end
 
+significance = 0.9;
+if quietData
+    [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, JTWJ, significance);
+else
+    [optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, JTWJ, significance);
+end
 setenv('OMP_NUM_THREADS', num2str(numThreads))
 disp('Calling LM solver')
-tic;[optCoeff, JTJ_diag_fort] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess);toc;
-%[comp] = fun(initGuess); %disp([comp(1), optCoeff]);
-%JTJ_diag_matlab = diag(J'*J);
+tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, optCoeff, paramsToFit);toc;
+if quietData
+    filename = 'quietCoeffs.mat';
+else
+    filename = 'optCoeff.mat';
+end
+fprintf('Significant parameters refitted.\n');
+saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
 
-%tic; [optCoeff] = lsqnonlin(fun, initGuess, lb, ub, options);toc;
+end
 
-save('optCoeff.mat', 'optCoeff', '-v7.3');
-TexInd = TexStruct.coeffInd; save('optCoeff.mat', 'TexInd', '-append');
-HeInd = HeStruct.coeffInd; save('optCoeff.mat', 'HeInd', '-append');
-OInd = OStruct.coeffInd; save('optCoeff.mat', 'OInd', '-append');
-N2Ind = N2Struct.coeffInd; save('optCoeff.mat', 'N2Ind', '-append');
-ArInd = ArStruct.coeffInd; save('optCoeff.mat', 'ArInd', '-append');
-O2Ind = O2Struct.coeffInd; save('optCoeff.mat', 'O2Ind', '-append');
-save('optCoeff.mat', 'dTCoeffs', '-append');
-save('optCoeff.mat', 'T0Coeffs', '-append');
+function [] = saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
+
+save(filename, 'optCoeff', '-v7.3');
+TexInd = TexStruct.coeffInd; save(filename, 'TexInd', '-append');
+HeInd = HeStruct.coeffInd; save(filename, 'HeInd', '-append');
+OInd = OStruct.coeffInd; save(filename, 'OInd', '-append');
+N2Ind = N2Struct.coeffInd; save(filename, 'N2Ind', '-append');
+ArInd = ArStruct.coeffInd; save(filename, 'ArInd', '-append');
+O2Ind = O2Struct.coeffInd; save(filename, 'O2Ind', '-append');
+save(filename, 'JTWJ', '-append')
+save(filename, 'dTCoeffs', '-append');
+save(filename, 'T0Coeffs', '-append');
 
 end
 

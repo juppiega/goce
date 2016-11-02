@@ -107,7 +107,8 @@ modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 %     plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %     plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %     plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-%  
+plotStormFig(originalRhoStruct, modelStruct, '2015-04-09', '2015-04-14', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+
  analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs);
 
 end
@@ -808,6 +809,10 @@ elseif strcmpi(satellite, 'GRACE')
     logInd = ismember(1:length(rhoStruct.data), rhoStruct.grace);
 elseif strcmpi(satellite, 'GOCE')
     logInd = ismember(1:length(rhoStruct.data), rhoStruct.goce);
+elseif strcmpi(satellite, 'SWARM')
+    logInd = ismember(1:length(rhoStruct.data), rhoStruct.swarm);
+else
+    error(['Unrecognized satellite: ', satellite]);
 end
 
 ind = (tInd & logInd');
