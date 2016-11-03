@@ -368,6 +368,7 @@ function computeCovarianceInverse(costFuncVec, JTJ, numParams) result(JTWJ)
     integer(kind = 8) :: numData, i, j, ind
     
     numData = size(costFuncVec)
+    numParams = size(Jacobian,2)
 
     allocate(JTWJ(numParams, numParams))
 
