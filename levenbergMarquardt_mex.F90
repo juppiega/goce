@@ -471,7 +471,7 @@ function G_quiet(a, S)
     type(dataStruct), intent(in) :: S
     real(kind = 8), intent(in) :: a(:)
     !integer, intent(in) :: numBiases
-    real(kind = 8), allocatable :: G_lbDT(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
+    real(kind = 8), allocatable :: G_quiet(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
                                    terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
                                    geom_lst(:), AE_base(:), longitudinal(:)
     integer :: k, dPh, numInts, dPy
@@ -479,7 +479,7 @@ function G_quiet(a, S)
     real(kind = 8) :: pi
     pi = 4.0 * atan(1.0)
     
-    k = numBiases + 1; ! Counter, which helps adding termS%
+    k = 0; ! Counter, which helps adding termS%
     !i = mexPrintf('G Begin'//achar(13))
     ! Latitude termS%
     latitudeTerm = a(k+1)*S%P10 + a(k+2)*S%P20 + a(k+3)*S%P30 + a(k+4)*S%P40 + a(k+5)*S%P50 + a(k+6)*S%P60 + &
@@ -538,7 +538,7 @@ function G_quiet(a, S)
     k = k + 13;
 
     !i = mexPrintf('G:sum'//achar(13))
-    G_lbDT = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + longitudinal
+    G_quiet = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + longitudinal
     !i = mexPrintf('G End'//achar(13))
 end function
 
@@ -547,6 +547,8 @@ function G_storm(a, S)
     type(dataStruct), intent(in) :: S
     real(kind = 8), intent(in) :: a(:)
     real(kind = 8), allocatable :: G_storm(:)
+    integer :: k
+    k = 0
 
     G_storm = geomParametrization(S, a(k+1:k+6), S%aeInt(:,1)) +&
                 geomParametrization(S, a(k+7:k+12), S%aeInt(:,2)) +&
@@ -565,7 +567,7 @@ function G_majorTex(a, S, numBiases)
     real(kind = 8), allocatable :: G_majorTex(:)
     
     k = numBiases + 1; ! Counter, which helps adding terms.
-    G_majorTex = G_quiet(a(k+1:k+98), S) + G_storm(a(k+99:end), S);
+    G_majorTex = G_quiet(a(k+1:k+98), S) + G_storm(a(k+99:size(a)), S);
 
 end function
 

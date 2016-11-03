@@ -1,6 +1,6 @@
 function [result] = G_quiet(a, S)
 
-k = 1;
+k = 0;
 
 % Latitude terms.
 S.latitudeTerm = a(k+1)*S.P10 + a(k+2)*S.P20 + a(k+3)*S.P30 + a(k+4)*S.P40 + a(k+5)*S.P50 + a(k+6)*S.P60 + ...
