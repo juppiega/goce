@@ -938,7 +938,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     integer(kind = 4) :: mexPrintf, k, mexEvalString, mexCallMATLAB, i,j
     integer(kind = 4), allocatable :: paramsToFit(:)
 
-    real(kind = 8), allocatable :: y_output(:), solution(:), funVec(:), Jacobian(:,:), JTJ(:,:),JTWJ(:),paramReal(:)
+    real(kind = 8), allocatable :: y_output(:), solution(:), funVec(:), Jacobian(:,:), JTJ(:,:),JTWJ(:,:),paramReal(:)
 
     !-----------------------------------------------------------------------
     !     Check for proper number of argumentS% 
@@ -1008,7 +1008,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     call mxCopyPtrToReal8(mxGetPr(prhs(12)), paramReal, N)
     paramsToFit = nint(paramReal, 4)
 
-    allocate(JTJ_diag(N))
+    allocate(JTWJ(N,N))
     
     !$omp parallel
     if(omp_get_thread_num() == 0) write(tempChar,*) omp_get_num_threads()
