@@ -862,7 +862,7 @@ function modelMinimizationFunction(coeff) result(residual)
                      dble(1E20));
     HelbDens = clamp(dble(10), evalMajorSpecies(rhoStruct, coeff(HeStruct%coeffInd), HeStruct%numBiases), &
                      dble(1E20));
-    ArlbDens = clamp(dble(10), evalMajorSpecies(rhoStruct, coeff(ArStruct%coeffInd), ArStruct%numBiases), &
+    ArlbDens = clamp(dble(10), evalMinorSpecies(rhoStruct, coeff(ArStruct%coeffInd), ArStruct%numBiases), &
                      dble(1E20));
     O2lbDens = clamp(dble(10.0), exp(coeff(O2Struct%coeffInd)), dble(1E20))
     modelRho = clamp(dble(1E-20), computeRho(T0, dT0, Tex, rhoStruct%Z, OlbDens, N2lbDens, HelbDens, &
