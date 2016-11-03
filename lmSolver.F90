@@ -150,7 +150,7 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncE
         do k = 1, numVars
             fitInd = paramsToFit(k)
             trialX(fitInd) = X(fitInd) - step(k)
-        end
+        end do
         where (abs(trialX) < 1E-9)
             trialX = sign(dble(1E-9), trialX)
         end where
