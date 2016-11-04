@@ -509,7 +509,7 @@ end
 function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, options, multiStartSolver, numStartPoints, numThreads, quietData, fitBaseAgain, quietCoeffs)
 global numCoeffs;
 numMinorCoeffs = 50;
-numQuietCoeffs = 99;
+numQuietCoeffs = 112;
 
 removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
@@ -609,9 +609,11 @@ else
     load(filename)
 end
 
+paramErrors = sqrt(diag(inv(JTWJ)));
+
 significance = 0.9;
 if quietData
-    [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, JTWJ, significance);
+    [optCoeff(TexStruct.coeffInd), ptf] = zeroOutInsignificantQuiet(optCoeff, quietInd, paramErrors, significance, TexStruct); paramsToFit = [paramsToFit, ptf];
 else
     [optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, JTWJ, significance);
 end
