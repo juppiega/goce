@@ -1,9 +1,13 @@
-function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeQuietModel, recomputeStormModel, recomputeAlsoInsign )
+function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeQuietModel, recomputeStormModel, recomputeAlsoInsign, optimizedMex )
 % TODO: -Korjaa lämpötilaprofiili Bates-Walkeriksi (z0 = 120 km) ja painovoima 9.447:ksi.
 
 quietData = true;
 
-mex -O FCFLAGS="\$FCFLAGS -std=f2008" -output levenbergMarquardt_mex lmSolver.F90 levenbergMarquardt_mex.F90 -llapack
+if optimizedMex
+    mex -O FCFLAGS="\$FCFLAGS -std=f2008" -output levenbergMarquardt_mex lmSolver.F90 levenbergMarquardt_mex.F90 -llapack
+else
+    mex -g FCFLAGS="\$FCFLAGS -std=f2008" -output levenbergMarquardt_mex lmSolver.F90 levenbergMarquardt_mex.F90 -llapack
+end
 
 rng(1, 'twister');
 %import java.lang.*
