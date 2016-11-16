@@ -16,6 +16,9 @@ p = TimedProgressBar( targetCount, barWidth, ...
 
 for i = 2:length(disconts)
     ind = disconts(i-1)+1 : disconts(i);
+    if isempty(ind)
+        continue
+    end
     interval = max(mode(round(averInterval(ind))), 1);
     if interval > 1 && mod(interval, 2) == 0; 
         interval = interval - 1; 
