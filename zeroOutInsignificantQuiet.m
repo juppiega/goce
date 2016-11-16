@@ -1,59 +1,102 @@
-function [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, quietInd, paramErrors, significanceTol, S)
+function [optCoeff, ptf] = zeroOutInsignificantQuiet(optCoeff, ptf, quietInd, paramErrors, significanceTol, S)
 
-optCoeff = optCoeff(ismember(1:length(optCoeff), intersect(quietInd, S.coeffInd)));
-paramErrors = paramErrors(ismember(quietInd, S.coeffInd));
+if iscolumn(optCoeff); optCoeff = optCoeff'; end
+if iscolumn(quietInd); quietInd = quietInd'; end
+if iscolumn(paramErrors); paramErrors = paramErrors'; end
 
-k = 0;
+%optCoeff = optCoeff(ismember(1:length(optCoeff), intersect(quietInd, S.coeffInd)));
+%paramErrors = paramErrors(ismember(quietInd, S.coeffInd));
+relErr = paramErrors./optCoeff(quietInd);
+errTol = 1 - significanceTol;
+    function s = significant(ind)
+        s = relErr(ind) <= errTol;
+    end
+
+% Constant coefficient = first coeff.
+ptf = [ptf, S.coeffInd(1)];
+
+k = S.coeffInd(1) + S.numBiases; % Biases newer refitted.
 
 % Latitude terms.
-S.latitudeTerm = a(k+1)*S.P10 + a(k+2)*S.P20 + a(k+3)*S.P30 + a(k+4)*S.P40 + a(k+5)*S.P50 + a(k+6)*S.P60 + ...
-                 a(k+7)*S.FA.*S.P10 + a(k+8)*S.FA.*S.P20 + a(k+9)*S.FA.*S.P30 + a(k+10)*S.FA.*S.P40 + ...
-                 a(k+11)*S.F.*S.P10 + a(k+12)*S.F.*S.P20 + a(k+13)*S.F.*S.P30 + a(k+14)*S.F.*S.P40;
-%a(k+1:k+14) = a(k+1:k+14) - 1;
+i = k+1:k+14;
+qind = quietInd(i);
+ptf = [ptf, qind(relErr(i) <= errTol)];
 k = k + 14;
 
 % % Solar activity terms.
-S.solarTerm = a(k+1)*S.F + a(k+2)*S.F2 + a(k+3)*S.FA + a(k+4)*S.FA2 + a(k+5)*S.FtimesFA;
-%a(k+1:k+5) = a(k+1:k+5) - 1;
+i = k+1:k+5;
+qind = quietInd(i);
+ptf = [ptf, qind(relErr(i) <= errTol)];
 k = k + 5;
 
 % Annual symmetric terms.
-S.annual = (a(k+1) + a(k+2)*S.P20 + a(k+3)*S.P40).*cos(S.yv-pi*a(k+4)).*(1+a(k+5)*S.FA+a(k+6)*S.FA.^2) + ...
-           (a(k+7) + a(k+8)*S.P20).*cos(2*(S.yv-pi*a(k+9))).*(1+a(k+10)*S.FA+a(k+11)*S.FA.^2) + ...
-           (a(k+12) + a(k+13)*S.P20).*cos(3*(S.yv-pi*a(k+14))).*(1+a(k+15)*S.FA) + ...
-           a(k+16)*cos(4*(S.yv-pi*a(k+17))).*(1+a(k+18)*S.FA);
-k = k + 18;
-% Annual asymmetric
-S.annual = S.annual + (a(k+1)*S.P10 + a(k+2)*S.P30 + a(k+3)*S.P50).*cos(S.yv-pi*a(k+4)).*(1+a(k+5)*S.FA+a(k+6)*S.FA.^2)+...
-           (a(k+7)*S.P10 + a(k+8)*S.P30).*cos(2*(S.yv-pi*a(k+9))).*(1+a(k+10)*S.FA+a(k+11)*S.FA.^2) + ...
-           a(k+12)*S.P10.*cos(3*(S.yv-pi*a(k+13))).*(1+a(k+14)*S.FA);
-           
-%a(k+1:k+15) = a(k+1:k+15) - 1;
-k = k + 14;
+i = k+1:k+32;
+qind = quietInd(i);
+ptf = [ptf, qind([4,9,14,17,22,27,31])];
+% Solar factors:
+qsolar = qind([5,6,10,11,15,18,23,24,28,29,32]);
+ptf = [ptf, qsolar(significant(qsolar))];
+% Latitude factors:
+qlat = qind([1:3,7:8,12:13,16,19:21,25:26,30]);
+ptf = [ptf, qlat(significant(qlat))];
+    function rmAnnual(latInd, allInd)
+        if ~any(significant(qind(latInd))); ptf(ismember(ptf,qind(allInd))) = []; end
+    end
+rmAnnual(1:3, 1:6);
+rmAnnual(7:8, 7:11);
+rmAnnual(12:13, 12:15);
+rmAnnual(16, 16:18);
+rmAnnual(19:21, 19:24);
+rmAnnual(25:26, 25:29);
+rmAnnual(30, 30:32);
+k = k + 32;
 
+% Diurnal
+i = k+1:k+21;
 dPy = k + 11;
-S.diurnal = ((a(k+1)*S.P11 + a(k+2)*S.P31 + a(k+3)*S.P51 + a(k+4)*S.P71 + a(k+5)*S.FA + a(k+6)*S.FA.^2 + a(k+7)*(S.F - S.FA)) + (a(k+8)*S.P11 + a(k+9)*S.P21 + a(k+10)*S.P31).*(cos(S.yv-pi*a(dPy)))).*cos(S.dv) + ...
-            ((a(k+12)*S.P11 + a(k+13)*S.P31 + a(k+14)*S.P51 + a(k+15)*S.P71 + a(k+16)*S.FA + a(k+17)*S.FA.^2 + a(k+18)*(S.F - S.FA)) + (a(k+19)*S.P11 + a(k+20)*S.P21 + a(k+21)*S.P31).*(cos(S.yv-pi*a(dPy)))).*sin(S.dv);
-%a(k+1:k+21) = a(k+1:k+21) - 1;
+qind = quietInd(i);
+ptf = [ptf, qind(significant(qind(1:10))), qind(significant(qind(12:21)))];
+includeDPy = false;
+if any(significant(qind([8:10, 19:21]))); includeDPy = true; end
 k = k + 21;
 
-S.semidiurnal = (a(k+1)*S.P22 + a(k+2)*S.P32 + a(k+3)*S.P52 + a(k+4)*S.FA + a(k+5)*S.FA.^2 + a(k+6)*(S.F-S.FA) + (a(k+7)*S.P32 + a(k+8)*S.P52).*cos(S.yv-pi*a(dPy))).*cos(2*S.dv) + ...
-                (a(k+9)*S.P22 + a(k+10)*S.P32 + a(k+11)*S.P52 + a(k+12)*S.FA + a(k+13)*S.FA.^2 + a(k+14)*(S.F-S.FA) + (a(k+15)*S.P32 + a(k+16)*S.P52).*cos(S.yv-pi*a(dPy))).*sin(2*S.dv);
-%a(k+1:k+16) = a(k+1:k+16) - 1;
+% Semidiurnal
+i = k+1:k+16;
+qind = quietInd(i);
+ptf = [ptf, qind(significant(qind(1:16)))];
+if any(significant(qind([7:8, 15:16]))); includeDPy = true; end
 k = k + 16;
 
-S.terdiurnal = (a(k+1)*S.P33 + a(k+2)*S.P53 + (a(k+3)*S.P43 + a(k+4)*S.P63).*cos(S.yv-pi*a(dPy))).*cos(3*S.dv) + ...
-               (a(k+5)*S.P33 + a(k+6)*S.P53 + (a(k+7)*S.P43 + a(k+8)*S.P63).*cos(S.yv-pi*a(dPy))).*sin(3*S.dv);
-%a(k+1:k+8) = a(k+1:k+8) - 1;
+% Terdiurnal
+i = k+1:k+8;
+qind = quietInd(i);
+ptf = [ptf, qind(significant(qind(1:8)))];
+if any(significant(qind([3:4, 7:8]))); includeDPy = true; end
+if includeDPy; ptf = [ptf, dPy]; end
 k = k + 8;
 
-S.quaterdiurnal = a(k+1)*S.P44.*cos(4*S.dv) + a(k+2)*S.P44.*sin(4*S.dv);
-%a(k+1:k+2) = a(k+1:k+2) - 1;
+% Quaterdiurnal
+i = k+1:k+2;
+qind = quietInd(i);
+ptf = [ptf, qind(significant(qind(1:2)))];
 k = k + 2;
 
-dPy = a(k+7);
+% Longitudinal
+i = k+1:k+13;
+qind = quietInd(i);
+dPy = k + 7;
+ptf = [ptf, qind(significant(qind(2:6))), qind(significant(qind(9:13)))];
+if any(significant(qind([5:6, 12:13]))); ptf = [ptf, dPy]; end
+rmAnnual(2:6, 1:6);
+rmAnnual(9:13, 8:13);
 S.longitudinal = (1.0 + a(k+1)*S.FA).*(a(k+2)*S.P21+a(k+3)*S.P41+a(k+4)*S.P61 + (a(k+5)*S.P11+a(k+6)*S.P31).*cos(S.yv-pi*dPy)).*cos(S.lv)+...
                  (1.0 + a(k+8)*S.FA).*(a(k+9)*S.P21+a(k+10)*S.P41+a(k+11)*S.P61 + (a(k+12)*S.P11+a(k+13)*S.P31).*cos(S.yv-pi*dPy)).*sin(S.lv);
 k = k + 13;
+
+ptf = sort(ptf);
+
+ocThis = optCoeff(S.coeffInd);
+ocThis(setdiff(S.coeffInd, ptf)) = 0;
+optCoeff(S.coeffInd) = ocThis;
 
 end

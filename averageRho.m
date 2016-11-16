@@ -5,7 +5,7 @@ averTime = 120; % sec
 dt = diff(S.timestamps); dt = [dt; dt(end)] * 86400;
 averInterval = abs(averTime ./ dt); 
 removeInd = true(length(S.data), 1);
-disconts = find(averInterval < 1); disconts = [0; disconts];
+disconts = find(averInterval < 1); disconts = [0; disconts; length(averInterval)];
 
 targetCount = round(length(disconts) / 100);
 barWidth = 50;
@@ -16,7 +16,7 @@ p = TimedProgressBar( targetCount, barWidth, ...
 
 for i = 2:length(disconts)
     ind = disconts(i-1)+1 : disconts(i);
-    interval = max(max(round(averInterval(ind))), 1);
+    interval = max(mode(round(averInterval(ind))), 1);
     if interval > 1 && mod(interval, 2) == 0; 
         interval = interval - 1; 
     end

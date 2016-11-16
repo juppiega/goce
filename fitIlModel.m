@@ -617,7 +617,13 @@ paramErrors = sqrt(diag(inv(JTWJ)));
 
 significance = 0.9;
 if quietData
-    [optCoeff(TexStruct.coeffInd), ptf] = zeroOutInsignificantQuiet(optCoeff, quietInd, paramErrors, significance, TexStruct); paramsToFit = [paramsToFit, ptf];
+    paramsToFit = [];
+    [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, paramErrors, significance, TexStruct);
+    [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, paramErrors, significance, OStruct);
+    [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, paramErrors, significance, N2Struct);
+    [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, paramErrors, significance, HeStruct);
+    [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, paramErrors, significance, ArStruct);
+    paramsToFit = [paramsToFit, O2Struct.coeffInd];
 else
     [optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, JTWJ, significance);
 end

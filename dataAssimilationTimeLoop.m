@@ -1,16 +1,16 @@
-function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembleSize, inflFac)
+function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembleSize, TexStd)
 % INPUT:
 %     modelString: 'dummy' for test.
 %     assimilationWindowLength: in hours.
 
 
 if strcmpi(modelString, 'dummy')
-    loopDummy('2004-01-18', '2004-01-30', 'CHAMP', 'CHAMP', assimilationWindowLength, ensembleSize, inflFac);
+    loopDummy('2003-10-20', '2003-11-05', 'CHAMP', 'CHAMP', assimilationWindowLength, ensembleSize, TexStd);
 end
 
 end
 
-function loopDummy(beginDay, endDay, assSatellite, plotSatellite, windowLen, ensembleSize, inflFac)
+function loopDummy(beginDay, endDay, assSatellite, plotSatellite, windowLen, ensembleSize, TexStd)
 
 load ilData rhoStruct
 
@@ -22,7 +22,7 @@ if strcmpi(assSatellite, 'CHAMP')
     removeTimes = rhoStruct.timestamps < t0 - windowLen/24/2 | ...
                     rhoStruct.timestamps > t1;
     removeInd(removeTimes) = true;
-    dataStruct = removeDataPoints(rhoStruct, removeInd, false,true,true,true);
+    assimiStruct = removeDataPoints(rhoStruct, removeInd, false,true,true,true);
 end
 
 if strcmpi(plotSatellite, 'CHAMP')
@@ -31,6 +31,7 @@ if strcmpi(plotSatellite, 'CHAMP')
                     rhoStruct.timestamps > t1;
     removeInd(removeTimes) = true;
     plotStruct = removeDataPoints(rhoStruct, removeInd, false,true,true,true);
+    plotStruct = computeVariablesForFit(plotStruct);
 end
 
 %dataStruct = createSyntheticStorm(t0, t1, 120, 'triangle');
@@ -53,7 +54,7 @@ ensemble = createInitialEnsemble('dummy', ensembleSize);
 
 refDummy = dummyThermosphere(mean(ensemble,2), plotStruct);
 
-dataStruct.sigma = 0.05*dataStruct.data;
+assimiStruct.sigma = 0.05*assimiStruct.data;
 d = zeros(N,1);
 r = zeros(N,1);
 assTimes = [];
@@ -61,19 +62,23 @@ covdiag = zeros(0,size(ensemble,1));
 
 assBegin = t0 - windowLen/24/2;
 assEnd = t0 + windowLen/24/2;
-prevRmInd = ones(size(dataStruct.timestamps));
+prevRmInd = ones(size(assimiStruct.timestamps));
 step = 1;
 while assBegin < t1
-    removeInd = dataStruct.timestamps < assBegin | dataStruct.timestamps >= assEnd | ~prevRmInd;
-    S = removeDataPoints(dataStruct, removeInd);
+    removeInd = assimiStruct.timestamps < assBegin | assimiStruct.timestamps >= assEnd | ~prevRmInd;
+    S = removeDataPoints(assimiStruct, removeInd);
     S.sigma(removeInd) = [];
+    if isempty(S.data)
+        continue
+    end
+    S = computeVariablesForFit(S);
     
     ensMean = mean(ensemble, 2);
     ensStd = std(ensemble, 0, 2);
     %ensemble = bsxfun(@plus, (1 + inflFac)*bsxfun(@minus, ensemble, ensMean), ensMean);
     if step > 1
-        ensemble(1,:) = (inflFac)/ensStd(1) * (ensemble(1,:)-ensMean(1)) + ensMean(1);
-        ensemble(2,:) = (0.2)/ensStd(2) * (ensemble(2,:)-ensMean(2)) + ensMean(2);
+        ensemble(3,:) = (TexStd)/ensStd(3) * (ensemble(3,:)-ensMean(3)) + ensMean(3);
+        %ensemble(2,:) = (0.2)/ensStd(2) * (ensemble(2,:)-ensMean(2)) + ensMean(2);
     end
     [ensemble,d(~removeInd),r(~removeInd),c,P] = ...
         assimilateDataAndUpdateEnsemble(ensemble, @dummyThermosphere, S, true);
@@ -127,34 +132,34 @@ refRMS = rms(dataRho./dummyOrbAver-1);
 ensMeanRMS = rms(ensRho(:,1)./dummyOrbAver-1);
 
 fprintf('Unadjusted RMS: %f\n', refRMS);
-fprintf('3DVAR FGAT RMS: %f\n', ensMeanRMS);
+fprintf('EnKF FGAT RMS: %f\n', ensMeanRMS);
 
 figure;
-subplot(4,1,1)
+subplot(3,1,1)
 plot(repmat(plotStruct.timestamps,1,2), [d, r])
 legend('Innovations', 'Residuals');
 datetick('x')
 set(gca,'fontsize', 15)
 
-subplot(4,1,2)
+subplot(3,1,2)
 plot(assTimes, sum(covdiag,2));
 legend('sum(diag(B))');
 datetick('x')
 set(gca,'fontsize', 15)
 
-subplot(4,1,3)
-tVar = sqrt(covdiag(:,1:1));
-plot(assTimes, tVar);
-legend('\sigma Tex');
+subplot(3,1,3)
+tVar = sqrt(covdiag(:,1:3));
+plot(repmat(assTimes,1,3), tVar);
+legend('\sigma T0', '\sigma dT','\sigma Tex');
 datetick('x')
 set(gca,'fontsize', 15)
 
-subplot(4,1,4)
-densVar = sqrt(covdiag(:,2:end));
-plot(repmat(assTimes,1,2), densVar);
-legend('\sigma log(O_0)', '\sigma log(N2_0)');
+figure;
+plot(plotStruct.timestamps, plotStruct.Tex,'.')
+title('Tex', 'fontsize', 15)
 datetick('x')
 set(gca,'fontsize', 15)
+
 
 figure;
 surf(log10(abs(c)),'edgecolor','none');
@@ -217,6 +222,10 @@ function plotStruct = updatePlotStruct(ensemble, windowTimes, plotStruct, obsOpe
 
 removeInd = plotStruct.timestamps < windowTimes(1) | plotStruct.timestamps >= windowTimes(2);
 S = removeDataPoints(plotStruct, removeInd);
+if isempty(S.data)
+    return
+end
+S = computeVariablesForFit(S);
 % 
 % bestModel = mean(ensemble, 2);
 % plotStruct.rho(~removeInd,1) = obsOper(bestModel, S);
@@ -234,6 +243,11 @@ Tarray = [ensVals.T];
 plotStruct.T(~removeInd,1) = mean(Tarray,2);
 plotStruct.T(~removeInd,2) = quantile(Tarray,0.95,2);
 plotStruct.T(~removeInd,3) = quantile(Tarray,0.05,2);
+
+TexArray = [ensVals.Tex];
+plotStruct.Tex(~removeInd,1) = mean(TexArray,2);
+plotStruct.Tex(~removeInd,2) = quantile(TexArray,0.95,2);
+plotStruct.Tex(~removeInd,3) = quantile(TexArray,0.05,2);
 
 plotStruct.rho(~removeInd,1) = mean(ensPredictions,2);
 plotStruct.rho(~removeInd,2) = quantile(ensPredictions,0.95,2);
