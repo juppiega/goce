@@ -155,10 +155,30 @@ datetick('x')
 set(gca,'fontsize', 15)
 
 figure;
-plot(plotStruct.timestamps, plotStruct.Tex,'.')
+plot(plotStruct.timestamps, plotStruct.Tex)
 title('Tex', 'fontsize', 15)
 datetick('x')
 set(gca,'fontsize', 15)
+
+figure;
+[x,y] = meshgrid(0:0.25:24, -90:2:90);
+T.latitude = y(:);
+T.solarTime = x(:);
+T.altitude = 400*ones(size(x(:)));
+T.doy = 180*ones(size(x(:)));
+T.timestamps = now*ones(size(x(:)));
+T.longitude = 180*ones(size(x(:)));
+T = computeVariablesForFit(T);
+z = bulge(ensMean(3:end),T);
+z = reshape(z, size(x,1), size(x,2));
+surf(x,y,z,'edgecolor','none')
+shading interp
+colorbar
+view(2);
+xlabel('lst','fontsize',15)
+ylabel('lat','fontsize',15)
+title('Tex correction','fontsize',15)
+axis tight
 
 
 figure;
