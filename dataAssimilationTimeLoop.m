@@ -5,7 +5,7 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 
 
 if strcmpi(modelString, 'dummy')
-    loopDummy('2003-10-20', '2003-11-05', 'CHAMP', 'CHAMP', assimilationWindowLength, ensembleSize, TexStd);
+    loopDummy('2003-06-10', '2003-06-30', 'CHAMP', 'CHAMP', assimilationWindowLength, ensembleSize, TexStd);
 end
 
 end
