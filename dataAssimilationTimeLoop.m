@@ -5,7 +5,7 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 
 
 if strcmpi(modelString, 'dummy')
-    loopDummy('2003-06-10', '2003-06-30', 'CHAMP', 'CHAMP', assimilationWindowLength, ensembleSize, TexStd);
+    loopDummy('2003-06-10', '2003-06-11', 'CHAMP', 'CHAMP', assimilationWindowLength, ensembleSize, TexStd);
 end
 
 end
@@ -54,7 +54,7 @@ ensemble = createInitialEnsemble('dummy', ensembleSize);
 
 refDummy = dummyThermosphere(mean(ensemble,2), plotStruct);
 
-assimiStruct.sigma = 0.05*assimiStruct.data;
+%assimiStruct.sigma = 0.05*assimiStruct.data;
 d = zeros(N,1);
 r = zeros(N,1);
 assTimes = [];
@@ -67,7 +67,6 @@ step = 1;
 while assBegin < t1
     removeInd = assimiStruct.timestamps < assBegin | assimiStruct.timestamps >= assEnd | ~prevRmInd;
     S = removeDataPoints(assimiStruct, removeInd);
-    S.sigma(removeInd) = [];
     if isempty(S.data)
         continue
     end
@@ -190,6 +189,9 @@ set(gca,'fontsize', 15)
 set(gca,'ydir','reverse')
 axis tight;
 
+
+writeCorrectedModelToFiles(plotStruct, plotSatellite);
+
 end
 
 function dataStruct = createSyntheticStorm(t0, t1, dt, shape)
@@ -261,20 +263,53 @@ end
 
 Tarray = [ensVals.T];
 plotStruct.T(~removeInd,1) = mean(Tarray,2);
-plotStruct.T(~removeInd,2) = quantile(Tarray,0.95,2);
-plotStruct.T(~removeInd,3) = quantile(Tarray,0.05,2);
+plotStruct.T(~removeInd,2) = mean(Tarray,2) - std(Tarray,2);
+plotStruct.T(~removeInd,3) = mean(Tarray,2) + std(Tarray,2);
 
 TexArray = [ensVals.Tex];
 plotStruct.Tex(~removeInd,1) = mean(TexArray,2);
-plotStruct.Tex(~removeInd,2) = quantile(TexArray,0.95,2);
-plotStruct.Tex(~removeInd,3) = quantile(TexArray,0.05,2);
+plotStruct.Tex(~removeInd,2) = mean(TexArray,2) - std(TexArray,2);
+plotStruct.Tex(~removeInd,3) = mean(TexArray,2) + std(TexArray,2);
 
 plotStruct.rho(~removeInd,1) = mean(ensPredictions,2);
-plotStruct.rho(~removeInd,2) = quantile(ensPredictions,0.95,2);
-plotStruct.rho(~removeInd,3) = quantile(ensPredictions,0.05,2);
+plotStruct.rho(~removeInd,2) = mean(ensPredictions,2) - std(ensPredictions,2);
+plotStruct.rho(~removeInd,3) = mean(ensPredictions,2) + std(ensPredictions,2);
 if any(plotStruct.rho < 0)
     a = 1;
 end
 
+
+end
+
+function writeCorrectedModelToFiles(plotStruct, plotSatellite)
+
+date = floor(plotStruct.timestamps(1));
+[year,~,~,~,~,~] = datevec(date);
+foldername = ['tim/',plotSatellite, '_il_', sprintf('%.2d',year-2000)];
+
+while plotStruct.timestamps(end) > date
+    ind = date <= plotStruct.timestamps & plotStruct.timestamps < date + 1;
+    doy = plotStruct.doy(ind(1));
+    sec = (plotStruct.timestamps(ind) - date) * 86400;
+    
+    sigma_rho = plotStruct.rho(ind,3) - plotStruct.rho(ind,1);
+    
+    Dil = struct('data', plotStruct.rho(ind,1));
+    Doy = struct('data', doy);
+    Height = struct('data', plotStruct.altitude(ind));
+    Lat = struct('data', plotStruct.latitude(ind));
+    Lon = struct('data', plotStruct.longitude(ind));
+    LocTim = struct('data', plotStruct.solarTime(ind));
+    Sec = struct('data', sec);
+    U_rho = struct('data', sigma_rho);
+    Year = struct('data', year - 2000);
+    
+    filename = [foldername,'/',plotSatellite,'_il_',sprintf('%.2d',year-2000),...
+        '_',sprintf('%.3d',doy),'.mat'];
+    save(filename, Dil, Doy, Height, Lat, Lon, LocTim, Sec, U_rho, Year);
+    
+    date = date + 1;
+    
+end
 
 end
