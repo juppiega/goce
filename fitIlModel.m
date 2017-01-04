@@ -90,7 +90,7 @@ if recomputeQuietModel
 end
 
 if recomputeStormModel
-    load ilData.mat
+    %load ilData.mat
     quietData = false;
     [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);

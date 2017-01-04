@@ -5,7 +5,7 @@ aeQuietLimit = 500;
 
 rhoStruct.numBiases = 0;
 if aeThreshold <= 0
-    removeInd = ~ismember(1:length(rhoStruct.data), 1:1:length(rhoStruct.data)) | rhoStruct.data' <= 0; % !!!!!!!!!! TESTAUS
+    removeInd = ~ismember(1:length(rhoStruct.data), 1:5000:length(rhoStruct.data)) | rhoStruct.data' <= 0; % !!!!!!!!!! TESTAUS
 else
     removeInd = rhoStruct.aeInt(:,4) < aeThreshold;
 end
