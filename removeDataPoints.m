@@ -23,6 +23,9 @@ fixStruct.Ap(removeInd) = [];
 if isfield(fixStruct, 'dst')
     fixStruct.dst(removeInd) = [];
 end
+if isfield(fixStruct, 'sigma')
+    fixStruct.sigma(removeInd) = [];
+end
 
 if nargin > 2
     if removeBiasMatRows

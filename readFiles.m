@@ -218,11 +218,12 @@ O2Struct.data = data; O2Struct.timestamps = O2time; O2Struct.aeCOss = aeCOss; O2
 lbDTStruct = saberDT;
 lbT0Struct = T0;
 
-rhoStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
+rhoStruct = struct('data', [], 'sigma', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
 
 combStruct = [goceData; champData; graceData; swarmData];
 rhoStruct.data = vertcat(combStruct.density);
+rhoStruct.sigma = vertcat(combStruct.densityError);
 rhoStruct.timestamps = vertcat(combStruct.timestamps);
 rhoStruct.longitude = vertcat(combStruct.longitude);
 rhoStruct.latitude = vertcat(combStruct.latitude);
