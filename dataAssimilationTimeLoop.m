@@ -5,7 +5,7 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 
 
 if strcmpi(modelString, 'dummy')
-    loopDummy('2003-06-10', '2003-06-11', 'CHAMP', 'CHAMP', assimilationWindowLength, ensembleSize, TexStd);
+    loopDummy('2008-03-03', '2008-03-13', 'CHAMP', 'CHAMP', assimilationWindowLength, ensembleSize, TexStd);
 end
 
 end
@@ -55,6 +55,7 @@ ensemble = createInitialEnsemble('dummy', ensembleSize);
 refDummy = dummyThermosphere(mean(ensemble,2), plotStruct);
 
 %assimiStruct.sigma = 0.05*assimiStruct.data;
+a = assimiStruct.sigma ./ assimiStruct.data;
 d = zeros(N,1);
 r = zeros(N,1);
 assTimes = [];
@@ -263,17 +264,17 @@ end
 
 Tarray = [ensVals.T];
 plotStruct.T(~removeInd,1) = mean(Tarray,2);
-plotStruct.T(~removeInd,2) = mean(Tarray,2) - std(Tarray,2);
-plotStruct.T(~removeInd,3) = mean(Tarray,2) + std(Tarray,2);
+plotStruct.T(~removeInd,2) = mean(Tarray,2) - std(Tarray,[],2);
+plotStruct.T(~removeInd,3) = mean(Tarray,2) + std(Tarray,[],2);
 
 TexArray = [ensVals.Tex];
 plotStruct.Tex(~removeInd,1) = mean(TexArray,2);
-plotStruct.Tex(~removeInd,2) = mean(TexArray,2) - std(TexArray,2);
-plotStruct.Tex(~removeInd,3) = mean(TexArray,2) + std(TexArray,2);
+plotStruct.Tex(~removeInd,2) = mean(TexArray,2) - std(TexArray,[],2);
+plotStruct.Tex(~removeInd,3) = mean(TexArray,2) + std(TexArray,[],2);
 
 plotStruct.rho(~removeInd,1) = mean(ensPredictions,2);
-plotStruct.rho(~removeInd,2) = mean(ensPredictions,2) - std(ensPredictions,2);
-plotStruct.rho(~removeInd,3) = mean(ensPredictions,2) + std(ensPredictions,2);
+plotStruct.rho(~removeInd,2) = mean(ensPredictions,2) - std(ensPredictions,[],2);
+plotStruct.rho(~removeInd,3) = mean(ensPredictions,2) + std(ensPredictions,[],2);
 if any(plotStruct.rho < 0)
     a = 1;
 end
@@ -285,11 +286,16 @@ function writeCorrectedModelToFiles(plotStruct, plotSatellite)
 
 date = floor(plotStruct.timestamps(1));
 [year,~,~,~,~,~] = datevec(date);
-foldername = ['tim/',plotSatellite, '_il_', sprintf('%.2d',year-2000)];
+doy = round(plotStruct.doy(1));
+foldername = ['tim/',plotSatellite, '_il_', sprintf('%.2d',year-2000),'_',sprintf('%.3d',doy)];
+if exist(foldername,'dir')
+    rmdir(foldername,'s');
+end
+mkdir(foldername);
 
 while plotStruct.timestamps(end) > date
-    ind = date <= plotStruct.timestamps & plotStruct.timestamps < date + 1;
-    doy = plotStruct.doy(ind(1));
+    ind = find(date <= plotStruct.timestamps & plotStruct.timestamps < date + 1);
+    doy = round(plotStruct.doy(ind(1)));
     sec = (plotStruct.timestamps(ind) - date) * 86400;
     
     sigma_rho = plotStruct.rho(ind,3) - plotStruct.rho(ind,1);
@@ -306,10 +312,12 @@ while plotStruct.timestamps(end) > date
     
     filename = [foldername,'/',plotSatellite,'_il_',sprintf('%.2d',year-2000),...
         '_',sprintf('%.3d',doy),'.mat'];
-    save(filename, Dil, Doy, Height, Lat, Lon, LocTim, Sec, U_rho, Year);
+    save(filename, 'Dil', 'Doy', 'Height', 'Lat', 'Lon', 'LocTim', 'Sec', 'U_rho', 'Year');
     
     date = date + 1;
     
 end
+
+stat = system(['tar -zcf ',foldername,'.tar.gz ',foldername]);
 
 end

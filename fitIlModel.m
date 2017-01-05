@@ -1,5 +1,4 @@
-function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeQuietModel, recomputeStormModel, recomputeAlsoInsign, optimizedMex )
-% TODO: -Korjaa lämpötilaprofiili Bates-Walkeriksi (z0 = 120 km) ja painovoima 9.447:ksi.
+function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeQuietModel, recomputeStormModel, recomputeAlsoInsign, optimizedMex, subsampPercent )
 
 quietData = true;
 
@@ -82,6 +81,9 @@ numStartPoints = 1;
 % 
 % end
 % % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+[rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
+    subsampleStructs(rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, subsampPercent);
 
 if recomputeQuietModel
     fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign)
