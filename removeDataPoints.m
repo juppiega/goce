@@ -29,7 +29,7 @@ end
 
 if nargin > 2
     if removeBiasMatRows
-        fixStruct.biases(removeInd,:) = [];
+        if isfield(fixStruct, 'biases') fixStruct.biases(removeInd,:) = []; end
     end
     if fixSatIndices
         satInd = zeros(1, length(removeInd));
@@ -61,10 +61,11 @@ if nargin > 2
         if isfield(fixStruct,'aeCOss') fixStruct.aeCOss = find(satInd == 12); end
     end
     if fixZ
-        fixStruct.Z(removeInd) = [];
+        if isfield(fixStruct, 'Z') fixStruct.Z(removeInd) = []; end
+        if isfield(fixStruct, 'doy') fixStruct.doy(removeInd) = []; end
     end
     if fixWeights
-        fixStruct.weights(removeInd) = [];
+        if isfield(fixStruct, 'weights') fixStruct.weights(removeInd) = []; end
     end
 end
 
