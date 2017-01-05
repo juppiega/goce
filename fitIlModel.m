@@ -595,7 +595,8 @@ end
 
 tolX = options.TolX;
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff);
-[comp] = fun(initGuess);
+[comp, JAC] = fun(initGuess);
+JTJ_diag = diag(JAC'*JAC);
 
 if quietData
     filename = 'quietCoeffsAll.mat';
