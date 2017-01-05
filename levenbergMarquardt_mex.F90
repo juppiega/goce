@@ -567,7 +567,7 @@ function G_majorTex(a, S, numBiases)
     real(kind = 8), allocatable :: G_majorTex(:)
     
     k = numBiases + 1; ! Counter, which helps adding terms.
-    G_majorTex = G_quiet(a(k+1:k+98), S) + G_storm(a(k+99:size(a)), S);
+    G_majorTex = G_quiet(a(k+1:k+111), S) + G_storm(a(k+112:size(a)), S);
 
 end function
 
@@ -757,7 +757,7 @@ function computeMajorSpeciesResidual(varStruct, Tex, dT0, T0, coeff) result(resi
     
     allocate(rhs(size(Tex)))
     call computeDensityRHS(varStruct, Tex, dT0, T0, rhs);
-    Gvec = G_major(coeff, varStruct, varStruct%numBiases);
+    Gvec = G_majorTex(coeff, varStruct, varStruct%numBiases);
 
     if (varStruct%numBiases == 0) then
         residual = (rhs / max(coeff(1) + Gvec, dble(1))) - 1;

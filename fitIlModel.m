@@ -373,7 +373,7 @@ end
 function [residual] = computeSpeciesResidual_major(varStruct, Tex, dT0, T0, coeff)
 
 varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
-Gvec = G_major(coeff, varStruct, varStruct.numBiases);
+Gvec = G_majorTex(coeff, varStruct, varStruct.numBiases);
 
 if varStruct.numBiases == 0
     residual = (varStruct.rhs ./ max(coeff(1) + Gvec, 1)) - 1;
