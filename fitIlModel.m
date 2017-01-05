@@ -314,7 +314,7 @@ semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
 longitudinal = ones(1,13); longitudinal([2,5,9,12]) = 1E-4;
-geomagnetic = ones(1,30); geomagnetic([1,7,13,19,25]) = 0.0001;
+geomagnetic = ones(1,30); geomagnetic([2,8,14,20,26]) = 0.0001;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, longitudinal, geomagnetic];
 lb = -ub;
