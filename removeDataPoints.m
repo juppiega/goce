@@ -69,4 +69,6 @@ if nargin > 2
     end
 end
 
+fixStruct.dataEnd = length(fixStruct.data);
+
 end
