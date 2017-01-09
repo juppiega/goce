@@ -259,6 +259,9 @@ if nargin == 11
         removeInd(~quietInd) = true;
     else
         removeInd(quietInd) = true;
+        if sum(~removeInd) == 0
+            removeInd(1) = false;
+        end
     end
 end
 removeInd(O2Struct.aeEOss) = true;

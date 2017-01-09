@@ -82,23 +82,20 @@ numStartPoints = 1;
 % end
 % % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-if recomputeQuietModel
-    [rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
+[rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
     subsampleStructs(rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, subsampPercent);
-    
+
+if recomputeQuietModel
     fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign)
     
     fprintf('Quiet time fitted.\n')
 end
 
 if recomputeStormModel
-    load ilData.mat
+    %load ilData.mat
     quietData = false;
     [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);
-
-    [rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
-    subsampleStructs(rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, subsampPercent);
 
     load quietCoeffs.mat
     fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign, optCoeff)
@@ -598,8 +595,8 @@ end
 
 tolX = options.TolX;
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff);
-%[comp, JAC] = fun(initGuess);
-%JTJ_diag = diag(JAC'*JAC);
+[comp, JAC] = fun(initGuess);
+JTJ_diag = diag(JAC'*JAC);
 
 if quietData
     filename = 'quietCoeffsAll.mat';
@@ -610,7 +607,6 @@ end
 if fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
-    clear mex;
     tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit);toc;
     %[comp] = fun(initGuess); %disp([comp(1), optCoeff]);
     %JTJ_diag_matlab = diag(J'*J);
@@ -625,7 +621,7 @@ end
 
 paramErrors = sqrt(abs(diag(inv(JTWJ)))); % POISTA ABS lopuillisessa.TESTAUS
 
-significance = 0.5;
+significance = 0.1;
 if quietData
     paramsToFit = [];
     [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, TexStruct);
@@ -635,23 +631,21 @@ if quietData
     [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, ArStruct);
     paramsToFit = [paramsToFit, O2Struct.coeffInd]; optCoeff(O2Struct.coeffInd) = 20.0;
 else
-    %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
+    %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);
 end
 
-if quietData % TESTAUS. Kunnes Myrsky-yhtalo saavuttanut loppulisen muotonsa ja zeroOutInsignificantStorm on koodattu
-    setenv('OMP_NUM_THREADS', num2str(numThreads))
-    disp('Calling LM solver')
-    clear mex;
-    tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, optCoeff, paramsToFit);toc;
-    fprintf('Significant parameters refitted.\n');
+if quietData
+setenv('OMP_NUM_THREADS', num2str(numThreads))
+disp('Calling LM solver')
+tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, optCoeff, paramsToFit);toc;
 end
-
 if iscolumn(optCoeff) optCoeff = optCoeff'; end
 if quietData
     filename = 'quietCoeffs.mat';
 else
     filename = 'optCoeff.mat';
 end
+fprintf('Significant parameters refitted.\n');
 saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
 
 end

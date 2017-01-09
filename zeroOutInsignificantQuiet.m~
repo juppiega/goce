@@ -8,14 +8,13 @@ if iscolumn(paramErrors); paramErrors = paramErrors'; end
 %paramErrors = paramErrors(ismember(quietInd, S.coeffInd));
 relErr = abs(paramErrors./optCoeff(quietInd));
 errTol = 1 - significanceTol;
-    function s = anyIsSignificant(ind)
+    function s = isSignificant(ind)
+        s = false(size(ind));
         for j = 1:length(ind)
             if relErr(quietInd == ind(j)) <= errTol
-                s = true;
-                return;
+                s(j) = true;
             end
         end
-        s = false;
     end
 
     function s = signifInd(ind)
@@ -31,7 +30,7 @@ errTol = 1 - significanceTol;
 k = find(quietInd == S.coeffInd(1), 1);
 
 % Constant coefficient = first coeff.
-ptf = [ptf, S.coeffInd(1)];
+ptf = [ptf, k];
 
 k = k + S.numBiases; % Biases newer refitted.
 
@@ -58,7 +57,7 @@ ptf = [ptf, signifInd(qsolar)];
 qlat = qind([1:3,7:8,12:13,16,19:21,25:26,30]);
 ptf = [ptf, signifInd(qlat)];
     function rmAnnual(latInd, allInd)
-        if ~anyIsSignificant(qind(latInd)); ptf(ismember(ptf,qind(allInd))) = []; end
+        if ~any(isSignificant(qind(latInd))); ptf(ismember(ptf,qind(allInd))) = []; end
     end
 rmAnnual(1:3, 1:6);
 rmAnnual(7:8, 7:11);
@@ -71,25 +70,25 @@ k = k + 32;
 
 % Diurnal
 i = k+1:k+21;
-dPy = quietInd(k + 11);
+dPy = k + 11;
 qind = quietInd(i);
 ptf = [ptf, signifInd(qind(1:10)), signifInd(qind(12:21))];
 includeDPy = false;
-if anyIsSignificant(qind([8:10, 19:21])); includeDPy = true; end
+if any(isSignificant(qind([8:10, 19:21]))); includeDPy = true; end
 k = k + 21;
 
 % Semidiurnal
 i = k+1:k+16;
 qind = quietInd(i);
 ptf = [ptf, signifInd(qind(1:16))];
-if anyIsSignificant(qind([7:8, 15:16])); includeDPy = true; end
+if any(isSignificant(qind([7:8, 15:16]))); includeDPy = true; end
 k = k + 16;
 
 % Terdiurnal
 i = k+1:k+8;
 qind = quietInd(i);
 ptf = [ptf, signifInd(qind(1:8))];
-if anyIsSignificant(qind([3:4, 7:8])); includeDPy = true; end
+if any(isSignificant(qind([3:4, 7:8]))); includeDPy = true; end
 if includeDPy; ptf = [ptf, dPy]; end
 k = k + 8;
 
@@ -102,9 +101,9 @@ k = k + 2;
 % Longitudinal
 i = k+1:k+13;
 qind = quietInd(i);
-dPy = quietInd(k + 7);
+dPy = k + 7;
 ptf = [ptf, signifInd(qind(2:6)), signifInd(qind(9:13))];
-if anyIsSignificant(qind([5:6, 12:13])); ptf = [ptf, dPy]; end
+if any(isSignificant(qind([5:6, 12:13]))); ptf = [ptf, dPy]; end
 rmAnnual(2:6, 1:6);
 rmAnnual(9:13, 8:13);
 k = k + 13;
