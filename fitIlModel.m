@@ -585,7 +585,7 @@ quietInd = [TexStruct.coeffInd(1:numQuietCoeffs),...
             N2Struct.coeffInd(1:numQuietCoeffs+N2Struct.numBiases),...
             HeStruct.coeffInd(1:numQuietCoeffs+HeStruct.numBiases),...
             ArStruct.coeffInd(1:numQuietCoeffs+ArStruct.numBiases),...
-            OStruct.coeffInd(1)];
+            O2Struct.coeffInd(1)];
 stormInd = setdiff(1:length(initGuess), quietInd);
 
 if quietData
@@ -625,7 +625,7 @@ end
 
 paramErrors = sqrt(abs(diag(inv(JTWJ)))); % POISTA ABS lopuillisessa.TESTAUS
 
-significance = 0.5;
+significance = 0.9;
 if quietData
     paramsToFit = [];
     [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, TexStruct);

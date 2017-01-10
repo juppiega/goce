@@ -96,11 +96,11 @@ if isfield(addStruct, 'F') && isfield(addStruct, 'FA')
 end
 
 % Annual parameter.
-%if ~isfield(addStruct, 'doy') || length(addStruct.doy) ~= length(x_mag) 
+if ~isfield(addStruct, 'doy') || length(addStruct.doy) ~= length(x_mag) 
     [yr,~,~,~,~,~] = datevec(addStruct.timestamps);
     yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
     addStruct.doy = addStruct.timestamps - datenum(yearVec) + 1;
-%end
+end
 
 % Diurnal parameter
 addStruct.dv = 2*pi* (addStruct.solarTime) / 24;

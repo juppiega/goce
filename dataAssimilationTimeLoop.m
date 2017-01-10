@@ -55,10 +55,10 @@ if strcmpi(modelString,'dummy')
     refModel = dummyThermosphere(zeros(size(ensemble,1),1), plotStruct);
     modelOperator = @dummyThermosphere;
 else
-    refModel = il_model_operator(zeros(size(ensemble,1),1), plotStruct);
-    modelOperator = @il_model_operator;
     assimiStruct = addCoeffsToStruct(assimiStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
     plotStruct = addCoeffsToStruct(plotStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
+    refModel = il_model_operator(zeros(size(ensemble,1),1), plotStruct);
+    modelOperator = @il_model_operator;
 end
 
 %assimiStruct.sigma = 0.05*assimiStruct.data;

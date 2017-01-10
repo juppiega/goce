@@ -1,7 +1,9 @@
 function [rho, outputStruct] =...
     il_model_operator(state, S)
 
-[Tex, dT0, T0] = findTempsForFit(S, S.TexCoeff, S.dTCoeff, S.T0Coeff);
+T0 = clamp(200, evalT0(S, S.T0Coeff), 1000);
+dT0 = clamp(1, evalDT(S, S.dTCoeff), 30);
+Tex = clamp(T0+1, evalTex(S, S.TexCoeff), 5000);
 
 % Add scalar corrections to dT0 and T0
 T0 = clamp(300, T0 + state(1), 700);
