@@ -527,7 +527,7 @@ T0Coeffs = coeffStruct.T0Coeff;
 OlbDens = evalMajorSpecies(rhoStruct, coeffStruct.OCoeff, numBiasesStruct.O);
 N2lbDens = evalMajorSpecies(rhoStruct, coeffStruct.N2Coeff, numBiasesStruct.N2);
 HelbDens = evalMajorSpecies(rhoStruct, coeffStruct.HeCoeff, numBiasesStruct.He);
-ArlbDens = evalMinorSpecies(rhoStruct, coeffStruct.ArCoeff, numBiasesStruct.Ar);
+ArlbDens = evalMajorSpecies(rhoStruct, coeffStruct.ArCoeff, numBiasesStruct.Ar);
 O2lbDens = exp(coeffStruct.O2Coeff);
 
 ilRho = computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);

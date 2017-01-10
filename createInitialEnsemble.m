@@ -2,7 +2,7 @@ function ensemble = createInitialEnsemble(modelString, numMembers, initialGuess,
 
 load optCoeff.individualAE.mat
 
-if strcmpi(modelString,'dummy')
+if strcmpi(modelString,'dummy') || strcmpi(modelString,'full')
     initialGuess = zeros(11, 1);
     stateLength = length(initialGuess);
     lb = [-100, -5, zeros(1,9)-50];

@@ -1,4 +1,4 @@
-function [simulatedObservations, outputStruct] =...
+function [rho, outputStruct] =...
     dummyThermosphere(state, observationStruct)
 
 T0 = clamp(300, 507 + state(1), 700);
@@ -11,7 +11,7 @@ ArlbDens = log(8.6E8);
 O2lbDens = log(1.3E5);
 Z = computeGeopotentialHeight(observationStruct.altitude);
 
-[simulatedObservations, O, N2, He, Ar, O2, T] = computeRho(T0, dT0, Tex, Z, exp(OlbDens), exp(N2lbDens), ...
+[rho, O, N2, He, Ar, O2, T] = computeRho(T0, dT0, Tex, Z, exp(OlbDens), exp(N2lbDens), ...
         exp(HelbDens), exp(ArlbDens), exp(O2lbDens));
     
 if nargout > 1

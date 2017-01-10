@@ -1,18 +1,17 @@
 function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembleSize, TexStd)
 % INPUT:
-%     modelString: 'dummy' for test.
+%     modelString: 'dummy' for test, 'full' for complete model
 %     assimilationWindowLength: in hours.
 
 
-if strcmpi(modelString, 'dummy')
-    loopDummy('2008-03-03', '2008-03-13', 'CHAMP', 'CHAMP', assimilationWindowLength, ensembleSize, TexStd);
-end
+loopModelAssimilation('2008-03-03', '2008-03-13', 'CHAMP', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, TexStd);
+
 
 end
 
-function loopDummy(beginDay, endDay, assSatellite, plotSatellite, windowLen, ensembleSize, TexStd)
+function loopModelAssimilation(beginDay, endDay, assSatellite, plotSatellite, modelString, windowLen, ensembleSize, TexStd)
 
-load ilData rhoStruct
+load('ilData.mat', 'rhoStruct', 'OStruct', 'HeStruct', 'N2Struct', 'ArStruct', 'O2Struct')
 
 % % Remove unnecessary observations.
 t0 = datenum(beginDay);
@@ -50,9 +49,17 @@ plotStruct.T0 = zeros(N,numFields);
 plotStruct.dT = zeros(N,numFields);
 plotStruct.T = zeros(N,numFields);
 
-ensemble = createInitialEnsemble('dummy', ensembleSize);
+ensemble = createInitialEnsemble(modelString, ensembleSize);
 
-refDummy = dummyThermosphere(mean(ensemble,2), plotStruct);
+if strcmpi(modelString,'dummy')
+    refModel = dummyThermosphere(zeros(size(ensemble,1),1), plotStruct);
+    modelOperator = @dummyThermosphere;
+else
+    refModel = il_model_operator(zeros(size(ensemble,1),1), plotStruct);
+    modelOperator = @il_model_operator;
+    assimiStruct = addCoeffsToStruct(assimiStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
+    plotStruct = addCoeffsToStruct(plotStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
+end
 
 %assimiStruct.sigma = 0.05*assimiStruct.data;
 a = assimiStruct.sigma ./ assimiStruct.data;
@@ -81,13 +88,13 @@ while assBegin < t1
         %ensemble(2,:) = (0.2)/ensStd(2) * (ensemble(2,:)-ensMean(2)) + ensMean(2);
     end
     [ensemble,d(~removeInd),r(~removeInd),c,P] = ...
-        assimilateDataAndUpdateEnsemble(ensemble, @dummyThermosphere, S, true);
+        assimilateDataAndUpdateEnsemble(ensemble, modelOperator, S, true);
     covdiag = [covdiag; diag(c)'];
     
     assTime = mean([assBegin; assEnd]);
     assTimes = [assTimes; assTime];
     windowTimes = [assTime, assTime + windowLen/24];
-    plotStruct = updatePlotStruct(ensemble, windowTimes, plotStruct, @dummyThermosphere);
+    plotStruct = updatePlotStruct(ensemble, windowTimes, plotStruct, modelOperator);
     
     assBegin = assBegin  + windowLen/24;
     assEnd = assEnd + windowLen/24;
@@ -105,16 +112,17 @@ for i = 1:numFields
 end
 
 [dataRho, plotTime] = computeOrbitAverage(plotStruct.data, plotStruct.latitude, plotStruct.timestamps);
+[refOrbAver, plotTime] = computeOrbitAverage(refModel, plotStruct.latitude, plotStruct.timestamps);
 
 figure;
 % subplot(2,1,1)
-plot(repmat(plotTime,1,numFields+1), [dataRho, ensRho], 'linewidth', 2.0);
+plot(repmat(plotTime,1,numFields+2), [dataRho, refOrbAver, ensRho], 'linewidth', 2.0);
 datetick('x')
 title('Rho','fontsize',15)
 set(gca,'fontsize', 15)
 ylabel('rho', 'fontsize',15)
 ylim([0.8*min(plotStruct.data), 1.25*max(plotStruct.data)])
-legend(plotSatellite,'Ens. mean', 'Upper 95%', 'Lower 95%')
+legend(plotSatellite,'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
 axis tight
 
 % subplot(2,1,2)
@@ -127,9 +135,9 @@ axis tight
 % legend(plotSatellite,'Ens. mean', 'Upper 95%', 'Lower 95%')
 % axis tight
 
-[dummyOrbAver] = computeOrbitAverage(refDummy, plotStruct.latitude, plotStruct.timestamps);
-refRMS = rms(dataRho./dummyOrbAver-1);
-ensMeanRMS = rms(ensRho(:,1)./dummyOrbAver-1);
+[refOrbAver] = computeOrbitAverage(refModel, plotStruct.latitude, plotStruct.timestamps);
+refRMS = rms(dataRho./refOrbAver-1);
+ensMeanRMS = rms(ensRho(:,1)./refOrbAver-1);
 
 fprintf('Unadjusted RMS: %f\n', refRMS);
 fprintf('EnKF FGAT RMS: %f\n', ensMeanRMS);
