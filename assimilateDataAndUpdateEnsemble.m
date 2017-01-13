@@ -45,7 +45,7 @@ A = bsxfun(@minus, ensemble, mean(ensemble, 2));
 % Simulate observations using the background ensemble members.
 Hx = zeros(numData, numMembers);
 for i = 1:numMembers
-    simObs = observationOperator(ensemble(:,i), observationsStruct);
+    simObs = observationOperator(ensemble(:,i), observationsStruct, i);
     if any(isnan(simObs) | ~isfinite(simObs) | ~isreal(simObs) | simObs <= 0)
         error('Observation operator returned unphysical value!')
     end

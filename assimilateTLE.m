@@ -1,4 +1,5 @@
-function [] = assimilateTLE(beginDateStr, endDateStr, assimilationWindow, intWindow, plotID)
+function [] = assimilateTLE(beginDateStr, endDateStr, modelString, ...
+    assimilationWindow, intWindow, plotID, TexStd)
 % [assimilationWindow] = days, [intWindow] = days
 
 if iscolumn(plotID)
@@ -33,15 +34,34 @@ p = TimedProgressBar( targetCount, barWidth, ...
                     '. Now at ', ...
                     'Completed in ' );
                
+ensembleSize = 100;
+ensemble = createInitialEnsemble(modelString, ensembleSize);
+obsOperator = @tle_model_operator;
+if strcmpi(modelString,'full')
+    modelOperator = @il_model_operator;
+else
+    modelOperator = @dummyThermosphere;
+end
+
 date = beginDate;
 oldTLEs = selectTLEs(tleMap, 'oldest');
 k = 1;
 while date <= endDate
     assimilatableTLEs = findAssimilatableTLEs(tleMap, oldTLEs, date, date + assimilationWindow, intWindow);
     if ~isempty(keys(assimilatableTLEs))
-        S = computeBiRhoAndIntTerms(zeros(11,1), @dummyThermosphere, oldTLEs, assimilatableTLEs, 0.5, 100);
+        S = computeBiRhoAndIntTerms(ensemble, modelOperator, oldTLEs, assimilatableTLEs, 0.5, 100);
+        S.sigma = S.sig_rho;
+        S.data = S.rhoObs;
+
+        ensMean = mean(ensemble, 2);
+        ensStd = std(ensemble, 0, 2);     
+        if k > 1
+            ensemble(3,:) = (TexStd)/ensStd(3) * (ensemble(3,:)-ensMean(3)) + ensMean(3);
+        end
+        [ensemble] = assimilateDataAndUpdateEnsemble(ensemble, obsOperator, S, false);
+        
         ind = ismember(S.objectIDs,plotID);
-        OM = S.rhoObs(ind)./S.rhoModel(ind);
+        OM = S.rhoObs(ind)./mean(S.rhoModel(ind,:),2);
         plotTimes(k) = date + assimilationWindow/2;
         for j = 1:length(plotID)
             objInd = find(S.objectIDs == plotID(j));

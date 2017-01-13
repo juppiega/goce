@@ -1,5 +1,5 @@
 function [rho, outputStruct] =...
-    dummyThermosphere(state, observationStruct)
+    dummyThermosphere(state, observationStruct, index)
 
 T0 = clamp(300, 507 + state(1), 700);
 dT0 = clamp(1, 12 + state(2), 20);

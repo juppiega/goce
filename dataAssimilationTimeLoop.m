@@ -52,12 +52,12 @@ plotStruct.T = zeros(N,numFields);
 ensemble = createInitialEnsemble(modelString, ensembleSize);
 
 if strcmpi(modelString,'dummy')
-    refModel = dummyThermosphere(zeros(size(ensemble,1),1), plotStruct);
+    refModel = dummyThermosphere(zeros(size(ensemble,1),1), plotStruct, 1);
     modelOperator = @dummyThermosphere;
 else
     assimiStruct = addCoeffsToStruct(assimiStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
     plotStruct = addCoeffsToStruct(plotStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
-    refModel = il_model_operator(zeros(size(ensemble,1),1), plotStruct);
+    refModel = il_model_operator(zeros(size(ensemble,1),1), plotStruct, 1);
     modelOperator = @il_model_operator;
 end
 

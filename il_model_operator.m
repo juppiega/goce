@@ -1,5 +1,5 @@
 function [rho, outputStruct] =...
-    il_model_operator(state, S)
+    il_model_operator(state, S, index)
 
 T0 = clamp(200, evalT0(S, S.T0Coeff), 1000);
 dT0 = clamp(1, evalDT(S, S.dTCoeff), 30);

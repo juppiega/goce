@@ -13,7 +13,7 @@ Bratio = zeros(length(recentObjects), size(ensemble,2));
 objectIDs = zeros(length(recentObjects));
 rhoObs = zeros(length(recentObjects));
 sig_rho = zeros(length(recentObjects));
-rhoModel = zeros(length(recentObjects));
+rhoModel = zeros(length(recentObjects), size(ensemble,2));
 
 for i = 1:length(recentObjects)
     
@@ -113,7 +113,7 @@ for i = 1:length(recentObjects)
     Bratio(i,:) = BratioThis;
     objectIDs(i) = object;
     intV3Fdt = trapz(integrationTimes, ((1E3*vMag).^3).*windFac);
-    rhoModel(i) = mean(integrals) / intV3Fdt;
+    rhoModel(i,:) = integrals / intV3Fdt;
     rhoObs(i) = d / (recentTLEs(object).Btrue * intV3Fdt);
     sig_rho(i) = (recentTLEs(object).sig_Btrue * d/intV3Fdt) / BtrueThis.^2;
     ballisticOutput.intProperties(object) = struct('V3F',((1E3*vMag).^3).*windFac, 'intTimes',integrationTimes,...
@@ -125,7 +125,7 @@ ind = objectIDs > 0;
 Bi = Bi(ind,:);
 Bratio = Bratio(ind,:);
 objectIDs = objectIDs(ind);
-rhoModel = rhoModel(ind);
+rhoModel = rhoModel(ind,:);
 rhoObs = rhoObs(ind);
 sig_rho = sig_rho(ind);
 
