@@ -1044,7 +1044,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     tolOpt = 1E4
     lambda0 = 1E-2
     maxFuncEvals = 5000 * size(initGuess)
-    maxIter = 1000000 !!!!!!!!!!!!!!!!!!!!!!
+    maxIter = 0 !!!!!!!!!!!!!!!!!!!!!!
     
     call lmSolve(modelMinimizationFunction, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
