@@ -1042,7 +1042,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     tolX = 1E-8
     tolFun = 1E-5
     tolOpt = 1E4
-    lambda0 = 1E6
+    lambda0 = 1E-2
     maxFuncEvals = 5000 * size(initGuess)
     maxIter = 1000000 !!!!!!!!!!!!!!!!!!!!!!
     
@@ -1056,8 +1056,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
 
     !k = mexPrintf('Before output'//achar(13))
-    !y_output = solution ! !!!!!!!!  
-    y_output = funVec 
+    y_output = solution ! !!!!!!!!   
     !     Create matrix for the return argument.
     plhs(1) = mxCreateDoubleMatrix(size(y_output),1,0)
     plhs(2) = mxCreateDoubleMatrix(size(JTWJ,1),size(JTWJ,2),0)
