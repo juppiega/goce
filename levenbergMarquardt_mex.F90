@@ -1042,7 +1042,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     tolX = 1E-8
     tolFun = 1E-5
     tolOpt = 1E4
-    lambda0 = 1E-2
+    lambda0 = 1E8
     maxFuncEvals = 5000 * size(initGuess)
     maxIter = 1000000 !!!!!!!!!!!!!!!!!!!!!!
     
