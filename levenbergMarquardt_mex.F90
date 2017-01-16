@@ -1040,9 +1040,9 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
     ! ----- CALL Levenberg-Marquardt solver ------------
     tolX = 1E-8
-    tolFun = 1E-4 ! TESTAUS: LOPULLISESSA 1E-5
-    tolOpt = 1E4
-    lambda0 = 1E6
+    tolFun = 1E-5
+    tolOpt = 1E3
+    lambda0 = 1E-2
     maxFuncEvals = 5000 * size(initGuess)
     maxIter = 1000000 !!!!!!!!!!!!!!!!!!!!!!
     
