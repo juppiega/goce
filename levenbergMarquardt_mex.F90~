@@ -960,7 +960,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     integer(kind = 4), allocatable :: paramsToFit(:)
 
     real(kind = 8), allocatable :: y_output(:), solution(:), funVec(:), Jacobian(:,:), JTJ(:,:),JTWJ(:,:),paramReal(:)
-    !real(kind = 8) :: tolX, tolFun, tolOpt, lambda0
+    real(kind = 8) :: tolX, tolFun, tolOpt, lambda0
 
     !-----------------------------------------------------------------------
     !     Check for proper number of argumentS% 
@@ -1031,12 +1031,6 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     allocate(paramsToFit(N))
     paramsToFit = nint(paramReal, 4)
 
-    call mxCopyPtrToReal8(mxGetPr(prhs(13)), tolX, 1)
-    call mxCopyPtrToReal8(mxGetPr(prhs(14)), tolFun, 1)
-    call mxCopyPtrToReal8(mxGetPr(prhs(15)), tolOpt, 1)
-    call mxCopyPtrToReal8(mxGetPr(prhs(16)), lambda0, 1)
-
-
     allocate(JTWJ(N,N))
     
     !$omp parallel
@@ -1046,10 +1040,10 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
     
     ! ----- CALL Levenberg-Marquardt solver ------------
-    !tolX = 1E-8
-    !tolFun = 1E-5
-    !tolOpt = 1E3
-    !lambda0 = 1E-2
+    tolX = 1E-8
+    tolFun = 1E-5
+    tolOpt = 1E3
+    lambda0 = 1E-2
     maxFuncEvals = 5000 * size(initGuess)
     maxIter = 1000000 !!!!!!!!!!!!!!!!!!!!!!
     

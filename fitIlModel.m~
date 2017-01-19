@@ -605,7 +605,6 @@ fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, 
 [derivNorms, indSort] = sort(rms(JAC));
 [minDiff, indMin] = min(diff(derivNorms));
 fprintf('Min difference between param effects: %f for indices (%d, %d)\n', minDiff, indSort(indMin), indSort(indMin+1))
-fprintf('Median difference: %f\n', median(diff(derivNorms)));
 
 %JTJ_diag = diag(JAC'*JAC);
 
