@@ -168,8 +168,8 @@ title('Tex', 'fontsize', 15)
 datetick('x')
 set(gca,'fontsize', 15)
 
-figure;
-[x,y] = meshgrid(0:0.25:24, -90:2:90);
+figure('renderer', 'zbuffer');
+[x,y] = meshgrid(0:0.5:24, -90:5:90);
 T.latitude = y(:);
 T.solarTime = x(:);
 T.altitude = 400*ones(size(x(:)));

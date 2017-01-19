@@ -55,7 +55,7 @@ lstMean = false;
 lonMean = false;
 latitudeMean = false;
 devFromXmean = false;
-sameColorBars = false;
+sameColorBars = true;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
     sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 % 
@@ -190,7 +190,7 @@ if ~strcmpi(paramName, 'Tex') && ~strcmpi(paramName, 'T0') && ~strcmpi(paramName
     OlbDens = evalMajorSpecies(S, coeffStruct.OCoeff, numBiasesStruct.O);
     N2lbDens = evalMajorSpecies(S, coeffStruct.N2Coeff, numBiasesStruct.N2);
     HelbDens = evalMajorSpecies(S, coeffStruct.HeCoeff, numBiasesStruct.He);
-    ArlbDens = evalMinorSpecies(S, coeffStruct.ArCoeff, numBiasesStruct.Ar);
+    ArlbDens = evalMajorSpecies(S, coeffStruct.ArCoeff, numBiasesStruct.Ar);
     O2lbDens = exp(coeffStruct.O2Coeff);
 end
 
@@ -274,7 +274,7 @@ if devFromXmean
     dtmParam = bsxfun(@rdivide, dtmParam, mean(dtmParam, 2));
 end
 
-figure;
+figure('renderer', 'zbuffer');
 
 if sameColorBars
     subplot(3,1,1);
