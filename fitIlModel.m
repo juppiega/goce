@@ -574,7 +574,7 @@ initGuess(ind) = -ub(ind);
 %ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
 %initGuess(ArStruct.coeffInd) = ArCoeffs;
 
-initGuess(TexStruct.coeffInd(1)) = 510;
+initGuess(TexStruct.coeffInd(1)) = 1030;
 initGuess(OStruct.coeffInd(1)) = log(8E10);
 initGuess(N2Struct.coeffInd(1)) = log(3E11);
 initGuess(HeStruct.coeffInd(1)) = log(2.5E7);
@@ -589,6 +589,28 @@ quietInd = [TexStruct.coeffInd(1:numQuietCoeffs),...
             O2Struct.coeffInd(1)];
 stormInd = setdiff(1:length(initGuess), quietInd);
 
+tolX = 1E-8;
+tolFun = 1E-5;
+tolOpt = 1E3;
+lambda0 = 1E-2;
+if quietData
+    paramsToFit = [TexStruct.coeffInd(1),...
+            OStruct.coeffInd(1:1+OStruct.numBiases),...
+            N2Struct.coeffInd(1:1+N2Struct.numBiases),...
+            HeStruct.coeffInd(1:1+HeStruct.numBiases),...
+            ArStruct.coeffInd(1:1+ArStruct.numBiases),...
+            O2Struct.coeffInd(1)];
+    setenv('OMP_NUM_THREADS', num2str(numThreads))
+    disp('Calling LM solver')
+    clear mex;
+    meanGuess = initGuess;
+    meanGuess(setdiff(1:length(meanGuess), paramsToFit)) = 0;
+    tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, meanGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0);toc;
+    fprintf('Mean parameters refitted.\n');
+    
+    initGuess(paramsToFit) = meanGuess(paramsToFit);
+end
+
 if quietData
     paramsToFit = quietInd;
     initGuess(stormInd) = 0;
@@ -597,10 +619,6 @@ else
     initGuess = quietCoeffs;
 end
 
-tolX = 1E-8;
-tolFun = 1E-4;
-tolOpt = 1E3;
-lambda0 = 1E-2;
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
 [comp,JAC] = fun(initGuess);
 [derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
@@ -616,6 +634,8 @@ else
     filename = 'stormCoeffsAll.mat';
 end
 
+tolFun = 1E-4;
+tolOpt = 1E3;
 if fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
