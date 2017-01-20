@@ -165,7 +165,7 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncE
         containsInfs = any(.not. isfinite(costFuncVec)) ! Check, whether trial point contains Infs.
 
         ! Check whether trial point decreased the sum of squares.
-        if (sum(trialCostFunc**2) < sum(costFuncVec**2) .and. .not. containsInfs) then
+        !if (sum(trialCostFunc**2) < sum(costFuncVec**2) .and. .not. containsInfs) then
             X = trialX
 
             call computeJacobian(FUN, X, tolX, numVars, numResid, paramsToFit, Jacobian)
