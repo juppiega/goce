@@ -598,7 +598,7 @@ else
 end
 
 tolX = 1E-8;
-tolFun = 1E-5;
+tolFun = 1E-4;
 tolOpt = 1E3;
 lambda0 = 1E6;
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
