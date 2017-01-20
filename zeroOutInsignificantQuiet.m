@@ -111,6 +111,8 @@ k = k + 13;
 
 ptf = sort(ptf);
 
-optCoeff(setdiff(S.coeffInd, ptf)) = 0;
+zeroOutInd = setdiff(S.coeffInd, ptf);
+zeroOutInd = setdiff(zeroOutInd, S.coeffInd(2:S.numBiases+1));
+optCoeff(zeroOutInd) = 0;
 
 end
