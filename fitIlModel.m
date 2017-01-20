@@ -473,7 +473,7 @@ residual = lbDTStruct.data ./ modelDT - 1;
 
 if nargout == 2
     fun = @(X)temperatureGradientMinimization(lbDTStruct, X);
-    Jacobian = computeJAC(fun, coeff, length(lbDTStruct.data), 1E-5);
+    Jacobian = computeJAC(fun, coeff, length(lbDTStruct.data), 1E-5, 1:length(coeff));
 end
 
 end
@@ -485,7 +485,7 @@ residual = (lbT0Struct.data ./ modelT0 - 1);
 
 if nargout == 2
     fun = @(X)lbTemperatureMinimization(lbT0Struct, X);
-    Jacobian = computeJAC(fun, coeff, length(lbT0Struct.data), 1E-5);
+    Jacobian = computeJAC(fun, coeff, length(lbT0Struct.data), 1E-5, 1:length(coeff));
 end
 
 end
