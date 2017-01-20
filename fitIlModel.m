@@ -608,7 +608,7 @@ if quietData
     tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, meanGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0);toc;
     fprintf('Mean parameters refitted.\n');
     
-    initGuess(paramsToFit) = meanGuess(paramsToFit);
+    initGuess(paramsToFit) = optCoeff(paramsToFit);
 end
 
 if quietData
