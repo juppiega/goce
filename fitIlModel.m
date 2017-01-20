@@ -591,7 +591,7 @@ stormInd = setdiff(1:length(initGuess), quietInd);
 
 tolX = 1E-8;
 tolFun = 1E-5;
-tolOpt = 1E3;
+tolOpt = 1;
 lambda0 = 1E-2;
 if quietData
     paramsToFit = [TexStruct.coeffInd(1),...
