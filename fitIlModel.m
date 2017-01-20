@@ -412,7 +412,7 @@ residual = (varStruct.rhs ./ max(averVal, 1)) - 1;
 
 end
 
-function [residual, Jacobian] = modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff)
+function [residual, Jacobian] = modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit)
 
 dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) + length(HeStruct.data) + length(rhoStruct.data) ...
     + length(ArStruct.data) + length(O2Struct.data);
@@ -460,8 +460,8 @@ end
 residual = weights .* residual;
 
 if nargout == 2
-    fun = @(X)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, X);
-    Jacobian = computeJAC(fun, coeff, dataLen, tolX);
+    fun = @(X)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, X, paramsToFit);
+    Jacobian = computeJAC(fun, coeff, dataLen, tolX, paramsToFit);
 end
 
 end
@@ -490,20 +490,21 @@ end
 
 end
 
-function JAC = computeJAC(fun, x, dataLen, tolX)
+function JAC = computeJAC(fun, x, dataLen, tolX, paramsToFit)
 
-JAC = zeros(dataLen, length(x));
+JAC = zeros(dataLen, length(paramsToFit));
 dx = max(0.25*tolX*abs(x), 1E-10);
 
-parfor i = 1:length(x)
+parfor i = 1:length(paramsToFit)
     xForw = x; xBackw = x;
-    xForw(i) = x(i) + dx(i);
-    xBackw(i) = x(i) - dx(i);
+    k = paramsToFit(i);
+    xForw(k) = x(k) + dx(k);
+    xBackw(k) = x(k) - dx(k);
     
     F_forw = feval(fun, xForw);
     F_backw = feval(fun, xBackw);
     
-    result = (F_forw - F_backw) / (2*dx(i));
+    result = (F_forw - F_backw) / (2*dx(k));
     
     infInd = ~isfinite(result);
     if any(infInd)
@@ -600,12 +601,12 @@ tolX = 1E-8;
 tolFun = 1E-5;
 tolOpt = 1E3;
 lambda0 = 1E6;
-fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff);
+fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
 [comp,JAC] = fun(initGuess);
-[derivNorms, indSort] = sort(rms(JAC));
+[derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
 [minDiff, indMin] = min(diff(derivNorms));
-fprintf('Min difference between param effects: %f for indices (%d, %d)\n', minDiff, indSort(indMin), indSort(indMin+1))
-fprintf('Median difference: %f\n', median(diff(derivNorms)));
+fprintf('Min difference between param effects: %e for indices (%d, %d)\n', minDiff, indSort(indMin), indSort(indMin+1))
+fprintf('Median difference: %e\n', median(diff(derivNorms)));
 
 %JTJ_diag = diag(JAC'*JAC);
 
