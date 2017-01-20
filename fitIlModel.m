@@ -600,7 +600,7 @@ end
 tolX = 1E-8;
 tolFun = 1E-4;
 tolOpt = 1E3;
-lambda0 = 1E6;
+lambda0 = 1E-2;
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
 [comp,JAC] = fun(initGuess);
 [derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
@@ -646,6 +646,9 @@ if quietData
 else
     %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
 end
+
+tolFun = 1E-6;
+tolOpt = 1E2;
 
 if quietData % TESTAUS. Kunnes Myrsky-yhtalo saavuttanut loppulisen muotonsa ja zeroOutInsignificantStorm on koodattu
     setenv('OMP_NUM_THREADS', num2str(numThreads))
