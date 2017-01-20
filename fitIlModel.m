@@ -648,7 +648,7 @@ else
 end
 
 tolFun = 1E-6;
-tolOpt = 1E2;
+tolOpt = 1E0;
 
 if quietData % TESTAUS. Kunnes Myrsky-yhtalo saavuttanut loppulisen muotonsa ja zeroOutInsignificantStorm on koodattu
     setenv('OMP_NUM_THREADS', num2str(numThreads))
