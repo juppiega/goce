@@ -593,23 +593,23 @@ tolX = 1E-8;
 tolFun = 1E-6;
 tolOpt = 1E-4;
 lambda0 = 1E-2;
-if quietData && ~fitSimultaneously
-    paramsToFit = [TexStruct.coeffInd(1),...
-            OStruct.coeffInd(1:1+OStruct.numBiases),...
-            N2Struct.coeffInd(1:1+N2Struct.numBiases),...
-            HeStruct.coeffInd(1:1+HeStruct.numBiases),...
-            ArStruct.coeffInd(1:1+ArStruct.numBiases),...
-            O2Struct.coeffInd(1)];
-    setenv('OMP_NUM_THREADS', num2str(numThreads))
-    disp('Calling LM solver')
-    clear mex;
-    meanGuess = initGuess;
-    meanGuess(setdiff(1:length(meanGuess), paramsToFit)) = 0;
-    tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, meanGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0);toc;
-    fprintf('Mean parameters refitted.\n');
-    
-    initGuess(paramsToFit) = optCoeff(paramsToFit);
-end
+% if quietData && ~fitSimultaneously
+%     paramsToFit = [TexStruct.coeffInd(1),...
+%             OStruct.coeffInd(1:1+OStruct.numBiases),...
+%             N2Struct.coeffInd(1:1+N2Struct.numBiases),...
+%             HeStruct.coeffInd(1:1+HeStruct.numBiases),...
+%             ArStruct.coeffInd(1:1+ArStruct.numBiases),...
+%             O2Struct.coeffInd(1)];
+%     setenv('OMP_NUM_THREADS', num2str(numThreads))
+%     disp('Calling LM solver')
+%     clear mex;
+%     meanGuess = initGuess;
+%     meanGuess(setdiff(1:length(meanGuess), paramsToFit)) = 0;
+%     tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, meanGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0);toc;
+%     fprintf('Mean parameters refitted.\n');
+%     
+%     initGuess(paramsToFit) = optCoeff(paramsToFit);
+% end
 
 if ~fitSimultaneously
     if quietData

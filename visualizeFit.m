@@ -55,7 +55,7 @@ lstMean = false;
 lonMean = false;
 latitudeMean = false;
 devFromXmean = false;
-sameColorBars = true;
+sameColorBars = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
     sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 % 
