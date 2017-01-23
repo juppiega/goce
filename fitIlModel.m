@@ -1,4 +1,4 @@
-function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeQuietModel, recomputeStormModel, recomputeAlsoInsign, optimizedMex, subsampPercent )
+function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeQuietModel, recomputeStormModel, recomputeAlsoInsign, fitSimultaneous, optimizedMex, subsampPercent )
 
 quietData = true;
 
@@ -86,12 +86,12 @@ if recomputeQuietModel
     [rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
     subsampleStructs(rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, subsampPercent);
     
-    fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign)
+    fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign, fitSimultaneous)
     
     fprintf('Quiet time fitted.\n')
 end
 
-if recomputeStormModel
+if recomputeStormModel && ~fitSimultaneous
     load ilData.mat
     quietData = false;
     [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
@@ -101,7 +101,7 @@ if recomputeStormModel
     subsampleStructs(rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, subsampPercent);
 
     load quietCoeffs.mat
-    fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign, optCoeff)
+    fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign, fitSimultaneous, optCoeff)
     fprintf('Storm time fitted.\n')
 end
 
@@ -516,7 +516,7 @@ end
 
 end
 
-function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, options, multiStartSolver, numStartPoints, numThreads, quietData, fitBaseAgain, quietCoeffs)
+function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, options, multiStartSolver, numStartPoints, numThreads, quietData, fitBaseAgain, fitSimultaneously, quietCoeffs)
 global numCoeffs;
 numMinorCoeffs = 50;
 numQuietCoeffs = 112;
@@ -593,7 +593,7 @@ tolX = 1E-8;
 tolFun = 1E-6;
 tolOpt = 1E-4;
 lambda0 = 1E-2;
-if quietData
+if quietData && ~fitSimultaneously
     paramsToFit = [TexStruct.coeffInd(1),...
             OStruct.coeffInd(1:1+OStruct.numBiases),...
             N2Struct.coeffInd(1:1+N2Struct.numBiases),...
@@ -611,12 +611,16 @@ if quietData
     initGuess(paramsToFit) = optCoeff(paramsToFit);
 end
 
-if quietData
-    paramsToFit = quietInd;
-    initGuess(stormInd) = 0;
+if ~fitSimultaneously
+    if quietData
+        paramsToFit = quietInd;
+        initGuess(stormInd) = 0;
+    else
+        paramsToFit = stormInd;
+        initGuess = quietCoeffs;
+    end
 else
-    paramsToFit = stormInd;
-    initGuess = quietCoeffs;
+    paramsToFit = 1:length(initGuess);
 end
 
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
@@ -628,15 +632,19 @@ fprintf('Median difference: %e\n', median(diff(derivNorms)));
 
 %JTJ_diag = diag(JAC'*JAC);
 
-if quietData
-    filename = 'quietCoeffsAll.mat';
+if ~fitSimultaneously
+    if quietData
+        filename = 'quietCoeffsAll.mat';
+    else
+        filename = 'stormCoeffsAll.mat';
+    end
 else
-    filename = 'stormCoeffsAll.mat';
+    filename = 'coeffsAll.mat';
 end
 
 tolFun = 1E-4;
 tolOpt = 1E3;
-if fitBaseAgain
+if fitSimultaneously || fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
@@ -655,7 +663,19 @@ end
 paramErrors = sqrt(abs(diag(inv(JTWJ)))); % POISTA ABS lopuillisessa.TESTAUS
 
 significance = 0.9;
-if quietData
+if ~fitSimultaneously
+    if quietData
+        paramsToFit = [];
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, TexStruct);
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, OStruct);
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, N2Struct);
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, HeStruct);
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, ArStruct);
+        paramsToFit = [paramsToFit, O2Struct.coeffInd]; optCoeff(O2Struct.coeffInd) = 20.0;
+    else
+        %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
+    end
+else
     paramsToFit = [];
     [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, TexStruct);
     [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, OStruct);
@@ -663,14 +683,14 @@ if quietData
     [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, HeStruct);
     [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, ArStruct);
     paramsToFit = [paramsToFit, O2Struct.coeffInd]; optCoeff(O2Struct.coeffInd) = 20.0;
-else
     %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
+    paramsToFit = sort([paramsToFit, stormInd]); % Testaus
 end
 
 tolFun = 1E-6;
 tolOpt = 1E0;
 
-if quietData % TESTAUS. Kunnes Myrsky-yhtalo saavuttanut loppulisen muotonsa ja zeroOutInsignificantStorm on koodattu
+if fitSimultaneously || quietData % TESTAUS. Kunnes Myrsky-yhtalo saavuttanut loppulisen muotonsa ja zeroOutInsignificantStorm on koodattu
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
