@@ -512,7 +512,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
         call lmSolve(lbTemperatureMinimization, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
                  firstOrderOptAtSolution = firstOrderOpt, JTWJ = JTWJ)
-    end
+    end if
 
 
 
