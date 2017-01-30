@@ -504,7 +504,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     maxFuncEvals = 5000 * size(initGuess)
     maxIter = 1000000 !!!!!!!!!!!!!!!!!!!!!!
     
-    if (isGradient) then
+    if (isGradient .neq. 0) then
         call lmSolve(temperatureGradientMinimization, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
                  firstOrderOptAtSolution = firstOrderOpt, JTWJ = JTWJ)
