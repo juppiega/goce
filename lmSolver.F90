@@ -156,9 +156,9 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncE
 	    !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('After trialX(fitInd)'), 'disp')
         end do
 	mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('After trialX'), 'disp')
-        where (abs(trialX) < 1E-9)
-            trialX = sign(dble(1E-9), trialX)
-        end where
+        !where (abs(trialX) < 1E-9)
+        !    trialX = sign(dble(1E-9), trialX)
+        !end where
 
         trialCostFunc = FUN(trialX) ! Evaluate function at trial point.
         numFuncEvals = numFuncEvals + 1
