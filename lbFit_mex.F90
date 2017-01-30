@@ -505,11 +505,11 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     maxIter = 1000000 !!!!!!!!!!!!!!!!!!!!!!
     
     if (isGradient /= 0) then
-        call lmSolve(temperatureGradientMinimization, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
+        call lmSolve(temperatureGradientMinimization,initGuess,paramsToFit,tolX,tolFun,tolOpt,lambda0,maxFuncEvals,maxIter,&
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
                  firstOrderOptAtSolution = firstOrderOpt, JTWJ = JTWJ)
     else
-        call lmSolve(lbTemperatureMinimization, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
+        call lmSolve(lbTemperatureMinimization, initGuess, paramsToFit, tolX, tolFun, tolOpt,lambda0,maxFuncEvals,maxIter, &
                  JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
                  firstOrderOptAtSolution = firstOrderOpt, JTWJ = JTWJ)
     end if
