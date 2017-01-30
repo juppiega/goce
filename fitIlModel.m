@@ -260,7 +260,7 @@ significance = 0.9;
 [dTCoeffs, JTWJ] = lbFit_mex(lbDTStruct, weights, dTCoeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 paramErrors = sqrt(abs(diag(inv(JTWJ)))); % POISTA ABS lopuillisessa.TESTAUS
 
-lbDTStruct.coeffInd = paramsToFitM
+lbDTStruct.coeffInd = paramsToFit;
 lbDTStruct.numBiases = 0;
 paramsToFit = [];
 [dTCoeffs, paramsToFit] = zeroOutInsignificantQuiet(dTCoeffs, paramsToFit, quietInd, paramErrors, significance, lbDTStruct);
