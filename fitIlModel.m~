@@ -7,7 +7,7 @@ if optimizedMex
     mex -O FCFLAGS="\$FCFLAGS -std=f2008" -output lbFit_mex lmSolver.F90 lbFit_mex.F90 -llapack
 else
     mex -v -g FFLAGS='$FFLAGS -fcheck=all' -output levenbergMarquardt_mex lmSolver.F90 levenbergMarquardt_mex.F90 -llapack
-    mex -v -g FFLAGS='$FFLAGS -fcheck=all' -output lbFit_mex lmSolver.F90 lbFit_mex.F90 -llapack
+    mex -v -g FFLAGS='$FFLAGS -fcheck=all' -output lbFit_mex lmSolver.F90 levenbergMarquardt_mex.F90 -llapack
 end
 
 rng(1, 'twister');

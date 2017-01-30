@@ -1,0 +1,547 @@
+#include "fintrf.h"
+
+! Fit IL-Model using the Levenberg-Marquardt method.
+! Building:
+! mex -O FCFLAGS="\$FCFLAGS -std=f2008" -output levenbergMarquardt_mex lmSolver.F90 levenbergMarquardt_mex.F90 -llapack
+
+module fitModule
+    implicit none
+    
+    type dataStruct
+        real(kind = 8), allocatable, dimension(:) :: P10, P11, P20, P21, P22, &
+                                     P30, P31, P32, P33, P40, P41, P42, P43, P44, P50, P51, &
+                                     P52, P53, P54, P60, P61, P62, P63, P64, P70, P71, P74, &
+                                     mP10,mP20,mP30,mP40,mP50,mP60,mP70,mP11,mP31,mP51, &
+                                     mP21, mP41, mP32, mP52, yv, dv, latitudeTerm, solarTerm, &
+                                     annual, lv, dv_mag, &
+                                     diurnal, semidiurnal, terdiurnal, quaterdiurnal,&
+                                     geomagnetic, data, Z, F, FA
+        integer(kind = 4), allocatable :: coeffInd(:)
+        integer :: name, numBiases
+        real(kind = 8) :: dT0, T0
+        real(kind = 8), allocatable :: aeInt(:,:), biases(:,:)
+    end type
+
+    type(dataStruct) :: lbStruct
+    real(kind = 8), allocatable :: weights(:), initGuess(:), dTCoeffs(:), T0Coeffs(:)
+
+    interface clamp
+        module procedure clamp_scalar, clamp_vector
+    end interface
+
+contains
+
+function structToDerived_lb(matlabStruct, typeName) result(D)
+    implicit none
+    ! Input
+    mwPointer, intent(in) :: matlabStruct
+    character(len = *), intent(in) :: typeName
+    ! Output
+    type(dataStruct) :: D
+    ! Function declarations
+    mwPointer mxGetField
+    mwPointer mxGetM, mxGetN
+    ! Local variables
+    mwPointer mrows, ncols, field, mxGetPr
+    mwSize N, M, numel
+    real(kind = 8) :: numBiases_real
+    real(kind = 8), allocatable :: coeffInd_real(:), aeInt_temp(:)
+    character(len = 80) tempChar
+    integer(kind = 4) :: mexPrintf, k
+
+    ! Find out size
+    mrows = mxGetM(mxGetField(matlabStruct, 1, 'data'))
+    N = mrows
+
+    ! Allocate
+    allocate(D%P10(N), D%P11(N), D%mP10(N), D%mP11(N))
+    allocate(D%P20(N), D%P21(N), D%P22(N), D%mP20(N), D%mP21(N))
+    allocate(D%P30(N), D%P31(N), D%P32(N), D%P33(N), D%mP30(N), D%mP31(N), D%mP32(N))
+    allocate(D%P40(N), D%P41(N), D%P42(N), D%P43(N), D%P44(N), D%mP40(N), D%mP41(N))
+    allocate(D%P50(N), D%P51(N), D%P52(N), D%P53(N), D%P54(N),D%mP50(N),D%mP51(N),D%mP52(N))
+    allocate(D%P60(N), D%P61(N), D%P62(N), D%P63(N), D%P64(N), D%mP60(N))
+    allocate(D%P70(N), D%P71(N), D%P74(N), D%mP70(N))
+    allocate(D%yv(N), D%dv(N), D%lv(N), D%dv_mag(N), D%latitudeTerm(N), D%solarTerm(N))
+    allocate(D%annual(N), D%diurnal(N), D%semidiurnal(N), D%terdiurnal(N))
+    allocate(D%quaterdiurnal(N), D%geomagnetic(N), D%data(N), D%Z(N), D%F(N), D%FA(N))
+
+    !write(tempChar,*) size(D%data)
+    !k = mexPrintf('size(data): '//tempChar//achar(13))
+    
+    
+    ! Copy information
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P10')), D%P10, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P11')), D%P11, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP10')), D%mP10, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP11')), D%mP11, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P20')), D%P20, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP20')), D%mP20, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP21')), D%mP21, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P21')), D%P21, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P22')), D%P22, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P30')), D%P30, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P31')), D%P31, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP30')), D%mP30, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP31')), D%mP31, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP32')), D%mP32, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P32')), D%P32, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P33')), D%P33, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P40')), D%P40, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P41')), D%P41, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P42')), D%P42, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP40')), D%mP40, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP41')), D%mP41, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P43')), D%P43, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P44')), D%P44, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P50')), D%P50, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P51')), D%P51, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP50')), D%mP50, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP51')), D%mP51, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP52')), D%mP52, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P52')), D%P52, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P53')), D%P53, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P54')), D%P54, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P60')), D%P60, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P61')), D%P61, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP60')), D%mP60, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P62')), D%P62, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P63')), D%P63, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P64')), D%P64, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P70')), D%P70, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'mP70')), D%mP70, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P71')), D%P71, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'P74')), D%P74, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'yv')), D%yv, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'dv')), D%dv, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'dv_mag')), D%dv_mag, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'lv')), D%lv, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'latitudeTerm')), D%latitudeTerm, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'solarTerm')), D%solarTerm, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'annual')), D%annual, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'diurnal')), D%diurnal, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'semidiurnal')), D%semidiurnal, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'terdiurnal')), D%terdiurnal, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'quaterdiurnal')), D%quaterdiurnal, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'geomagnetic')), D%geomagnetic, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'data')), D%data, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'Z')), D%Z, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'F')), D%F, N)
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'FA')), D%FA, N)
+
+    ! AE Integral
+    mrows = mxGetM(mxGetField(matlabStruct, 1, 'aeInt'))
+    ncols = mxGetN(mxGetField(matlabStruct, 1, 'aeInt'))
+    M = mrows; N = ncols
+    numel = mrows * ncols
+    write(tempChar, *) numel
+    allocate(D%aeInt(M,N))
+    call mxCopyPtrToReal8(mxGetPr(mxGetField(matlabStruct, 1, 'aeInt')), D%aeInt, numel)
+
+    return
+end function
+
+subroutine deallocateStruct(D, typename)
+    implicit none
+    type(dataStruct), intent(inout) :: D
+    character(len = *), intent(in) :: typename
+
+    deallocate(D%P10, D%P11, D%mP10, D%mP11)
+    deallocate(D%P20, D%P21, D%P22, D%mP20, D%mP21)
+    deallocate(D%P30, D%P31, D%P32, D%P33, D%mP30, D%mP31, D%mP32)
+    deallocate(D%P40, D%P41, D%P42, D%P43, D%P44, D%mP40, D%mP41)
+    deallocate(D%P50, D%P51, D%P52, D%P53, D%P54, D%mP50, D%mP51, D%mP52)
+    deallocate(D%P60, D%P61, D%P62, D%P63, D%P64, D%mP60)
+    deallocate(D%P70, D%P71, D%P74, D%mP70)
+    deallocate(D%yv, D%dv, D%lv, D%dv_mag, D%latitudeTerm, D%solarTerm)
+    deallocate(D%annual, D%diurnal, D%semidiurnal, D%terdiurnal)
+    deallocate(D%quaterdiurnal, D%geomagnetic, D%data, D%Z, D%F, D%FA)
+    deallocate(D%aeInt)
+
+end subroutine
+
+function G_lbT0(a, S, numBiases)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: a(:)
+    integer, intent(in) :: numBiases
+    real(kind = 8), allocatable :: G_lbT0(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
+                                   terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
+                                   geom_lst(:), AE_base(:)
+    integer :: k, dPy, numInts
+    integer(kind = 4) :: mexPrintf, i
+    real(kind = 8) :: pi
+    pi = 4.0 * atan(1.0)
+    
+    k = numBiases + 1;
+
+    latitudeTerm = a(k+1)*S%P10 + a(k+2)*S%P20 + a(k+3)*S%P30 + a(k+4)*S%P40 + &
+                     a(k+5)*S%FA*S%P10 + a(k+6)*S%FA*S%P20 + a(k+7)*S%FA*S%P30 + &
+                     a(k+8)*S%F*S%P10 + a(k+9)*S%F*S%P20 + a(k+10)*S%F*S%P30;
+    k = k + 10;
+
+    solarTerm = a(k+1)*S%F + a(k+2)*S%F**2 + a(k+3)*S%FA + a(k+4)*S%FA**2 + a(k+5)*S%F*S%FA;
+    k = k + 5;
+
+    annual = (a(k+1) + a(k+2)*S%P10 + a(k+3)*S%P20 + a(k+4)*S%P30 + a(k+5)*S%P40 + a(k+6)*S%FA + a(k+7)*S%F) * &
+               (a(k+8)*sin(S%yv) + a(k+9)*cos(S%yv) + a(k+10)*sin(2*S%yv) + a(k+11)*cos(2*S%yv));
+    k = k + 11;
+
+    dPy = k + 7;
+    diurnal = ((a(k+1)*S%P11 + a(k+2)*S%P31 + a(k+3)*S%FA + a(k+4)*S%FA**2) + (a(k+5)*S%P11 + a(k+6)*S%P21)*&
+                (cos(S%yv-pi*a(dPy))))*cos(S%dv) + &
+                ((a(k+8)*S%P11 + a(k+9)*S%P31 + a(k+10)*S%FA + a(k+11)*S%FA**2) + (a(k+12)*S%P11 + a(k+13)*S%P21)*&
+                (cos(S%yv-pi*a(dPy))))*sin(S%dv);
+    k = k + 13;
+
+    semidiurnal = ((a(k+1)*S%P22 + a(k+2)*S%P32 + a(k+3)*S%FA + a(k+4)*S%FA**2) + &
+                    (a(k+5)*S%P32)*cos(S%yv-pi*a(dPy)))*cos(2*S%dv) + &
+                    ((a(k+6)*S%P22 + a(k+7)*S%P32 + a(k+8)*S%FA + a(k+9)*S%FA**2) &
+                    + (a(k+10)*S%P32)*cos(S%yv-pi*a(dPy)))*sin(2*S%dv);
+    k = k + 10;
+
+    !i = mexPrintf('G:sum'//achar(13))
+    G_lbT0 = latitudeTerm + solarTerm + annual + diurnal + semidiurnal;
+    !i = mexPrintf('G End'//achar(13))
+end function
+
+function G_quiet(a, S)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: a(:)
+    !integer, intent(in) :: numBiases
+    real(kind = 8), allocatable :: G_quiet(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
+                                   terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
+                                   geom_lst(:), AE_base(:), longitudinal(:)
+    integer :: k, dPh, numInts, dPy
+    integer(kind = 4) :: mexPrintf, i
+    real(kind = 8) :: pi
+    pi = 4.0 * atan(1.0)
+    
+    k = 0; ! Counter, which helps adding termS%
+    !i = mexPrintf('G Begin'//achar(13))
+    ! Latitude termS%
+    latitudeTerm = a(k+1)*S%P10 + a(k+2)*S%P20 + a(k+3)*S%P30 + a(k+4)*S%P40 + a(k+5)*S%P50 + a(k+6)*S%P60 + &
+                     a(k+7)*S%FA*S%P10 + a(k+8)*S%FA*S%P20 + a(k+9)*S%FA*S%P30 + a(k+10)*S%FA*S%P40 + &
+                     a(k+11)*S%F*S%P10 + a(k+12)*S%F*S%P20 + a(k+13)*S%F*S%P30 + a(k+14)*S%F*S%P40;
+    k = k + 14;
+
+    ! % Solar activity termS%
+    !i = mexPrintf('G:solar'//achar(13))
+    solarTerm = a(k+1)*S%F + a(k+2)*S%F**2 + a(k+3)*S%FA + a(k+4)*S%FA**2 + a(k+5)*S%F*S%FA;
+    k = k + 5;
+
+    ! Annual termS%
+    !i = mexPrintf('G:annual'//achar(13))
+    ! Annual symmetric termS%
+    annual = (a(k+1) + a(k+2)*S%P20 + a(k+3)*S%P40)*cos(S%yv-pi*a(k+4))*(1+a(k+5)*S%FA+a(k+6)*S%FA**2) + &
+           (a(k+7) + a(k+8)*S%P20)*cos(2*(S%yv-pi*a(k+9)))*(1+a(k+10)*S%FA+a(k+11)*S%FA**2) + &
+           (a(k+12) + a(k+13)*S%P20)*cos(3*(S%yv-pi*a(k+14)))*(1+a(k+15)*S%FA) + &
+           a(k+16)*cos(4*(S%yv-pi*a(k+17)))*(1+a(k+18)*S%FA);
+    k = k + 18;
+    ! Annual asymmetric
+    annual = annual + (a(k+1)*S%P10 + a(k+2)*S%P30 + a(k+3)*S%P50)*cos(S%yv-pi*a(k+4))*(1+a(k+5)*S%FA+a(k+6)*S%FA**2)+&
+           (a(k+7)*S%P10 + a(k+8)*S%P30)*cos(2*(S%yv-pi*a(k+9)))*(1+a(k+10)*S%FA+a(k+11)*S%FA**2) + &
+           a(k+12)*S%P10*cos(3*(S%yv-pi*a(k+13)))*(1+a(k+14)*S%FA);
+    k = k + 14;
+
+    dPh = k + 11;
+    !i = mexPrintf('G:diurnal'//achar(13))
+    diurnal = ((a(k+1)*S%P11 + a(k+2)*S%P31 + a(k+3)*S%P51 + a(k+4)*S%P71 + a(k+5)*S%FA + a(k+6)*S%FA**2 + &
+                 a(k+7)*(S%F - S%FA)) + (a(k+8)*S%P11 + a(k+9)*S%P21 + a(k+10)*S%P31)*(cos(S%yv-pi*a(dPh))))*cos(S%dv) + &
+                ((a(k+12)*S%P11 + a(k+13)*S%P31 + a(k+14)*S%P51 + a(k+15)*S%P71 + a(k+16)*S%FA + a(k+17)*S%FA**2 + &
+                a(k+18)*(S%F - S%FA)) + (a(k+19)*S%P11 + a(k+20)*S%P21 + a(k+21)*S%P31)*(cos(S%yv-pi*a(dPh))))*sin(S%dv);
+    k = k + 21;
+    
+    !i = mexPrintf('G:semidiurnal'//achar(13))
+    semidiurnal = (a(k+1)*S%P22 + a(k+2)*S%P32 + a(k+3)*S%P52 + a(k+4)*S%FA + a(k+5)*S%FA**2 + a(k+6)*(S%F-S%FA) + &
+                (a(k+7)*S%P32 + a(k+8)*S%P52)*cos(S%yv-pi*a(dPh)))*cos(2*S%dv) + &
+                (a(k+9)*S%P22 + a(k+10)*S%P32 + a(k+11)*S%P52 + a(k+12)*S%FA + a(k+13)*S%FA**2 + a(k+14)*(S%F-S%FA) + &
+                (a(k+15)*S%P32 + a(k+16)*S%P52)*cos(S%yv-pi*a(dPh)))*sin(2*S%dv);
+    k = k + 16;
+
+    !i = mexPrintf('G:terdiurnal'//achar(13))
+    terdiurnal = (a(k+1)*S%P33 + a(k+2)*S%P53 + (a(k+3)*S%P43 + a(k+4)*S%P63)*cos(S%yv-pi*a(dPh)))*cos(3*S%dv) + &
+                   (a(k+5)*S%P33 + a(k+6)*S%P53 + (a(k+7)*S%P43 + a(k+8)*S%P63)*cos(S%yv-pi*a(dPh)))*sin(3*S%dv);
+    k = k + 8;
+
+    !i = mexPrintf('G:quaterdiurnal'//achar(13))
+    quaterdiurnal = a(k+1)*S%P44*cos(4*S%dv) + a(k+2)*S%P44*sin(4*S%dv);
+    k = k + 2;
+
+    dPy = k+7;
+    longitudinal = (1.0 + a(k+1)*S%FA)*(a(k+2)*S%P21+a(k+3)*S%P41+a(k+4)*S%P61 + (a(k+5)*S%P11+a(k+6)*S%P31)*cos(S%yv-pi*a(dPy)))*&
+                    cos(S%lv)+&
+                     (1.0 + a(k+8)*S%FA)*(a(k+9)*S%P21+a(k+10)*S%P41+a(k+11)*S%P61 + (a(k+12)*S%P11+a(k+13)*S%P31)*&
+                    cos(S%yv-pi*a(dPy)))*sin(S%lv);
+    k = k + 13;
+
+    !i = mexPrintf('G:sum'//achar(13))
+    G_quiet = latitudeTerm + solarTerm + annual + diurnal + semidiurnal + terdiurnal + quaterdiurnal + longitudinal
+    !i = mexPrintf('G End'//achar(13))
+end function
+
+function G_storm(a, S)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: a(:)
+    real(kind = 8), allocatable :: G_storm(:)
+    integer :: k
+    k = 0
+
+    G_storm = geomParametrization(S, a(k+1:k+6), S%aeInt(:,1)) +&
+                geomParametrization(S, a(k+7:k+12), S%aeInt(:,2)) +&
+                geomParametrization(S, a(k+13:k+18), S%aeInt(:,3)) +&
+                geomParametrization(S, a(k+19:k+24), S%aeInt(:,5)) +&
+                geomParametrization(S, a(k+25:k+30), S%aeInt(:,6))
+
+end function
+
+function G_majorTex(a, S, numBiases)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: a(:)
+    integer, intent(in) :: numBiases
+    integer :: k
+    real(kind = 8), allocatable :: G_majorTex(:)
+    
+    k = numBiases + 1; ! Counter, which helps adding terms.
+    G_majorTex = G_quiet(a(k+1:k+111), S) + G_storm(a(k+112:size(a)), S);
+
+end function
+
+function geomParametrization(S, a, aeInt)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: a(:)
+    real(kind = 8), intent(in) :: aeInt(:)
+    real(kind = 8), allocatable :: geomParametrization(:)
+    geomParametrization = (a(1) + a(2)*cos(S%yv-a(3))*S%P10 + a(4)*S%P20 + a(5)*S%P40)*(1 + a(6)*S%FA)*aeInt;
+
+end function
+
+function fourier4(S, a)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: a(:)
+    real(kind = 8), allocatable :: fourier4(:)
+    
+    fourier4 = a(1) + a(2)*sin(S%yv) + a(3)*cos(S%yv) + a(4)*sin(2*S%yv) + a(5)*cos(2*S%yv)
+
+end function
+
+function evalT0(S, coeff)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: coeff(:)
+    real(kind = 8), allocatable :: evalT0(:)
+    integer(kind = 4) :: mexPrintf, k
+    
+    allocate(evalT0(size(S%data)))
+    !k = mexPrintf('Before G at evalT0'//achar(13))
+    evalT0 = clamp(dble(300.0), coeff(1) * (1 + clamp(dble(-0.5), G_quiet(coeff(2:size(coeff)), S), dble(2.0))), dble(1000.0))
+
+end function
+
+function evalDT(S, coeff)
+    implicit none
+    type(dataStruct), intent(in) :: S
+    real(kind = 8), intent(in) :: coeff(:)
+    real(kind = 8), allocatable :: evalDT(:)
+    integer(kind = 4) :: mexPrintf, k
+    
+    allocate(evalDT(size(S%data)))
+    !k = mexPrintf('Before G at evalDT'//achar(13))
+    evalDT = coeff(1) * (1 + clamp(dble(-0.9), G_quiet(coeff(2:size(coeff)), S), dble(9.0))); 
+
+end function
+
+function temperatureGradientMinimization(coeff)
+    implicit none
+    real(kind = 8), intent(in) :: coeff(:)
+    real(kind = 8), allocatable :: modelDT(:), temperatureGradientMinimization(:)
+
+    modelDT = evalDT(lbStruct, coeff);
+    temperatureGradientMinimization = lbStruct%data / modelDT - 1;
+
+end
+
+function lbTemperatureMinimization(coeff)
+    implicit none
+    real(kind = 8), intent(in) :: coeff(:)
+    real(kind = 8), allocatable :: modelT0(:), lbTemperatureMinimization(:)
+
+    modelT0 = evalT0(lbStruct, coeff);
+    lbTemperatureMinimization = lbStruct%data / modelT0 - 1;
+
+end
+
+function sumRowWise(vec, arr)
+    implicit none
+    real(kind = 8), intent(in) :: vec(:), arr(:,:)
+    real(kind = 8), allocatable :: sumRowWise(:)
+    integer :: i, numRows
+    
+    numRows = size(arr,1)
+    allocate(sumRowWise(numRows))
+    do i = 1, numRows
+        sumRowWise(i) = dot_product(vec, arr(i,:))
+    end do
+
+end function
+
+function clamp_scalar(minVal, vec, maxVal)
+    real(kind = 8), intent(in) :: vec(:), minVal, maxVal
+    real(kind = 8) :: clamp_scalar(size(vec))
+    clamp_scalar = min(maxVal, max(minVal, vec))
+end function
+
+function clamp_vector(minVal, vec, maxVal)
+    real(kind = 8), intent(in) :: vec(:), minVal(:), maxVal
+    real(kind = 8) :: clamp_vector(size(vec))
+    clamp_vector = min(maxVal, max(minVal, vec))
+end function
+
+end module fitModule
+
+subroutine mexFunction(nlhs, plhs, nrhs, prhs)
+    use fitModule
+    use lmSolverModule
+    use omp_lib
+    implicit none
+
+    !     mexFunction arguments:
+    mwPointer plhs(*), prhs(*)
+    integer nlhs, nrhs
+
+    !     Function declarations:
+    mwPointer mxGetPr
+    mwPointer mxCreateDoubleScalar
+    mwPointer mxGetField
+    mwPointer mxCreateDoubleMatrix
+    mwPointer mxCreateString
+    integer mxIsNumeric, mxIsStruct, mxIsDouble
+    mwPointer mxGetM, mxGetN
+
+    !     Pointers to input/output mxArrays:
+    mwPointer x_ptr, y_ptr, field, rawArray,JTJ_ptr
+
+    !     Array information:
+    mwPointer mrows, ncols
+    mwSize N, M
+
+    real(kind = 8) :: tolX, tolFun, tolOpt, lambda0, firstOrderOpt, isGradientReal
+    integer :: maxFuncEvals, maxIter, exitFlag
+
+    character(len = 200) :: tempChar
+
+    integer(kind = 4) :: mexPrintf, k, mexEvalString, mexCallMATLAB, i,j, isGradient
+    integer(kind = 4), allocatable :: paramsToFit(:)
+
+    real(kind = 8), allocatable :: y_output(:), solution(:), funVec(:), Jacobian(:,:), JTJ(:,:),JTWJ(:,:),paramReal(:)
+    !real(kind = 8) :: tolX, tolFun, tolOpt, lambda0
+
+    !-----------------------------------------------------------------------
+    !     Check for proper number of argumentS% 
+    if(nrhs /= 9) then
+        call mexErrMsgTxt ('LB minimization: 9 inputs required!')
+    elseif(nlhs .gt. 2) then
+        call mexErrMsgTxt ('LB minimization: At most two outputs allowed!')
+    endif
+
+    !     Validate inputs
+    !     Check that the input is a struct.
+    if(mxIsStruct(prhs(1)) .eq. 0) then
+        call mexErrMsgTxt ('LB minimization: first input must be a struct!')
+    endif
+    if (mxIsDouble(prhs(2)) .eq. 0 .or. mxIsDouble(prhs(2)) .eq. 0) then
+        call mexErrMsgTxt ('LB minimization: inputs 2 and 3 must be real arrays!')
+    end if
+
+    ! Read struct
+    !k = mexPrintf('Before Tex'//achar(13))
+    lbStruct = structToDerived_lb(prhs(1), 'lb')
+    
+    ! Read weights
+    !k = mexPrintf('Before Weights'//achar(13))
+    N = mxGetM(prhs(2))
+    allocate(weights(N))
+    call mxCopyPtrToReal8(mxGetPr(prhs(2)), weights, N)
+    
+    ! Read initGuess
+    !k = mexPrintf('Before InitGuess'//achar(13))
+    N = max(mxGetM(prhs(3)), mxGetN(prhs(3)))
+    allocate(initGuess(N))
+    call mxCopyPtrToReal8(mxGetPr(prhs(3)), initGuess, N)
+    
+    ! Read paramsToFit
+    !k = mexPrintf('Before paramsToFit'//achar(13))
+    N = max(mxGetM(prhs(4)), mxGetN(prhs(4)))
+    allocate(paramReal(N))
+    call mxCopyPtrToReal8(mxGetPr(prhs(4)), paramReal, N)
+    allocate(paramsToFit(N))
+    paramsToFit = nint(paramReal, 4)
+
+    call mxCopyPtrToReal8(mxGetPr(prhs(5)), tolX, 1)
+    call mxCopyPtrToReal8(mxGetPr(prhs(6)), tolFun, 1)
+    call mxCopyPtrToReal8(mxGetPr(prhs(7)), tolOpt, 1)
+    call mxCopyPtrToReal8(mxGetPr(prhs(8)), lambda0, 1)
+    call mxCopyPtrToReal8(mxGetPr(prhs(9)), isGradientReal, 1)
+    isGradient = nint(isGradientReal)
+
+    allocate(JTWJ(N,N))
+    
+    !$omp parallel
+    if(omp_get_thread_num() == 0) write(tempChar,*) omp_get_num_threads()
+    !$omp end parallel
+    k = mexPrintf('OpenMP threads: '//tempChar//achar(13))
+    
+    
+    ! ----- CALL Levenberg-Marquardt solver ------------
+    !tolX = 1E-8
+    !tolFun = 1E-5
+    !tolOpt = 1E3
+    !lambda0 = 1E-2
+    maxFuncEvals = 5000 * size(initGuess)
+    maxIter = 1000000 !!!!!!!!!!!!!!!!!!!!!!
+    
+    if (isGradient) then
+        call lmSolve(temperatureGradientMinimization, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
+                 JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
+                 firstOrderOptAtSolution = firstOrderOpt, JTWJ = JTWJ)
+    else
+        call lmSolve(lbTemperatureMinimization, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncEvals, maxIter, &
+                 JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
+                 firstOrderOptAtSolution = firstOrderOpt, JTWJ = JTWJ)
+    end
+
+
+
+
+    
+
+    !k = mexPrintf('Before output'//achar(13))
+    y_output = solution ! !!!!!!!!   
+    !y_output = funVec
+    !     Create matrix for the return argument.
+    plhs(1) = mxCreateDoubleMatrix(size(y_output),1,0)
+    plhs(2) = mxCreateDoubleMatrix(size(JTWJ,1),size(JTWJ,2),0)
+    !k = mexPrintf('Before mxGetPr'//achar(13)) 
+    y_ptr = mxGetPr(plhs(1))
+    JTJ_ptr = mxGetPr(plhs(2))
+
+    !     Load the data into y_ptr, which is the output to MATLAB.
+    !k = mexPrintf('Before copy'//achar(13))
+    !write(tempChar,*) size(y_output), mxGetM(plhs(1))
+    !k = mexPrintf('Output size: '//tempChar//achar(13)) 
+    
+    call mxCopyReal8ToPtr(y_output,y_ptr,size(y_output))
+    call mxCopyReal8ToPtr(JTWJ,JTJ_ptr,size(JTWJ))
+    
+    !k = mexPrintf('Begin deallocation'//achar(13))
+    deallocate(weights, initGuess, paramReal, paramsToFit)
+    call deallocateStruct(lbStruct, 'lb')
+
+    k = mexPrintf('Deallocation performed'//achar(13))
+    return
+end
+
