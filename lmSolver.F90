@@ -37,7 +37,7 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncE
     real(kind = 8), allocatable :: X(:), Jacobian(:,:), JTJ_diag(:)
     integer, allocatable :: AdiagElem(:)
     real(kind = 8) :: lambda, firstOrderOpt
-    integer :: k, iter, numFuncEvals, flag
+    integer :: k, iter, numFuncEvals, flag, nnzX, nnzStep
     integer(kind = 8) :: ierr, one = 1, numVars, numResid
     integer(kind = 4) :: mexPrintf, mexStat, mexEvalString, mexCallMATLAB, fitInd
     character(len = 400) :: line, numChar
@@ -46,7 +46,7 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncE
 
     lower = 'L'
 
-    write(line, '(a)') 'iter  Fcount    sumSq     firstOrdOpt     lambda     norm(step)'
+    write(line, '(a)') 'iter  Fcount    sumSq     firstOrdOpt     lambda     norm(step)  nnz(X) nnz(step) max(abs(X))'
     mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
 
     ! Set default arguments.
@@ -109,8 +109,8 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncE
         ! Main solver loop.
     do
         ! Print progress.
-        write (line, '(I3,3x,I5,2x,ES11.5,2x,ES11.5,2x,ES11.5,2x,ES11.5)') iter, numFuncEvals, sqrt(sum(costFuncVec**2)/numResid), &
-                             firstOrderOpt, lambda, norm2(step)
+        write (line, '(I3,3x,I5,2x,ES11.5,2x,ES11.5,2x,ES11.5,2x,ES11.5,I5,I5,ES15.5)') iter, numFuncEvals, &
+                 sqrt(sum(costFuncVec**2)/numResid), firstOrderOpt, lambda, norm2(step), nnz(X), nnz(step),maxval(abs(X))
         mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
 
         iter = iter + 1
@@ -149,13 +149,13 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncE
         !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
 
         ! Possible next point.
-	mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('Before trialX'), 'disp')
+	!mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('Before trialX'), 'disp')
         do k = 1, numVars
             fitInd = paramsToFit(k)
             trialX(fitInd) = X(fitInd) - step(k)
 	    !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('After trialX(fitInd)'), 'disp')
         end do
-	mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('After trialX'), 'disp')
+	!mexStat = mexCallMATLAB(0, 0, 1, mxCreateString('After trialX'), 'disp')
         !where (abs(trialX) < 1E-9)
         !    trialX = sign(dble(1E-9), trialX)
         !end where
@@ -202,8 +202,9 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncE
     end do ! Main loop.
 
     ! Print progress.
-    write (line, '(I3,3x,I5,2x,ES11.5,2x,ES11.5,2x,ES11.5,2x,ES11.5,a)') iter, numFuncEvals, sqrt(sum(costFuncVec**2)/numResid), &
-                   firstOrderOpt, lambda, norm2(step), new_line('a')
+    write(line,'(I3,3x,I5,2x,ES11.5,2x,ES11.5,2x,ES11.5,2x,ES11.5,I5,I5,ES15.5,a)')iter,numFuncEvals,&
+                   sqrt(sum(costFuncVec**2)/numResid),&
+                   firstOrderOpt, lambda, norm2(step), nnz(X), nnz(step),maxval(abs(X)), new_line('a')
     mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
 
     if (all(x == X0)) then
@@ -362,6 +363,18 @@ function find(logicVec) result(trueIndices)
             k = k + 1
         end if
     end do
+end function
+
+function nnz(X)
+    implicit none
+    real(kind = 8), intent(in) :: X(:)
+    integer(kind = 8) :: nnz, i
+    
+    nnz = 0
+    do i = 1, size(X)
+        if (abs(X(i)) > 1E-14) nnz = nnz + 1
+    end do
+
 end function
 
 function computeCovarianceInverse(costFuncVec, JTJ, numParams) result(JTWJ)
