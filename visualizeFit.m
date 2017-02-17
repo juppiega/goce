@@ -42,13 +42,13 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 400;
+z = 450;
 lat = -90:5:90;
 lst = 0:0.5:24;
 lon = 0;
-doy = 180;
-F = 150;
-FA = 150;
+doy = 1;
+F = 70;
+FA = 70;
 aeInt = 20*ones(1,7);
 Ap = 3;
 lstMean = false;
@@ -58,30 +58,30 @@ devFromXmean = false;
 sameColorBars = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
     sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
-% 
-% if exist('msisDtmComparison.mat', 'file')
-%     load msisDtmComparison.mat
-% else
-%     [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
-% 
-%     save('msisDtmComparison.mat', 'msisRho')
-%     save('msisDtmComparison.mat', 'dtmRho', '-append')
-% end
-% 
-% if exist('ilComparison.mat', 'file')
-%     load ilComparison.mat
-% else
-%     [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
-% 
-%     save('ilComparison.mat', 'ilRho')
-% end
-% 
-% if ~isfield(originalRhoStruct, 'dst')
-%     originalRhoStruct = computeDst(originalRhoStruct);
-%     save('ilData.mat', 'originalRhoStruct', '-append');
-% end
-% 
-% modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
+
+if exist('msisDtmComparison.mat', 'file')
+    load msisDtmComparison.mat
+else
+    [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
+
+    save('msisDtmComparison.mat', 'msisRho')
+    save('msisDtmComparison.mat', 'dtmRho', '-append')
+end
+
+if exist('ilComparison.mat', 'file')
+    load ilComparison.mat
+else
+    [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
+
+    save('ilComparison.mat', 'ilRho')
+end
+
+if ~isfield(originalRhoStruct, 'dst')
+    originalRhoStruct = computeDst(originalRhoStruct);
+    save('ilData.mat', 'originalRhoStruct', '-append');
+end
+
+modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 
 %   plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
 %    modelStruct, 'O/M', 'Kp3h', 'lat', saveFolder,fullscreenFigs);
@@ -99,7 +99,7 @@ plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMea
 % % % % 
 % % % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 % % % 
-% % %  %computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
+computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
 % % % % 
 %     plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %     plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
@@ -553,7 +553,7 @@ if (nargin == 9)
 end
 clims = caxis;
 title([paramName, ' ', titleAddition], 'fontsize', fs)
-
+shading interp;
 set(gca, 'fontsize', fs);
 
 end

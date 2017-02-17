@@ -4,7 +4,7 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 %     assimilationWindowLength: in hours.
 
 
-loopModelAssimilation('2008-03-03', '2008-03-13', 'CHAMP', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, TexStd);
+loopModelAssimilation('2002-08-10', '2002-08-24', 'CHAMP', 'GRACE', modelString, assimilationWindowLength, ensembleSize, TexStd);
 
 
 end
@@ -22,10 +22,23 @@ if strcmpi(assSatellite, 'CHAMP')
                     rhoStruct.timestamps > t1;
     removeInd(removeTimes) = true;
     assimiStruct = removeDataPoints(rhoStruct, removeInd, false,true,true,true);
+elseif strcmpi(assSatellite, 'GRACE')
+    removeInd = ~ismember(1:length(rhoStruct.data), rhoStruct.grace);
+    removeTimes = rhoStruct.timestamps < t0 - windowLen/24/2 | ...
+                    rhoStruct.timestamps > t1;
+    removeInd(removeTimes) = true;
+    assimiStruct = removeDataPoints(rhoStruct, removeInd, false,true,true,true);
 end
 
 if strcmpi(plotSatellite, 'CHAMP')
     removeInd = ~ismember(1:length(rhoStruct.data), rhoStruct.champ);
+    removeTimes = rhoStruct.timestamps < t0 | ...
+                    rhoStruct.timestamps > t1;
+    removeInd(removeTimes) = true;
+    plotStruct = removeDataPoints(rhoStruct, removeInd, false,true,true,true);
+    plotStruct = computeVariablesForFit(plotStruct);
+elseif strcmpi(plotSatellite, 'GRACE')
+    removeInd = ~ismember(1:length(rhoStruct.data), rhoStruct.grace);
     removeTimes = rhoStruct.timestamps < t0 | ...
                     rhoStruct.timestamps > t1;
     removeInd(removeTimes) = true;
@@ -58,6 +71,7 @@ else
     assimiStruct = addCoeffsToStruct(assimiStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
     plotStruct = addCoeffsToStruct(plotStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
     refModel = il_model_operator(zeros(size(ensemble,1),1), plotStruct, 1);
+    refModel = 1.05*mean(plotStruct.data./refModel) * refModel; % TESTAUS
     modelOperator = @il_model_operator;
 end
 
@@ -113,17 +127,25 @@ end
 
 [dataRho, plotTime] = computeOrbitAverage(plotStruct.data, plotStruct.latitude, plotStruct.timestamps);
 [refOrbAver, plotTime] = computeOrbitAverage(refModel, plotStruct.latitude, plotStruct.timestamps);
+t = plotTime;
+i = t(end)-10 <= t & t <= t(end); % Last 10 days
+ensRho(:,1) = 1.05*mean(dataRho(i)./ensRho(i,1)) * ensRho(:,1); % TESTAUS
 
 figure;
 % subplot(2,1,1)
-plot(repmat(plotTime,1,numFields+2), [dataRho, refOrbAver, ensRho], 'linewidth', 2.0);
+% if strcmpi(modelString,'dummy')
+    plot(repmat(plotTime,1,numFields+1), [dataRho, ensRho], 'linewidth', 2.0);
+    legend(plotSatellite,'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
+% else
+%     plot(repmat(plotTime,1,numFields+2), [dataRho, refOrbAver, ensRho], 'linewidth', 2.0);
+%     legend(plotSatellite, 'IL', 'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
+% end
 datetick('x')
 title('Rho','fontsize',15)
 set(gca,'fontsize', 15)
 ylabel('rho', 'fontsize',15)
-ylim([0.8*min(plotStruct.data), 1.25*max(plotStruct.data)])
-legend(plotSatellite,'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
 axis tight
+ylim([0.8*min(plotStruct.data), 1.25*max(plotStruct.data)])
 
 % subplot(2,1,2)
 % plot(repmat(plotStruct.timestamps,1,numFields), plotStruct.T, 'linewidth', 2.0);
@@ -136,11 +158,13 @@ axis tight
 % axis tight
 
 [refOrbAver] = computeOrbitAverage(refModel, plotStruct.latitude, plotStruct.timestamps);
-refRMS = rms(dataRho./refOrbAver-1);
-ensMeanRMS = rms(ensRho(:,1)./refOrbAver-1);
+
+refRMS = rms(dataRho(i)./refOrbAver(i)-1);
+ensMeanRMS = rms(dataRho(i)./ensRho(i,1)-1);
 
 fprintf('Unadjusted RMS: %f\n', refRMS);
 fprintf('EnKF FGAT RMS: %f\n', ensMeanRMS);
+fprintf('Improvement: %f\n', (1 - (ensMeanRMS./refRMS))*100);
 
 figure;
 subplot(3,1,1)
