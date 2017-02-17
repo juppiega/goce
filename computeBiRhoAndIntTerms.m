@@ -4,7 +4,7 @@ function [ballisticOutput] = computeBiRhoAndIntTerms(ensemble, modelFunction, pr
 mu = 3.986004418E14;
 omega_E = 7.2921159E-5;
 
-ballisticOutput = struct('Bi', [], 'Bratio', [], 'objectIDs',[],'rhoObs',[],'rhoModel',[],...
+ballisticOutput = struct('Bi', [], 'Bratio', [], 'objectIDs',[],'rhoObs',[],'rhoModel_DA',[],'rhoModel_IL',[],...
     'sig_rho', [],'intProperties',containers.Map('KeyType', 'double', 'ValueType', 'any'));
 
 recentObjects = keys(recentTLEs);
@@ -13,7 +13,8 @@ Bratio = zeros(length(recentObjects), size(ensemble,2));
 objectIDs = zeros(length(recentObjects));
 rhoObs = zeros(length(recentObjects));
 sig_rho = zeros(length(recentObjects));
-rhoModel = zeros(length(recentObjects), size(ensemble,2));
+rhoModel_DA = zeros(length(recentObjects), size(ensemble,2));
+rhoModel_IL = zeros(length(recentObjects), 1);
 
 for i = 1:length(recentObjects)
     
@@ -94,14 +95,16 @@ for i = 1:length(recentObjects)
     for j = 1:size(ensemble,2)
         densityMatrix(:,j) = modelFunction(ensemble(:,j), observationStruct);
     end
+    nonDA = modelFunction(zeros(size(ensemble,1),1), observationStruct);
     
     observationStruct = struct('latitude', lat, 'longitude', lon, 'solarTime', lst,...
                                'altitude', alt, 'timestamps', tDatenum);
     
-    integralMatrix = bsxfun(@times, ((1E3*vMag).^3).*windFac, densityMatrix);
+    integralMatrix_DA = bsxfun(@times, ((1E3*vMag).^3).*windFac, densityMatrix);
     
     integrationTimes = (tJulDay - tJulDay(1))*86400;
-    integrals = trapz(integrationTimes, integralMatrix);
+    integral_IL = trapz(integrationTimes, ((1E3*vMag).^3).*windFac.*nonDA);
+    integrals = trapz(integrationTimes, integralMatrix_DA);
     
     BiThis = d./integrals;
     BtrueThis = recentTLEs(object).Btrue;
@@ -113,7 +116,8 @@ for i = 1:length(recentObjects)
     Bratio(i,:) = BratioThis;
     objectIDs(i) = object;
     intV3Fdt = trapz(integrationTimes, ((1E3*vMag).^3).*windFac);
-    rhoModel(i,:) = integrals / intV3Fdt;
+    rhoModel_DA(i,:) = integrals / intV3Fdt;
+    rhoModel_IL(i) = integral_IL / intV3Fdt;
     rhoObs(i) = d / (recentTLEs(object).Btrue * intV3Fdt);
     sig_rho(i) = (recentTLEs(object).sig_Btrue * d/intV3Fdt) / BtrueThis.^2;
     ballisticOutput.intProperties(object) = struct('V3F',((1E3*vMag).^3).*windFac, 'intTimes',integrationTimes,...
@@ -125,14 +129,16 @@ ind = objectIDs > 0;
 Bi = Bi(ind,:);
 Bratio = Bratio(ind,:);
 objectIDs = objectIDs(ind);
-rhoModel = rhoModel(ind,:);
+rhoModel_DA = rhoModel_DA(ind,:);
+rhoModel_IL = rhoModel_IL(ind);
 rhoObs = rhoObs(ind);
 sig_rho = sig_rho(ind);
 
 ballisticOutput.Bi = Bi;
 ballisticOutput.Bratio = Bratio;
 ballisticOutput.objectIDs = objectIDs;
-ballisticOutput.rhoModel = rhoModel;
+ballisticOutput.rhoModel_DA = rhoModel_DA;
+ballisticOutput.rhoModel_IL = rhoModel_IL;
 ballisticOutput.rhoObs = rhoObs;
 ballisticOutput.sig_rho = sig_rho;
 

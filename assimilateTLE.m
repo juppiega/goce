@@ -22,7 +22,7 @@ tleMap = downloadTLEs(objectIDs, beginDate, endDate);
 
 M = floor((endDate-beginDate)/assimilationWindow) + 3;
 plotTimes = zeros(M,1);
-plotOM = zeros(M,length(plotID));
+plotOM = zeros(M,length(plotID),2);
 plotMap = containers.Map('keytype','double','valuetype','double');
 for i = 1:length(plotID);
     plotMap(plotID(i)) = i;
@@ -61,12 +61,14 @@ while date <= endDate
         [ensemble] = assimilateDataAndUpdateEnsemble(ensemble, obsOperator, S, false);
         
         ind = ismember(S.objectIDs,plotID);
-        OM = S.rhoObs(ind)./mean(S.rhoModel(ind,:),2);
+        OM_DA = S.rhoObs(ind)./mean(S.rhoModel_DA(ind,:),2);
+        OM_IL = S.rhoObs(ind)./S.rhoModel_IL(ind);
         plotTimes(k) = date + assimilationWindow/2;
         for j = 1:length(plotID)
             objInd = find(S.objectIDs == plotID(j));
             if ~isempty(objInd)
-                plotOM(k,j) = OM(objInd);
+                plotOM(k,j,1) = OM_DA(objInd);
+                plotOM(k,j,2) = OM_IL(objInd);
             end
         end
     end
@@ -77,21 +79,26 @@ end
 p.stop;
 ind = plotTimes > 0;
 plotTimes = plotTimes(ind);
-plotOM = plotOM(ind,:);
+plotOM = plotOM(ind,:,:);
 
 figure;
 hold all;
 ylim([min(plotOM(:)), max(plotOM(:))])
+hAx = zeros(size(plotID));
 for i = 1:length(plotID)
-    ind = plotOM(:,i) > 0;
+    ind = plotOM(:,i,1) > 0;
     pt = plotTimes(ind);
-    pOM = plotOM(ind,i);
-    plot(pt, pOM,'linewidth', 2.0)
+    pOM_DA = plotOM(ind,i,1);
+    pOM_IL = plotOM(ind,i,2);
+    [hAx(i)] = plot(pt, pOM_DA,'linewidth', 2.0);
+    h_IL = plot(pt, pOM_IL,'--','linewidth', 2.0);
+    set(h_IL,'color',get(hAx(i),'color'));
 end
 title('\rho_{obs} / \rho_{model}','fontsize',15)
-legend(strsplit(num2str(plotID)));
+legend(hAx(hAx~=0),strsplit(num2str(plotID)));
 datetick('x')
 set(gca,'fontsize',15)
+grid on
 
 end
 
