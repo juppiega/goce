@@ -112,6 +112,15 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, maxFuncE
         write (line, '(I3,3x,I5,2x,ES11.5,2x,ES11.5,2x,ES11.5,2x,ES11.5,I5,I5,ES15.5)') iter, numFuncEvals, &
                  sqrt(sum(costFuncVec**2)/numResid), firstOrderOpt, lambda, norm2(step), nnz(X), nnz(step),maxval(abs(X))
         mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
+        if (nnz(step) /= 0 .and. nnz(step) /= nnz(X)) then
+            do k = 1, numVars
+                if (abs(step(k)) < 1E-14) then
+                    write(numChar,*) k
+                    line = trim(adjustl(trim(line))//adjustl(trim(numChar)))//','
+                end if
+            end do
+            mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
+        end if
 
         iter = iter + 1
 
