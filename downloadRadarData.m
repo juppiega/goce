@@ -5,8 +5,8 @@ MILLSTONE_HILL = 30;
 ARECIBO = 20;
 inst = [EISCAT, MILLSTONE_HILL, ARECIBO];
 instStr = {'EISCAT', 'MILLSTONE_HILL', 'ARECIBO'};
-beginDatenum = datenum('2001-01-01');
-endDatenum = datenum('2001-01-31');
+beginDatenum = datenum('1996-01-01');
+endDatenum = datenum('2008-12-31');
 
 tic;
 for i = 1:length(inst)
