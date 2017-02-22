@@ -30,6 +30,10 @@ for i = 1:length(files)
     
     justBelowZ0 = find((diff(double(altitude > z0)) ~= 0));
     justAboveZ0 = justBelowZ0 + 1;
+    if isempty(justBelowZ0)
+        warning(['File: ', files(i).name,' did not contain any data below z0!'])
+        continue;
+    end
     if justAboveZ0(end) > length(altitude)
         justAboveZ0(end) = [];
         justBelowZ0(end) = [];
