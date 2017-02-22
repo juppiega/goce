@@ -3,8 +3,10 @@ function downloadRadarData()
 EISCAT = 72;
 MILLSTONE_HILL = 30;
 ARECIBO = 20;
-inst = [EISCAT, MILLSTONE_HILL, ARECIBO];
-instStr = {'EISCAT', 'MILLSTONE_HILL', 'ARECIBO'};
+%inst = [EISCAT, MILLSTONE_HILL, ARECIBO];
+%instStr = {'EISCAT', 'MILLSTONE_HILL', 'ARECIBO'};
+inst = ARECIBO;
+instStr = {'ARECIBO'};
 beginDatenum = datenum('2009-01-01');
 endDatenum = datenum('2016-12-31');
 
