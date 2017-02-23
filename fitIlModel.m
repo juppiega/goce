@@ -315,7 +315,28 @@ opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-ref
                  'TolX', 1E-7, 'Display', 'iter', 'MaxIter', 10000);
 
 fun = @(X) lbTemperatureMinimization(lbT0Struct, X);
-lbT0Coeffs = lsqnonlin(fun, lbT0Coeffs, lb, ub, opt);
+
+tolX = 1E-8;
+tolFun = 1E-5;
+tolOpt = 1E-4;
+lambda0 = 1E-2;
+weights = ones(size(lbT0Struct.data)); % TODO: miten painotat?
+paramsToFit = 1:length(lbT0Coeffs);
+quietInd = paramsToFit;
+isGradient = 0;
+significance = 0.9;
+
+[lbT0Coeffs, JTWJ] = lbFit_mex(lbT0Struct, weights, lbT0Coeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
+paramErrors = sqrt(abs(diag(inv(JTWJ))));
+
+lbT0Struct.coeffInd = paramsToFit;
+lbT0Struct.numBiases = 0;
+paramsToFit = [];
+[lbT0Coeffs, paramsToFit] = zeroOutInsignificantQuiet(lbT0Coeffs, paramsToFit, quietInd, paramErrors, significance, lbT0Struct);
+
+tolFun = 1E-6;
+[lbT0Coeffs, JTWJ] = lbFit_mex(lbT0Struct, weights, lbT0Coeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
+
 
 end
 

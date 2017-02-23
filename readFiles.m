@@ -34,7 +34,7 @@ load temperatureGradient.mat
 load T0.mat
 load guviData.mat
 
-T0 = vertcatStructFields(T0);
+T0 = vertcatStructFields(T0');
 
 [tiegcmDensityVariableAlt, tiegcmDensity270km] = readTiegcmFile(timestampsDensityDatenum);
 

@@ -113,12 +113,9 @@ if nargin == 11
     end
 end
 lbT0Struct = removeDataPoints(lbT0Struct, removeInd);
-lbT0Struct.snr(removeInd) = [];
-lbT0Struct.chiSq(removeInd) = [];
 lbT0Struct.Ti(removeInd) = [];
 lbT0Struct.Ti_err(removeInd) = [];
 lbT0Struct.Tn_err(removeInd) = [];
-lbT0Struct.type(removeInd) = [];
 lbT0Struct.pulseLen(removeInd) = [];
 lbT0Struct.fundPulseLen(removeInd) = [];
 lbT0Struct.vertRes(removeInd) = [];
