@@ -270,9 +270,15 @@ tolFun = 1E-6;
 
 end
 
-function lbT0Coeffs = fitLbTemerature(lbT0Struct)
+function lbT0Coeffs = fitLbTemerature(lbT0Struct, subsampPercent)
 
 fprintf('%s\n', 'Fitting lower boundary temperature')
+
+subsamp = round(1 / (subsampPercent / 100));
+
+N = length(lbT0Struct.data);
+removeInd = ~ismember(1:N, 1:subsamp:N);
+lbT0Struct = removeDataPoints(lbT0Struct, removeInd);
 
 Nobs = length(lbT0Struct.data);
 
