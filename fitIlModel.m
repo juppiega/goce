@@ -298,7 +298,6 @@ lbT0Struct.ap9h = [lbT0Struct.ap9h; lbT0Struct.ap9h];
 lbT0Struct.ap12To33h = [lbT0Struct.ap12To33h; lbT0Struct.ap12To33h];
 lbT0Struct.ap36To57h = [lbT0Struct.ap36To57h; lbT0Struct.ap36To57h];
 lbT0Struct.Ap = [lbT0Struct.Ap; lbT0Struct.Ap];
-lbT0Struct.type = [lbT0Struct.type; lbT0Struct.type];
 
 lbT0Struct = computeVariablesForFit(lbT0Struct);
 
