@@ -243,7 +243,7 @@ opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'Levenberg-Marqua
                  'TolX', 1E-8, 'Display', 'iter', 'initDamping', 1E8, 'OutputFcn', @outfun);
 
 fun = @(X) temperatureGradientMinimization(lbDTStruct, X);
-%[fval, JAC] = fun(dTCoeffs);
+[fval, JAC] = fun(dTCoeffs);
 %JTJ_diag = diag(JAC'*JAC);
 %[dTCoeffs] = lsqnonlin(fun, dTCoeffs, [], [], opt);
 
