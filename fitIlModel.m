@@ -301,7 +301,6 @@ lbT0Struct.Ap = [lbT0Struct.Ap; lbT0Struct.Ap];
 
 lbT0Struct = computeVariablesForFit(lbT0Struct);
 
-numCoeffs = 112;
 latitude = zeros(1,14);
 solarActivity = zeros(1,5);
 annual = zeros(1,32); annual([1,7,12,16,19,25,30]) = 0.001;
@@ -313,8 +312,6 @@ longitudinal = zeros(1,13); longitudinal([2,5,9,12]) = 1E-4;
 lbT0Coeffs = [zeros(1,1), latitude, solarActivity, annual, diurnal, semidiurnal, ...
     terdiurnal, quaterdiurnal, longitudinal];
 lbT0Coeffs(1) = mean(lbT0Struct.data);
-ub = [650, 5.0*ones(1, numCoeffs-1)];
-lb = [400, -5.0*ones(1, numCoeffs-1)];
 
 opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-reflective', 'TolFun', 1E-8, ...
                  'TolX', 1E-7, 'Display', 'iter', 'MaxIter', 10000);
