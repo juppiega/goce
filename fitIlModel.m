@@ -318,6 +318,8 @@ opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-ref
 
 fun = @(X) lbTemperatureMinimization(lbT0Struct, X);
 
+[x,J] = fun(lbT0Coeffs);
+
 tolX = 1E-8;
 tolFun = 1E-5;
 tolOpt = 1E-4;
