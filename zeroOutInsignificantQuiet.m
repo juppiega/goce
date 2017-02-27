@@ -69,13 +69,13 @@ rmAnnual(25:26, 25:29);
 rmAnnual(30, 30:32);
 if nargin > 6 && includePhaseSignificantLat
     ptf = [ptf, signifInd(qind([4,9,14,17,22,27,31]))];
-    if ~isempty(find(ptf == qind(4))) ptf = [ptf, qind(1:3), signifInd(qind(5:6))]; end
-    if ~isempty(find(ptf == qind(9))) ptf = [ptf, qind(7:8), signifInd(qind(10:11))]; end
-    if ~isempty(find(ptf == qind(14))) ptf = [ptf, qind(12:13), signifInd(qind(15))]; end
-    if ~isempty(find(ptf == qind(17))) ptf = [ptf, qind(16), signifInd(qind(18))]; end
-    if ~isempty(find(ptf == qind(22))) ptf = [ptf, qind(19:21), signifInd(qind(23:24))]; end
-    if ~isempty(find(ptf == qind(27))) ptf = [ptf, qind(25:26), signifInd(qind(28:29))]; end
-    if ~isempty(find(ptf == qind(31))) ptf = [ptf, qind(30), signifInd(qind(32))]; end      
+    if ~isempty(find(ptf == qind(4))) ptf = [ptf, qind(1:3)]; end
+    if ~isempty(find(ptf == qind(9))) ptf = [ptf, qind(7:8)]; end
+    if ~isempty(find(ptf == qind(14))) ptf = [ptf, qind(12:13)]; end
+    if ~isempty(find(ptf == qind(17))) ptf = [ptf, qind(16)]; end
+    if ~isempty(find(ptf == qind(22))) ptf = [ptf, qind(19:21)]; end
+    if ~isempty(find(ptf == qind(27))) ptf = [ptf, qind(25:26)]; end
+    if ~isempty(find(ptf == qind(31))) ptf = [ptf, qind(30)]; end      
 end
 k = k + 32;
 
