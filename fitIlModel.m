@@ -689,10 +689,10 @@ end
 
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
 %[comp,JAC] = fun(initGuess);
-[derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
-[minDiff, indMin] = min(diff(derivNorms));
-fprintf('Min difference between param effects: %e for indices (%d, %d)\n', minDiff, indSort(indMin), indSort(indMin+1))
-fprintf('Median difference: %e\n', median(diff(derivNorms)));
+%[derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
+%[minDiff, indMin] = min(diff(derivNorms));
+%fprintf('Min difference between param effects: %e for indices (%d, %d)\n', minDiff, indSort(indMin), indSort(indMin+1))
+%fprintf('Median difference: %e\n', median(diff(derivNorms)));
 
 %JTJ_diag = diag(JAC'*JAC);
 
