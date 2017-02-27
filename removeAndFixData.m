@@ -101,8 +101,8 @@ lbT0Struct.Ap = lbT0Struct.ApDaily;
 lbT0Struct.fundPulseLen = lbT0Struct.fundPulsLen;
 
 removeInd = lbT0Struct.apNow > 15;
-removeInd(lbT0Struct.data <= 200) = true;
-%removeInd(lbT0Struct.Ti_err > 200 | lbT0Struct.Tn_err > 200) = true(1);
+removeInd(lbT0Struct.data <= 250 | lbT0Struct.data >= 800) = true;
+removeInd(lbT0Struct.Ti_err > 50) = true(1);
 removeInd(lbT0Struct.fundPulseLen > 100*1E-6) = true; % Remove > 100 us (>~15 km) pulses.
 if nargin == 11
     quietInd = all(lbT0Struct.aeInt < aeQuietLimit, 2);

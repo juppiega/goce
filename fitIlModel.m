@@ -39,13 +39,15 @@ end
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);
 
 if ~exist('dTCoeffs', 'var') || recomputeDT
-    dTCoeffs = fitTemeratureGradient(lbDTStruct, subsampPercent); 
+    [dTCoeffs, JTWJ_dT] = fitTemeratureGradient(lbDTStruct, subsampPercent); 
     save('ilData.mat', 'dTCoeffs', '-append')
+    save('ilData.mat', 'JTWJ_dT', '-append')
 end
 
 if ~exist('T0Coeffs', 'var') || recomputeLbTemp
-    T0Coeffs = fitLbTemerature(lbT0Struct, subsampPercent); 
+    [T0Coeffs, JTWJ_T0] = fitLbTemerature(lbT0Struct, subsampPercent); 
     save('ilData.mat', 'T0Coeffs', '-append')
+    save('ilData.mat', 'JTWJ_T0', '-append')
 end
 
 if ~exist('TexStruct', 'var') || recomputeTex
@@ -196,7 +198,7 @@ TexStruct.Z = TexStruct.Z(~removeInd);
 
 end
 
-function dTCoeffs = fitTemeratureGradient(lbDTStruct, subsampPercent)
+function [dTCoeffs, JTWJ] = fitTemeratureGradient(lbDTStruct, subsampPercent)
 
 fprintf('%s\n', 'Fitting Temperature gradient')
 
@@ -270,7 +272,7 @@ tolFun = 1E-6;
 
 end
 
-function lbT0Coeffs = fitLbTemerature(lbT0Struct, subsampPercent)
+function [lbT0Coeffs, JTWJ] = fitLbTemerature(lbT0Struct, subsampPercent)
 
 fprintf('%s\n', 'Fitting lower boundary temperature')
 
@@ -298,13 +300,14 @@ lbT0Struct.ap9h = [lbT0Struct.ap9h; lbT0Struct.ap9h];
 lbT0Struct.ap12To33h = [lbT0Struct.ap12To33h; lbT0Struct.ap12To33h];
 lbT0Struct.ap36To57h = [lbT0Struct.ap36To57h; lbT0Struct.ap36To57h];
 lbT0Struct.Ap = [lbT0Struct.Ap; lbT0Struct.Ap];
+lbT0Struct.index = [lbT0Struct.index; lbT0Struct.index];
 
 lbT0Struct = computeVariablesForFit(lbT0Struct);
 
 latitude = zeros(1,14);
 solarActivity = zeros(1,5);
 annual = zeros(1,32); annual([1,7,12,16,19,25,30]) = 0.001;
-diurnal = zeros(1, 21); diurnal([8, 19]) = 0.001;
+diurnal = zeros(1, 21); diurnal([8, 19]) = -0.001;
 semidiurnal = zeros(1,16);
 terdiurnal = zeros(1,8);
 quaterdiurnal = zeros(1,2);
@@ -318,17 +321,24 @@ opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-ref
 
 fun = @(X) lbTemperatureMinimization(lbT0Struct, X);
 
-[x,J] = fun(lbT0Coeffs);
+%[x,J] = fun(lbT0Coeffs);
+
+N_millstone = sum(lbT0Struct.index == 2);
+weights = ones(size(lbT0Struct.data));
+i = lbT0Struct.index == 1;
+weights(i) = N_millstone / sum(i);
+% i = lbT0Struct.index == 3;
+% weights(i) = N_millstone / sum(i);
+weights = sqrt(weights);
 
 tolX = 1E-8;
 tolFun = 1E-5;
 tolOpt = 1E-4;
 lambda0 = 1E-2;
-weights = ones(size(lbT0Struct.data)); % TODO: miten painotat?
 paramsToFit = 1:length(lbT0Coeffs);
 quietInd = paramsToFit;
 isGradient = 0;
-significance = 0.9;
+significance = 0.5;
 
 [lbT0Coeffs, JTWJ] = lbFit_mex(lbT0Struct, weights, lbT0Coeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 paramErrors = sqrt(abs(diag(inv(JTWJ))));
@@ -336,7 +346,7 @@ paramErrors = sqrt(abs(diag(inv(JTWJ))));
 lbT0Struct.coeffInd = paramsToFit;
 lbT0Struct.numBiases = 0;
 paramsToFit = [];
-[lbT0Coeffs, paramsToFit] = zeroOutInsignificantQuiet(lbT0Coeffs, paramsToFit, quietInd, paramErrors, significance, lbT0Struct);
+[lbT0Coeffs, paramsToFit] = zeroOutInsignificantQuiet(lbT0Coeffs, paramsToFit, quietInd, paramErrors, significance, lbT0Struct, true);
 
 tolFun = 1E-6;
 [lbT0Coeffs, JTWJ] = lbFit_mex(lbT0Struct, weights, lbT0Coeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);

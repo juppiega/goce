@@ -3,6 +3,7 @@ function computeT0()
 z0 = 130;
 
 files = [dir('EISCAT_*'),dir('MILLSTONE_HILL*'),dir('ARECIBO*')];
+%files = [dir('ARECIBO*')];
 for i = 1:length(files)
     data = load(files(i).name);
     if size(data,2) ~= 13
@@ -23,55 +24,71 @@ for i = 1:length(files)
     latitude = data(:,12);
     longitude = data(:,13);
     
-    timestamps = datevec([year, month, day, hour, minutes, seconds]);
+    timestamps = datenum([year, month, day, hour, minutes, seconds]);
     solarTime = hour + longitude/15 + minutes/60 + seconds/3600;
     solarTime(solarTime >= 24) = solarTime(solarTime >= 24) - 24;
     solarTime(solarTime < 0) = solarTime(solarTime < 0) + 24;
     
-    justBelowZ0 = find((diff(double(altitude > z0)) ~= 0));
-    justAboveZ0 = justBelowZ0 + 1;
-    if isempty(justBelowZ0)
-        warning(['File: ', files(i).name,' did not contain any data below z0!'])
-        continue;
+    
+    if ~isempty(strfind(files(i).name, 'EISCAT')) || ~isempty(strfind(files(i).name, 'MILLSTONE'))
+        justBelowZ0 = find((diff(double(altitude > z0)) ~= 0));
+        justAboveZ0 = justBelowZ0 + 1;
+        if isempty(justBelowZ0)
+            warning(['File: ', files(i).name,' did not contain any data below z0!'])
+            continue;
+        end
+        if justAboveZ0(end) > length(altitude)
+            justAboveZ0(end) = [];
+            justBelowZ0(end) = [];
+        end
+
+        TiJustBelow = Ti(justBelowZ0);
+        TiJustAbove = Ti(justAboveZ0);
+        TiErrJustBelow = Ti_err(justBelowZ0);
+        TiErrJustAbove = Ti_err(justAboveZ0);
+
+        rmFromInterp = (isnan(TiJustBelow) | isnan(TiJustAbove) | ...
+                        isnan(TiErrJustBelow) | isnan(TiErrJustAbove));
+        justBelowZ0(rmFromInterp) = [];
+        justAboveZ0(rmFromInterp) = [];
+
+        TiJustBelow = Ti(justBelowZ0);
+        TiJustAbove = Ti(justAboveZ0);
+        TiErrJustBelow = Ti_err(justBelowZ0);
+        TiErrJustAbove = Ti_err(justAboveZ0);
+        altJustBelow = altitude(justBelowZ0);
+        altJustAbove = altitude(justAboveZ0);
+
+        solarTime = solarTime(justBelowZ0);
+        timestamps = timestamps(justBelowZ0);
+        longitude = longitude(justBelowZ0);
+        latitude = latitude(justBelowZ0);
+
+
+        N = size(justBelowZ0);
+        Ti = zeros(N);
+        Ti_err = zeros(N);
+        altitude = zeros(N) + z0;
+
+        m = (TiJustAbove - TiJustBelow) ./ (altJustAbove - altJustBelow);
+        Ti = m.*(z0 - altJustBelow) + TiJustBelow;
+        Ti_err = sqrt(TiErrJustAbove.^2 + TiErrJustBelow.^2);
+        vertRes = max(vertRes(justBelowZ0), vertRes(justAboveZ0));
+        fundPulsLen = max(fundPulsLen(justBelowZ0), fundPulsLen(justAboveZ0));
+    else
+        ind = z0-4 <= altitude & altitude <= z0+4;
+        ind(~isfinite(Ti)) = false;
+        Ti = Ti(ind);
+        Ti_err = Ti_err(ind);
+        solarTime = solarTime(ind);
+        timestamps = timestamps(ind);
+        longitude = longitude(ind);
+        latitude = latitude(ind);
+        altitude = altitude(ind);
+        fundPulsLen = fundPulsLen(ind);
+        vertRes = vertRes(ind);
+        N = [sum(ind), 1];
     end
-    if justAboveZ0(end) > length(altitude)
-        justAboveZ0(end) = [];
-        justBelowZ0(end) = [];
-    end
-    
-    TiJustBelow = Ti(justBelowZ0);
-    TiJustAbove = Ti(justAboveZ0);
-    TiErrJustBelow = Ti_err(justBelowZ0);
-    TiErrJustAbove = Ti_err(justAboveZ0);
-    
-    rmFromInterp = (isnan(TiJustBelow) | isnan(TiJustAbove) | ...
-                    isnan(TiErrJustBelow) | isnan(TiErrJustAbove));
-    justBelowZ0(rmFromInterp) = [];
-    justAboveZ0(rmFromInterp) = [];
-    
-    TiJustBelow = Ti(justBelowZ0);
-    TiJustAbove = Ti(justAboveZ0);
-    TiErrJustBelow = Ti_err(justBelowZ0);
-    TiErrJustAbove = Ti_err(justAboveZ0);
-    altJustBelow = altitude(justBelowZ0);
-    altJustAbove = altitude(justAboveZ0);
-    
-    solarTime = solarTime(justBelowZ0);
-    timestamps = timestamps(justBelowZ0);
-    longitude = longitude(justBelowZ0);
-    latitude = latitude(justBelowZ0);
-    
-    
-    N = size(justBelowZ0);
-    Ti = zeros(N);
-    Ti_err = zeros(N);
-    altitude = zeros(N) + z0;
-    
-    m = (TiJustAbove - TiJustBelow) ./ (altJustAbove - altJustBelow);
-    Ti = m.*(z0 - altJustBelow) + TiJustBelow;
-    Ti_err = sqrt(TiErrJustAbove.^2 + TiErrJustBelow.^2);
-    vertRes = max(vertRes(justBelowZ0), vertRes(justAboveZ0));
-    fundPulsLen = max(fundPulsLen(justBelowZ0), fundPulsLen(justAboveZ0));
     
     if ~isempty(strfind(files(i).name, 'EISCAT'))
         index = zeros(N) + 1;
