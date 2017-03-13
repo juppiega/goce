@@ -830,7 +830,9 @@ weights(swarmInd) = wSwarm;
 % aeNormalized = 1 + (2 * ae16h / max(ae16h));
 % weights = weights .* aeNormalized;
 
+wTempSpec = wInd;
 save('weights.mat','weights')
+save('weights.mat','wTempSpec','-append')
 
 weights = sqrt(weights);
 
