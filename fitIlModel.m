@@ -812,12 +812,12 @@ weights(wInd) = tempSpecWeight * w;
 
 weights(wInd(end)+1:end) = rhoStruct.weights;
 
-ae16h = [TexStruct.aeInt(:,4); OStruct.aeInt(:,4); N2Struct.aeInt(:,4); HeStruct.aeInt(:,4); ...
-    ArStruct.aeInt(:,4); O2Struct.aeInt(:,4); rhoStruct.aeInt(:,4)];
-aeThreshold = 250;
-ind = ae16h >= aeThreshold;
-w = sum(weights(~ind)) / sum(weights(ind));
-weights(ind) = w * weights(ind);
+% ae16h = [TexStruct.aeInt(:,4); OStruct.aeInt(:,4); N2Struct.aeInt(:,4); HeStruct.aeInt(:,4); ...
+%     ArStruct.aeInt(:,4); O2Struct.aeInt(:,4); rhoStruct.aeInt(:,4)];
+% aeThreshold = 250;
+% ind = ae16h >= aeThreshold;
+% w = sum(weights(~ind)) / sum(weights(ind));
+% weights(ind) = w * weights(ind);
 
 goceInd = TempAndSpectrometerLen + rhoStruct.goce;
 graceInd = TempAndSpectrometerLen + rhoStruct.grace;
@@ -829,6 +829,8 @@ weights(swarmInd) = wSwarm;
 
 % aeNormalized = 1 + (2 * ae16h / max(ae16h));
 % weights = weights .* aeNormalized;
+
+save('weights.mat','weights')
 
 weights = sqrt(weights);
 
