@@ -688,6 +688,7 @@ else
 end
 
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
+[comp] = fun(initGuess);
 %[comp,JAC] = fun(initGuess);
 %[derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
 %[minDiff, indMin] = min(diff(derivNorms));
