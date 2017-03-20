@@ -590,8 +590,9 @@ rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 
 fprintf('%s\n', 'Computing final fit')
 
-%dataLen = length(TexStruct.data) + length(OStruct.data) +
-%length(N2Struct.data) + length(HeStruct.data) + length(rhoStruct.data);
+dataLen = length(TexStruct.data) + length(OStruct.data) + ...
+length(N2Struct.data) + length(HeStruct.data) + length(ArStruct.data) +...
+length(O2Struct.data) + length(rhoStruct.data);
 
 TexStruct = computeVariablesForFit(TexStruct);
 OStruct = computeVariablesForFit(OStruct);
@@ -601,7 +602,10 @@ ArStruct = computeVariablesForFit(ArStruct);
 O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
-weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct);
+%weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct,
+%O2Struct, rhoStruct); % TESTAUS
+
+weights = ones(dataLen,1);
 
 [G_lb, G_ub] = G_bounds();
 G_lb = 4 * G_lb; G_ub = 4 * G_ub;
