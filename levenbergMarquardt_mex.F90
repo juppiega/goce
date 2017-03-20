@@ -810,13 +810,11 @@ function computeO2Residual(varStruct, Tex, dT0, T0, coeff) result(residual)
     type(dataStruct) :: varStruct
     real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), coeff(:)
     real(kind = 8), allocatable :: residual(:), rhs(:)
-    real(kind = 8) :: Gvec
     
     allocate(rhs(size(Tex)))
     call computeDensityRHS(varStruct, Tex, dT0, T0, rhs);
-    Gvec = coeff(1);
 
-    residual = (rhs / max(coeff(1) + Gvec, dble(1))) - 1;
+    residual = (rhs / max(coeff(1), dble(1))) - 1;
 
 end function
 
