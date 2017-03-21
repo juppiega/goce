@@ -267,7 +267,7 @@ subroutine computeJacobian(FUN, X, tolX, numVars, numResid, paramsToFit, Jacobia
 
     dx = max(0.25*TolX*abs(X), dble(1E-10))
 
-    !$omp parallel do private(xForw, xBackw, deriv, infInd)
+    !$omp parallel do private(xForw, xBackw, deriv, infInd, fitInd)
     do i = 1, numVars
         xForw = X; xBackw = X
         fitInd = paramsToFit(i)
@@ -277,16 +277,16 @@ subroutine computeJacobian(FUN, X, tolX, numVars, numResid, paramsToFit, Jacobia
         deriv = (FUN(xForw) - FUN(xBackw)) / (2.0 * dx(fitInd))
 
         infInd = .not. isfinite(deriv)
-        if(any(infInd)) then
-            block
-            integer, allocatable :: indVec(:)
-            real(kind = 8) :: vecMean
-            indVec = find(.not. infInd)
-            vecMean = sum(deriv(indVec)) / size(indVec)
-            indVec = find(infInd)
-            deriv(indVec) = vecMean
-            end block
-        end if
+        !if(any(infInd)) then
+        !    block
+        !    integer, allocatable :: indVec(:)
+        !    real(kind = 8) :: vecMean
+        !    indVec = find(.not. infInd)
+        !    vecMean = sum(deriv(indVec)) / size(indVec)
+        !    indVec = find(infInd)
+        !    deriv(indVec) = vecMean
+        !    end block
+        !end if
 
         Jacobian(:,i) = deriv
     end do

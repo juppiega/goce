@@ -14,7 +14,7 @@ rng(1, 'twister');
 %import java.lang.*
 %r = Runtime.getRuntime;
 %numThreads = r.availableProcessors;
-numThreads = 1;
+numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
