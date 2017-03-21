@@ -145,7 +145,7 @@ OStruct.aeC = find(satInd == 2);
 OStruct.aeENace = find(satInd == 3);
 OStruct.aeEOss = find(satInd == 4);
 OStruct.guvi = find(satInd == 5);
-OStruct.numBiases = 0; %5 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+OStruct.numBiases = 5; % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 OStruct.biases = zeros(length(OStruct.data), OStruct.numBiases);
 OStruct.biases(OStruct.de2, 1) = 1;
 OStruct.biases(OStruct.aeC, 2) = 1;
@@ -180,7 +180,7 @@ N2Struct.aeENace = find(satInd == 3);
 N2Struct.aeEOss = find(satInd == 4);
 N2Struct.aeros = find(satInd == 5);
 N2Struct.guvi = find(satInd == 6);
-N2Struct.numBiases = 0; % 6
+N2Struct.numBiases = 6;
 N2Struct.biases = zeros(length(N2Struct.data), N2Struct.numBiases);
 N2Struct.biases(N2Struct.de2, 1) = 1;
 N2Struct.biases(N2Struct.aeC, 2) = 1;
@@ -214,7 +214,7 @@ HeStruct.aeC = find(satInd == 2);
 HeStruct.aeENace = find(satInd == 3);
 HeStruct.aeEOss = find(satInd == 4);
 HeStruct.aeros = find(satInd == 5);
-HeStruct.numBiases = 0; %5
+HeStruct.numBiases = 5;
 HeStruct.biases = zeros(length(HeStruct.data), HeStruct.numBiases);
 HeStruct.biases(HeStruct.de2, 1) = 1;
 HeStruct.biases(HeStruct.aeC, 2) = 1;
@@ -241,7 +241,7 @@ satInd(ArStruct.aeros) = 2;
 satInd(removeInd) = [];
 ArStruct.de2 = find(satInd == 1);
 ArStruct.aeros = find(satInd == 2);
-ArStruct.numBiases = 0; %2
+ArStruct.numBiases = 2;
 ArStruct.biases = zeros(length(ArStruct.data), ArStruct.numBiases);
 ArStruct.biases(ArStruct.de2, 1) = 1;
 ArStruct.biases(ArStruct.aeros, 2) = 1;

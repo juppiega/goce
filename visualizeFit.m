@@ -29,11 +29,11 @@ if ~includeSwarm
     originalRhoStruct = removeDataPoints(originalRhoStruct, removeInd, false, true, false, false);
 end
 
-% numBiasesStruct = struct('O', 5, 'N2', 6,...
-%     'He', 5, 'Ar', 2, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
+ numBiasesStruct = struct('O', 5, 'N2', 6,...
+     'He', 5, 'Ar', 2, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
 
-numBiasesStruct = struct('O', 0, 'N2', 0,...
-    'He', 0, 'Ar', 0, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
+%numBiasesStruct = struct('O', 0, 'N2', 0,...
+%    'He', 0, 'Ar', 0, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
 
 TexStruct.coeffInd = TexInd;
 coeffStruct = struct('TexCoeff' , optCoeff(TexInd),... 
@@ -49,7 +49,7 @@ z = 400;
 lat = -90:5:90;
 lst = 0:0.5:24;
 lon = 0;
-doy = 180;
+doy = 1;
 F = 200;
 FA = 200;
 aeInt = 20*ones(1,7);
