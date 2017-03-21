@@ -608,10 +608,9 @@ ArStruct = computeVariablesForFit(ArStruct);
 O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
-%weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct,
-%O2Struct, rhoStruct); % TESTAUS
+weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct); % 
 
-weights = ones(dataLen,1);
+%weights = ones(dataLen,1);
 
 [G_lb, G_ub] = G_bounds();
 G_lb = 4 * G_lb; G_ub = 4 * G_ub;
