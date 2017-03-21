@@ -257,7 +257,7 @@ weights = ones(size(lbDTStruct.data));
 paramsToFit = 1:length(dTCoeffs);
 quietInd = paramsToFit;
 isGradient = 1;
-significance = 0.9;
+significance = 0.5;
 
 [dTCoeffs, JTWJ] = lbFit_mex(lbDTStruct, weights, dTCoeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 paramErrors = sqrt(abs(diag(inv(JTWJ)))); % POISTA ABS lopuillisessa.TESTAUS
