@@ -257,7 +257,7 @@ weights = ones(size(lbDTStruct.data));
 paramsToFit = 1:length(dTCoeffs);
 quietInd = paramsToFit;
 isGradient = 1;
-significance = 0.5;
+significance = 2.0/3.0;
 
 [dTCoeffs, JTWJ] = lbFit_mex(lbDTStruct, weights, dTCoeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 paramErrors = sqrt(abs(diag(inv(JTWJ)))); % POISTA ABS lopuillisessa.TESTAUS
@@ -338,7 +338,7 @@ lambda0 = 1E-2;
 paramsToFit = 1:length(lbT0Coeffs);
 quietInd = paramsToFit;
 isGradient = 0;
-significance = 0.5;
+significance = 2.0/3.0;
 
 [lbT0Coeffs, JTWJ] = lbFit_mex(lbT0Struct, weights, lbT0Coeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 paramErrors = sqrt(abs(diag(inv(JTWJ))));
@@ -761,7 +761,7 @@ paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; .
                paramErrors_Ar; paramErrors_O2];
 
 
-significance = 0.5;
+significance = 2.0/3.0;
 if ~fitSimultaneously
     if quietData
         paramsToFit = [];
