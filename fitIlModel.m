@@ -839,13 +839,9 @@ dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) 
 TempAndSpectrometerLen = dataLen - length(rhoStruct.data);
 weights = ones(dataLen, 1);
 
-meanRhoWeight = mean(rhoStruct.weights); numRho = length(rhoStruct.weights);
-meanTempSpecWeight = mean(tempSpecWeight);
-
-w = 0.67 * meanRhoWeight * numRho / (TempAndSpectrometerLen * meanTempSpecWeight);
-wInd = 1:TempAndSpectrometerLen;
-weights(wInd) = tempSpecWeight * w;
-%weights(1:length(TexStruct.data)) = 0.5 * w;
+tempSpecRelWeight = 0.25; % of total weight vector
+w = (tempSpecRelWeight / (1 - tempSpecRelWeight)) * sum(rhoStruct.weights) / sum(tempSpecWeight);
+weights(1:TempAndSpectrometerLen) = tempSpecWeight * w;
 
 weights(wInd(end)+1:end) = rhoStruct.weights;
 
@@ -856,13 +852,13 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 % w = sum(weights(~ind)) / sum(weights(ind));
 % weights(ind) = w * weights(ind);
 
-goceInd = TempAndSpectrometerLen + rhoStruct.goce;
-graceInd = TempAndSpectrometerLen + rhoStruct.grace;
-swarmInd = TempAndSpectrometerLen + rhoStruct.swarm;
-wGoce = 0.125 * sum(weights(graceInd)) / sum(weights(goceInd));
-weights(goceInd) = wGoce * weights(goceInd);
-wSwarm = 0.5 * sum(weights(goceInd)) / length(swarmInd);
-weights(swarmInd) = wSwarm;
+% goceInd = TempAndSpectrometerLen + rhoStruct.goce;
+% graceInd = TempAndSpectrometerLen + rhoStruct.grace;
+% swarmInd = TempAndSpectrometerLen + rhoStruct.swarm;
+% wGoce = 0.125 * sum(weights(graceInd)) / sum(weights(goceInd));
+% weights(goceInd) = wGoce * weights(goceInd);
+% wSwarm = 0.5 * sum(weights(goceInd)) / length(swarmInd);
+% weights(swarmInd) = wSwarm;
 
 % aeNormalized = 1 + (2 * ae16h / max(ae16h));
 % weights = weights .* aeNormalized;

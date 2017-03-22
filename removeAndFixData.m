@@ -18,10 +18,13 @@ if nargin == 11
     end
 end
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
-% GOCE has bad lst, F10.7 coverage.
-goceWeight = 0.5*0.5*(1 - length(rhoStruct.goce) / length(rhoStruct.data));
-champWeight = 1 - length(rhoStruct.champ)  / length(rhoStruct.data);
-graceWeight = 1 - length(rhoStruct.grace) / length(rhoStruct.data);
+% % GOCE has bad lst, F10.7 coverage.
+% goceWeight = 0.5*0.5*(1 - length(rhoStruct.goce) / length(rhoStruct.data));
+% champWeight = 1 - length(rhoStruct.champ)  / length(rhoStruct.data);
+% graceWeight = 1 - length(rhoStruct.grace) / length(rhoStruct.data);
+goceWeight = 0.5*0.5 * length(rhoStruct.goce) / length(rhoStruct.grace);
+champWeight = 1;
+graceWeight = 1;
 rhoStruct.weights = zeros(length(rhoStruct.data),1);
 rhoStruct.weights(rhoStruct.goce) = goceWeight;
 rhoStruct.weights(rhoStruct.champ) = champWeight;
