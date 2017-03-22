@@ -45,22 +45,22 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 130;
+z = 400;
 lat = -90:5:90;
-lst = 12;
+lst = 0:0.5:24;
 lon = 0;
-doy = 0:10:365;
-F = 200;
-FA = 200;
+doy = 180;
+F = 70;
+FA = 70;
 aeInt = 20*ones(1,7);
 Ap = 3;
 lstMean = false;
 lonMean = false;
 latitudeMean = false;
 devFromXmean = false;
-sameColorBars = false;
+sameColorBars = true;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'T0', coeffStruct, numBiasesStruct);
+    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 
 if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat

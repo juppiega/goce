@@ -746,9 +746,22 @@ else
 %     load onePercent_coeff % TESTAUS
 end
 
-paramErrors = sqrt(abs(diag(inv(JTWJ)))); % POISTA ABS lopuillisessa.TESTAUS
+if quietData
+    ind = quietInd;
+else
+    ind = stormInd;
+end
+i=find(ismember(ind,TexStruct.coeffInd)); paramErrors_Tex = sqrt(abs(diag(inv(JTWJ(i,i)))));
+i=find(ismember(ind,OStruct.coeffInd)); paramErrors_O = sqrt(abs(diag(inv(JTWJ(i,i)))));
+i=find(ismember(ind,N2Struct.coeffInd)); paramErrors_N2 = sqrt(abs(diag(inv(JTWJ(i,i)))));
+i=find(ismember(ind,HeStruct.coeffInd)); paramErrors_He = sqrt(abs(diag(inv(JTWJ(i,i)))));
+i=find(ismember(ind,ArStruct.coeffInd)); paramErrors_Ar = sqrt(abs(diag(inv(JTWJ(i,i)))));
+paramErrors_O2 = sqrt(1/abs(JTWJ(end,end)));
+paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; ...
+               paramErrors_Ar; paramErrors_O2];
 
-significance = 0.9;
+
+significance = 0.5;
 if ~fitSimultaneously
     if quietData
         paramsToFit = [];
