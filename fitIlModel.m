@@ -841,7 +841,8 @@ weights = ones(dataLen, 1);
 
 tempSpecRelWeight = 0.25; % of total weight vector
 w = (tempSpecRelWeight / (1 - tempSpecRelWeight)) * sum(rhoStruct.weights) / sum(tempSpecWeight);
-weights(1:TempAndSpectrometerLen) = tempSpecWeight * w;
+wInd = 1:TempAndSpectrometerLen;
+weights(wInd) = tempSpecWeight * w;
 
 weights(wInd(end)+1:end) = rhoStruct.weights;
 
