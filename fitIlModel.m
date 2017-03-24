@@ -254,18 +254,24 @@ tolFun = 1E-5;
 tolOpt = 1E-4;
 lambda0 = 1E-2;
 weights = ones(size(lbDTStruct.data));
-paramsToFit = 1:length(dTCoeffs);
-quietInd = paramsToFit;
+endSemidiurnal = 89;
+symmAnn = 21:38;
+paramsToFit = setdiff(1:endSemidiurnal, symmAnn);
+dTCoeffs(endSemidiurnal+1:end) = 0;
+dTCoeffs(symmAnn) = 0;
+quietInd = 1:length(dTCoeffs);
 isGradient = 1;
 significance = 2.0/3.0;
 
 [dTCoeffs, JTWJ] = lbFit_mex(lbDTStruct, weights, dTCoeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 paramErrors = sqrt(abs(diag(inv(JTWJ)))); % POISTA ABS lopuillisessa.TESTAUS
 
-lbDTStruct.coeffInd = paramsToFit;
+lbDTStruct.coeffInd = 1:length(dTCoeffs);
 lbDTStruct.numBiases = 0;
 paramsToFit = [];
-[dTCoeffs, paramsToFit] = zeroOutInsignificantQuiet(dTCoeffs, paramsToFit, quietInd, paramErrors, significance, lbDTStruct);
+pe = ones(size(dTCoeffs));
+pe(paramsToFit) = paramErrors;
+[dTCoeffs, paramsToFit] = zeroOutInsignificantQuiet(dTCoeffs, paramsToFit, quietInd, pe, significance, lbDTStruct);
 
 tolFun = 1E-6;
 [dTCoeffs, JTWJ] = lbFit_mex(lbDTStruct, weights, dTCoeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
@@ -335,7 +341,11 @@ tolX = 1E-8;
 tolFun = 1E-5;
 tolOpt = 1E-4;
 lambda0 = 1E-2;
-paramsToFit = 1:length(lbT0Coeffs);
+endSemidiurnal = 89;
+symmAnn = 21:38;
+paramsToFit = setdiff(1:endSemidiurnal, symmAnn);
+lbT0Coeffs(endSemidiurnal+1:end) = 0;
+lbT0Coeffs(symmAnn) = 0;
 quietInd = paramsToFit;
 isGradient = 0;
 significance = 2.0/3.0;
@@ -702,7 +712,7 @@ if ~fitSimultaneously
         initGuess(stormInd) = 0;
     else
         paramsToFit = stormInd;
-        initGuess = quietCoeffs;
+        initGuess(quietInd) = quietCoeffs(quietInd);
     end
 else
     paramsToFit = 1:length(initGuess);

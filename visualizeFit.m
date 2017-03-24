@@ -50,8 +50,8 @@ lat = -90:5:90;
 lst = 0:0.5:24;
 lon = 0;
 doy = 180;
-F = 70;
-FA = 70;
+F = 150;
+FA = 150;
 aeInt = 20*ones(1,7);
 Ap = 3;
 lstMean = false;
@@ -60,7 +60,7 @@ latitudeMean = false;
 devFromXmean = false;
 sameColorBars = true;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
+    sameColorBars, 'yx', 'Tex', coeffStruct, numBiasesStruct);
 
 if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat
