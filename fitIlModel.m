@@ -731,15 +731,17 @@ fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, 
 if ~fitSimultaneously
     if quietData
         filename = 'quietCoeffsAll.mat';
+        tolFun = 1E-4;
+        tolOpt = 1E3;
     else
         filename = 'stormCoeffsAll.mat';
+        tolFun = 1E-5;
+        tolOpt = 1E2;
     end
 else
     filename = 'coeffsAll.mat';
 end
 
-tolFun = 1E-4;
-tolOpt = 1E3;
 if fitSimultaneously || fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
