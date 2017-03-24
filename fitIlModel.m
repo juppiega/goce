@@ -849,7 +849,7 @@ dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) 
 TempAndSpectrometerLen = dataLen - length(rhoStruct.data);
 weights = ones(dataLen, 1);
 
-tempSpecRelWeight = 0.25; % of total weight vector
+tempSpecRelWeight = 0.01; % of total weight vector TESTAUS
 w = (tempSpecRelWeight / (1 - tempSpecRelWeight)) * sum(rhoStruct.weights) / sum(tempSpecWeight);
 wInd = 1:TempAndSpectrometerLen;
 weights(wInd) = tempSpecWeight * w;
