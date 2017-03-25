@@ -4,7 +4,7 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 %     assimilationWindowLength: in hours.
 
 
-loopModelAssimilation('2002-08-10', '2002-08-24', 'CHAMP', 'GRACE', modelString, assimilationWindowLength, ensembleSize, TexStd);
+loopModelAssimilation('2002-09-12', '2002-09-26', 'CHAMP', 'GRACE', modelString, assimilationWindowLength, ensembleSize, TexStd);
 
 
 end
@@ -71,7 +71,7 @@ else
     assimiStruct = addCoeffsToStruct(assimiStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
     plotStruct = addCoeffsToStruct(plotStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
     refModel = il_model_operator(zeros(size(ensemble,1),1), plotStruct, 1);
-    refModel = 1.05*mean(plotStruct.data./refModel) * refModel; % TESTAUS
+    %refModel = 1.05*mean(plotStruct.data./refModel) * refModel; % TESTAUS
     modelOperator = @il_model_operator;
 end
 
@@ -129,7 +129,7 @@ end
 [refOrbAver, plotTime] = computeOrbitAverage(refModel, plotStruct.latitude, plotStruct.timestamps);
 t = plotTime;
 i = t(end)-10 <= t & t <= t(end); % Last 10 days
-ensRho(:,1) = 1.05*mean(dataRho(i)./ensRho(i,1)) * ensRho(:,1); % TESTAUS
+%ensRho(:,1) = 1.05*mean(dataRho(i)./ensRho(i,1)) * ensRho(:,1); % TESTAUS
 
 figure;
 % subplot(2,1,1)
