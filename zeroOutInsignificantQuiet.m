@@ -119,7 +119,7 @@ rmAnnual(2:6, 1:6);
 rmAnnual(9:13, 8:13);
 k = k + 13;
 
-ptf = sort(ptf);
+ptf = unique(ptf);
 
 zeroOutInd = setdiff(S.coeffInd, ptf);
 zeroOutInd = setdiff(zeroOutInd, S.coeffInd(2:S.numBiases+1));

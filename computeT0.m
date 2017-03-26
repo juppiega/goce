@@ -2,8 +2,8 @@ function computeT0()
 
 z0 = 130;
 
-files = [dir('EISCAT_*'),dir('MILLSTONE_HILL*'),dir('ARECIBO*')];
-%files = [dir('ARECIBO*')];
+files = [dir('EISCAT_*'),dir('SANTIN_REC*'),dir('ARECIBO*')];
+%files = [dir('SANTIN*')];
 for i = 1:length(files)
     data = load(files(i).name);
     if size(data,2) ~= 13
@@ -30,7 +30,9 @@ for i = 1:length(files)
     solarTime(solarTime < 0) = solarTime(solarTime < 0) + 24;
     
     
-    if ~isempty(strfind(files(i).name, 'EISCAT')) || ~isempty(strfind(files(i).name, 'MILLSTONE'))
+    if ~isempty(strfind(files(i).name, 'EISCAT')) || ~isempty(strfind(files(i).name, 'MILLSTONE')) || ~isempty(strfind(files(i).name, 'MALVERN'))...
+            || ~isempty(strfind(files(i).name, 'KHARKOV')) || ~isempty(strfind(files(i).name, 'IRKUTSK')) || ~isempty(strfind(files(i).name, 'MU'))...
+            || ~isempty(strfind(files(i).name, 'SANTIN')) || ~isempty(strfind(files(i).name, 'SANTIN_REC'))
         justBelowZ0 = find((diff(double(altitude > z0)) ~= 0));
         justAboveZ0 = justBelowZ0 + 1;
         if isempty(justBelowZ0)
@@ -92,7 +94,7 @@ for i = 1:length(files)
     
     if ~isempty(strfind(files(i).name, 'EISCAT'))
         index = zeros(N) + 1;
-    elseif ~isempty(strfind(files(i).name, 'MILLSTONE'))
+    elseif ~isempty(strfind(files(i).name, 'MILLSTONE')) || ~isempty(strfind(files(i).name, 'SANTIN'))
         index = zeros(N) + 2;
     elseif ~isempty(strfind(files(i).name, 'ARECIBO'))
         index = zeros(N) + 3;

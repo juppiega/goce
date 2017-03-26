@@ -17,6 +17,15 @@ if nargin == 11
         removeInd(quietInd) = true;
     end
 end
+% removeChamp = removeInd(rhoStruct.champ);
+% removeChamp(rhoStruct.data(rhoStruct.champ) > 1E-10) = true;
+% removeInd(rhoStruct.champ) = removeChamp;
+% removeGrace = removeInd(rhoStruct.grace);
+% removeGrace(rhoStruct.data(rhoStruct.grace) > 2E-11) = true;
+% removeInd(rhoStruct.grace) = removeGrace;
+
+relErr = rhoStruct.sigma ./ rhoStruct.data;
+removeInd(relErr > 0.15) = true;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
 % % GOCE has bad lst, F10.7 coverage.
 % goceWeight = 0.5*0.5*(1 - length(rhoStruct.goce) / length(rhoStruct.data));
@@ -104,7 +113,9 @@ lbT0Struct.Ap = lbT0Struct.ApDaily;
 lbT0Struct.fundPulseLen = lbT0Struct.fundPulsLen;
 
 removeInd = lbT0Struct.apNow > 15;
-removeInd(lbT0Struct.data <= 250 | lbT0Struct.data >= 800) = true;
+spuriousLocationChanges = find(abs(diff(lbT0Struct.latitude)) > 1.0) + 1;
+removeInd(spuriousLocationChanges) = true;
+removeInd(lbT0Struct.data <= 250 | lbT0Struct.data >= 850) = true;
 removeInd(lbT0Struct.Ti_err > 50) = true(1);
 removeInd(lbT0Struct.fundPulseLen > 100*1E-6) = true; % Remove > 100 us (>~15 km) pulses.
 if nargin == 11

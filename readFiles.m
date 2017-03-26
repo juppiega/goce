@@ -247,10 +247,16 @@ rhoStruct.swarm = k+1 : k + length(swarmData.timestamps);
 rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 1.25;
 rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 1.20;
 
-originalRhoStruct = rhoStruct;
+removeInd = rhoStruct.data <= 0;
+longSmooth = smooth(rhoStruct.data, 541);
+relDiffFromSmooth = rhoStruct.data ./ longSmooth;
+removeInd(relDiffFromSmooth > 4.0 | relDiffFromSmooth < 1/4.0) = true;
+rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
 
 [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
     removeAndFixData(rhoStruct, 0, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
+
+originalRhoStruct = rhoStruct;
 
 rhoStruct = averageRho(rhoStruct, true);
 

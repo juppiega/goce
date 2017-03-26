@@ -38,16 +38,16 @@ end
 [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);
 
-if ~exist('dTCoeffs', 'var') || recomputeDT
-    [dTCoeffs, JTWJ_dT] = fitTemeratureGradient(lbDTStruct, subsampPercent); 
-    save('ilData.mat', 'dTCoeffs', '-append')
-    save('ilData.mat', 'JTWJ_dT', '-append')
-end
-
 if ~exist('T0Coeffs', 'var') || recomputeLbTemp
     [T0Coeffs, JTWJ_T0] = fitLbTemerature(lbT0Struct, subsampPercent); 
     save('ilData.mat', 'T0Coeffs', '-append')
     save('ilData.mat', 'JTWJ_T0', '-append')
+end
+
+if ~exist('dTCoeffs', 'var') || recomputeDT
+    [dTCoeffs, JTWJ_dT] = fitTemeratureGradient(lbDTStruct, subsampPercent); 
+    save('ilData.mat', 'dTCoeffs', '-append')
+    save('ilData.mat', 'JTWJ_dT', '-append')
 end
 
 if ~exist('TexStruct', 'var') || recomputeTex
@@ -268,12 +268,12 @@ paramErrors = sqrt(abs(diag(inv(JTWJ)))); % POISTA ABS lopuillisessa.TESTAUS
 
 lbDTStruct.coeffInd = 1:length(dTCoeffs);
 lbDTStruct.numBiases = 0;
-paramsToFit = [];
 pe = ones(size(dTCoeffs));
 pe(paramsToFit) = paramErrors;
+paramsToFit = [];
 [dTCoeffs, paramsToFit] = zeroOutInsignificantQuiet(dTCoeffs, paramsToFit, quietInd, pe, significance, lbDTStruct);
 
-tolFun = 1E-6;
+tolFun = 1E-10;
 [dTCoeffs, JTWJ] = lbFit_mex(lbDTStruct, weights, dTCoeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 
 end
@@ -329,36 +329,43 @@ fun = @(X) lbTemperatureMinimization(lbT0Struct, X);
 
 %[x,J] = fun(lbT0Coeffs);
 
-N_millstone = sum(lbT0Struct.index == 2);
+N_santin = sum(lbT0Struct.index == 2);
 weights = ones(size(lbT0Struct.data));
 i = lbT0Struct.index == 1;
-weights(i) = N_millstone / sum(i);
-% i = lbT0Struct.index == 3;
-% weights(i) = N_millstone / sum(i);
+weights(i) = N_santin / sum(i);
+i = lbT0Struct.index == 3;
+weights(i) = N_santin / sum(i);
 weights = sqrt(weights);
 
 tolX = 1E-8;
 tolFun = 1E-5;
-tolOpt = 1E-4;
+tolOpt = 1E-5;
 lambda0 = 1E-2;
 endSemidiurnal = 89;
-symmAnn = 21:38;
-paramsToFit = setdiff(1:endSemidiurnal, symmAnn);
+lat = 6:15;
+solar = 16:20;
+symmAnn = [25:26, 30:38];
+assAnn = [43:44, 48:52];
+diurnal = [56:59, 67:70];
+semidiurnal = [76:79, 84:87];
+paramsToFit = setdiff(1:endSemidiurnal, [lat, solar, symmAnn, assAnn, diurnal, semidiurnal]);
 lbT0Coeffs(endSemidiurnal+1:end) = 0;
-lbT0Coeffs(symmAnn) = 0;
-quietInd = paramsToFit;
+lbT0Coeffs([lat, solar, symmAnn, assAnn, diurnal, semidiurnal]) = 0;
+quietInd = 1:length(lbT0Coeffs);
 isGradient = 0;
 significance = 2.0/3.0;
 
 [lbT0Coeffs, JTWJ] = lbFit_mex(lbT0Struct, weights, lbT0Coeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 paramErrors = sqrt(abs(diag(inv(JTWJ))));
 
-lbT0Struct.coeffInd = paramsToFit;
+lbT0Struct.coeffInd = 1:length(lbT0Coeffs);
 lbT0Struct.numBiases = 0;
+pe = ones(size(lbT0Coeffs));
+pe(paramsToFit) = paramErrors;
 paramsToFit = [];
-[lbT0Coeffs, paramsToFit] = zeroOutInsignificantQuiet(lbT0Coeffs, paramsToFit, quietInd, paramErrors, significance, lbT0Struct, true);
+[lbT0Coeffs, paramsToFit] = zeroOutInsignificantQuiet(lbT0Coeffs, paramsToFit, quietInd, pe, significance, lbT0Struct, true);
 
-tolFun = 1E-6;
+tolFun = 1E-10;
 [lbT0Coeffs, JTWJ] = lbFit_mex(lbT0Struct, weights, lbT0Coeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 
 
@@ -630,7 +637,13 @@ ArStruct = computeVariablesForFit(ArStruct);
 O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
-weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct); % 
+if quietData
+    tempSpecRelWeight = 0.05;
+else
+    tempSpecRelWeight = 0.01;
+end
+
+weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, tempSpecRelWeight); % 
 
 %weights = ones(dataLen,1);
 
@@ -732,11 +745,11 @@ if ~fitSimultaneously
     if quietData
         filename = 'quietCoeffsAll.mat';
         tolFun = 1E-4;
-        tolOpt = 1E3;
+        tolOpt = 1E0;
     else
         filename = 'stormCoeffsAll.mat';
         tolFun = 1E-5;
-        tolOpt = 1E2;
+        tolOpt = 1E0;
     end
 else
     filename = 'coeffsAll.mat';
@@ -834,7 +847,7 @@ save(filename, 'T0Coeffs', '-append');
 
 end
 
-function weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct)
+function weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, tempSpecRelWeight)
 
 wTex = ones(size(TexStruct.data)); wTex(TexStruct.de2) = length(TexStruct.aeE) / length(TexStruct.de2);
 wO = ones(size(OStruct.data)); wO(OStruct.de2) = length(OStruct.aeENace) / length(OStruct.de2); wO(OStruct.guvi) = length(OStruct.aeENace) / length(OStruct.guvi);
@@ -851,7 +864,6 @@ dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) 
 TempAndSpectrometerLen = dataLen - length(rhoStruct.data);
 weights = ones(dataLen, 1);
 
-tempSpecRelWeight = 0.01; % of total weight vector TESTAUS
 w = (tempSpecRelWeight / (1 - tempSpecRelWeight)) * sum(rhoStruct.weights) / sum(tempSpecWeight);
 wInd = 1:TempAndSpectrometerLen;
 weights(wInd) = tempSpecWeight * w;
