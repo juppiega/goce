@@ -609,9 +609,15 @@ ind = [1 : 20+varStruct.numBiases, (53 : numQuietCoeffs-13)+varStruct.numBiases]
 
 end
 
-function [ind] = allParams(varStruct, numQuietCoeffs)
+function [ind] = quietParams(varStruct, numQuietCoeffs)
 
 ind = 1 : numQuietCoeffs+varStruct.numBiases;
+
+end
+
+function [ind] = geomParams(varStruct, numQuietCoeffs)
+
+ind = (numQuietCoeffs + varStruct.numBiases + 1) : length(varStruct.coeffInd);
 
 end
 
@@ -689,13 +695,17 @@ initGuess(HeStruct.coeffInd(1)) = log(2.5E7);
 initGuess(ArStruct.coeffInd(1)) = log(1.2E9);
 initGuess(O2Struct.coeffInd) = log(3E10);
 
-quietInd = [TexStruct.coeffInd(allParams(TexStruct, numQuietCoeffs)),...
-            OStruct.coeffInd(allParams(OStruct, numQuietCoeffs)),...
-            N2Struct.coeffInd(allParams(N2Struct, numQuietCoeffs)),...
-            HeStruct.coeffInd(allParams(HeStruct, numQuietCoeffs)),...
-            ArStruct.coeffInd(allParams(ArStruct, numQuietCoeffs)),...
-            O2Struct.coeffInd(1)]; % TODO: palauta Annual
-stormInd = setdiff(1:length(initGuess), quietInd);
+quietInd = [TexStruct.coeffInd(quietParams(TexStruct, numQuietCoeffs)),...
+            OStruct.coeffInd(quietParams(OStruct, numQuietCoeffs)),...
+            N2Struct.coeffInd(quietParams(N2Struct, numQuietCoeffs)),...
+            HeStruct.coeffInd(quietParams(HeStruct, numQuietCoeffs)),...
+            ArStruct.coeffInd(quietParams(ArStruct, numQuietCoeffs)),...
+            O2Struct.coeffInd(1)]; 
+stormInd = [TexStruct.coeffInd(geomParams(TexStruct, numQuietCoeffs)),...
+            OStruct.coeffInd(geomParams(OStruct, numQuietCoeffs)),...
+            N2Struct.coeffInd(geomParams(N2Struct, numQuietCoeffs)),...
+            HeStruct.coeffInd(geomParams(HeStruct, numQuietCoeffs)),...
+            ArStruct.coeffInd(geomParams(ArStruct, numQuietCoeffs))]; 
 
 tolX = 1E-8;
 tolFun = 1E-6;
@@ -722,7 +732,8 @@ lambda0 = 1E-2;
 if ~fitSimultaneously
     if quietData
         paramsToFit = quietInd;
-        initGuess(stormInd) = 0;
+        otherInd = setdiff(1:length(initGuess), quietInd);
+        initGuess(otherInd) = 0;
     else
         paramsToFit = stormInd;
         initGuess(quietInd) = quietCoeffs(quietInd);
@@ -744,7 +755,7 @@ fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, 
 if ~fitSimultaneously
     if quietData
         filename = 'quietCoeffsAll.mat';
-        tolFun = 1E-4;
+        tolFun = 1E-5;
         tolOpt = 1E0;
     else
         filename = 'stormCoeffsAll.mat';
@@ -781,21 +792,29 @@ i=find(ismember(ind,OStruct.coeffInd)); paramErrors_O = sqrt(abs(diag(inv(JTWJ(i
 i=find(ismember(ind,N2Struct.coeffInd)); paramErrors_N2 = sqrt(abs(diag(inv(JTWJ(i,i)))));
 i=find(ismember(ind,HeStruct.coeffInd)); paramErrors_He = sqrt(abs(diag(inv(JTWJ(i,i)))));
 i=find(ismember(ind,ArStruct.coeffInd)); paramErrors_Ar = sqrt(abs(diag(inv(JTWJ(i,i)))));
-paramErrors_O2 = sqrt(1/abs(JTWJ(end,end)));
-paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; ...
+if quietData
+    paramErrors_O2 = sqrt(1/abs(JTWJ(end,end)));
+    paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; ...
                paramErrors_Ar; paramErrors_O2];
+end
 
-
+allInd = 1:length(optCoeff);
+pe = ones(size(allInd)); 
+if quietData
+    pe(quietInd) = paramErrors;
+else
+    pe(stormInd) = paramErrors;
+end
 significance = 2.0/3.0;
 if ~fitSimultaneously
     if quietData
         paramsToFit = [];
-        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, TexStruct);
-        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, OStruct);
-        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, N2Struct);
-        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, HeStruct);
-        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, quietInd, paramErrors, significance, ArStruct);
-        paramsToFit = [paramsToFit, O2Struct.coeffInd]; optCoeff(O2Struct.coeffInd) = 20.0;
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, TexStruct);
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, OStruct);
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, N2Struct);
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, HeStruct);
+        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, ArStruct);
+        paramsToFit = [paramsToFit, O2Struct.coeffInd]; %optCoeff(O2Struct.coeffInd) = 20.0;
     else
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
     end
