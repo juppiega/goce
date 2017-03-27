@@ -682,7 +682,7 @@ initGuess(ind) = -ub(ind);
 %ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
 %initGuess(ArStruct.coeffInd) = ArCoeffs;
 
-initGuess(TexStruct.coeffInd(1)) = 1030;
+initGuess(TexStruct.coeffInd(1)) = mean(TexStruct.data);
 initGuess(OStruct.coeffInd(1)) = log(8E10);
 initGuess(N2Struct.coeffInd(1)) = log(3E11);
 initGuess(HeStruct.coeffInd(1)) = log(2.5E7);

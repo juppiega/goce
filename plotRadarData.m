@@ -36,10 +36,10 @@ title(num2str(radarNum),'fontsize',15);
 dt = 1;
 meanData = [];
 stdData = [];
-plotT = dt/2 : dt : 12-dt/2;
+plotT = dt/2 : dt : 13-dt/2;
 timeVec = datevec(lbT0Struct.timestamps);
 month = timeVec(:,2);
-for t = 0:dt:12-dt
+for t = 0:dt:13-dt
     ind = t <= month & month < t+dt;
     meanData = [meanData; mean(lbT0Struct.data(ind))];
     stdData = [stdData; std(lbT0Struct.data(ind))];
@@ -50,7 +50,7 @@ errorbar(plotT, meanData, stdData, 's');
 xlabel('Month', 'fontsize', 15)
 ylabel('T_0 [K]', 'fontsize', 15)
 set(gca,'fontsize',15)
-xlim([0, 12])
+xlim([1, 13])
 title(num2str(radarNum),'fontsize',15);
 
 dFA = 20;
