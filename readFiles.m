@@ -1215,7 +1215,7 @@ fprintf('%s\n', 'Computing solar index values for models')
 
 %F30toF10 = mean(F10./F30);
 pF = polyfit(F30,F10,1);
-save('F30toF10.m','pF')
+save('F30toF10.mat','pF')
 
 msisF81A = interp1(F10datenum, F81A, timestampsDensityDatenum, 'linear', 100);
 F30A_goce = interp1(F10datenum, F30A, timestampsDensityDatenum, 'linear', 100)*pF(1) + pF(2);
