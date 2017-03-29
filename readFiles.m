@@ -331,8 +331,8 @@ function [fillStruct] = fillPosAndInd(fillStruct, satDataStruct, obsTimes)
     satLst = satDataStruct.solarTime(order);
     satAlt = satDataStruct.altitude(order);
     satAeInt = satDataStruct.aeInt(order,:);
-    satF = satDataStruct.F10(order);
-    satFA = satDataStruct.F81A(order);
+    satF = satDataStruct.F30(order);
+    satFA = satDataStruct.F30A(order);
     satApNow = satDataStruct.apNow(order);
     satAp3h = satDataStruct.ap3h(order);
     satAp6h = satDataStruct.ap6h(order);
@@ -545,8 +545,8 @@ year = solarData{1};
 month = solarData{2};
 day = solarData{3};
 F10datenum = datenum(year, month, day);
-F30 = F30toF10 * F30; %interp1(F10datenum, F30, indexDatenums, 'nearest', 'extrap');
-F30A = F30toF10 * F30A;% interp1(F10datenum, F30A, indexDatenums, 'nearest', 'extrap');
+%F30 = F30toF10 * F30; %interp1(F10datenum, F30, indexDatenums, 'nearest', 'extrap');
+%F30A = F30toF10 * F30A;% interp1(F10datenum, F30A, indexDatenums, 'nearest', 'extrap');
 
 end
 
@@ -1208,25 +1208,31 @@ swarmData.aeInt = aeIntSwarm;
 
 end
 
-function [F10out, F81Aout, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData] = ...
+function [F10out, F81Aout, msisF81A, S10, S81A, M10, M81A, Y10, Y81A, F30_goce, F30A_goce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData] = ...
     giveSolarInputForModels(F10, F81A, S10, S81A, M10, M81A, Y10, Y81A, F30, F30A, indexDatenums, F10datenum, timestampsDensityDatenum, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData)
 %
 fprintf('%s\n', 'Computing solar index values for models')
 
+%F30toF10 = mean(F10./F30);
+pF = polyfit(F30,F10,1);
+save('F30toF10.m','pF')
+
 msisF81A = interp1(F10datenum, F81A, timestampsDensityDatenum, 'linear', 100);
-F30A = interp1(F10datenum, F30A, timestampsDensityDatenum, 'linear', 100);
+F30A_goce = interp1(F10datenum, F30A, timestampsDensityDatenum, 'linear', 100)*pF(1) + pF(2);
 
 F10out = interp1(F10datenum + 1, F10, timestampsDensityDatenum, 'linear', 100);
 F81Aout = interp1(F10datenum + 1, F81A, timestampsDensityDatenum, 'linear', 100);
 S10 = interp1(indexDatenums + 1, S10, timestampsDensityDatenum, 'linear', 100);
 S81A = interp1(indexDatenums + 1, S81A, timestampsDensityDatenum, 'linear', 100);
-F30 = interp1(F10datenum + 1, F30, timestampsDensityDatenum, 'linear', 100);
+F30_goce = interp1(F10datenum + 1, F30, timestampsDensityDatenum, 'linear', 100)*pF(1) + pF(2);
 
 M10 = interp1(indexDatenums + 2, M10, timestampsDensityDatenum, 'linear', 100);
 M81A = interp1(indexDatenums + 2, M81A, timestampsDensityDatenum, 'linear', 100);
 
 Y10 = interp1(indexDatenums + 5, Y10, timestampsDensityDatenum, 'linear', 100);
 Y81A = interp1(indexDatenums + 5, Y81A, timestampsDensityDatenum, 'linear', 100);
+
+% F10.7
 
 goceData.F10 = interp1(F10datenum + 1, F10, timestampsDensityDatenum, 'previous', 100);
 goceData.F81A = interp1(F10datenum, F81A, timestampsDensityDatenum, 'previous', 100);
@@ -1260,6 +1266,41 @@ guviData.F81A = interp1(F10datenum, F81A, guviData.timestamps, 'previous', 100);
 
 swarmData.F10 = interp1(F10datenum + 1, F10, swarmData.timestamps, 'previous', 100);
 swarmData.F81A = interp1(F10datenum, F81A, swarmData.timestamps, 'previous', 100);
+
+% F30
+
+goceData.F30 = interp1(F10datenum + 1, F30, timestampsDensityDatenum, 'previous', 100);
+goceData.F30A = interp1(F10datenum, F30A, timestampsDensityDatenum, 'previous', 100);
+
+champData.F30 = interp1(F10datenum + 1, F30, champData.timestamps, 'previous', 100);
+champData.F30A = interp1(F10datenum, F30A, champData.timestamps, 'previous', 100);
+
+graceData.F30 = interp1(F10datenum + 1, F30, graceData.timestamps, 'previous', 100);
+graceData.F30A = interp1(F10datenum, F30A, graceData.timestamps, 'previous', 100);
+
+de2Data.F30 = interp1(F10datenum + 1, F30, de2Data.timestamps, 'previous', 100);
+de2Data.F30A = interp1(F10datenum, F30A, de2Data.timestamps, 'previous', 100);
+
+aeCData.F30 = interp1(F10datenum + 1, F30, aeCData.timestamps, 'previous', 100);
+aeCData.F30A = interp1(F10datenum, F30A, aeCData.timestamps, 'previous', 100);
+
+aeEData.F30 = interp1(F10datenum + 1, F30, aeEData.timestamps, 'previous', 100);
+aeEData.F30A = interp1(F10datenum, F30A, aeEData.timestamps, 'previous', 100);
+
+aerosData.F30 = interp1(F10datenum + 1, F30, aerosData.timestamps, 'previous', 100);
+aerosData.F30A = interp1(F10datenum, F30A, aerosData.timestamps, 'previous', 100);
+
+saberData.F30 = interp1(F10datenum + 1, F30, saberData.timestamps, 'previous', 100);
+saberData.F30A = interp1(F10datenum, F30A, saberData.timestamps, 'previous', 100);
+
+T0.F30 = interp1(F10datenum + 1, F30, T0.timestamps, 'previous', 100);
+T0.F30A = interp1(F10datenum, F30A, T0.timestamps, 'previous', 100);
+
+guviData.F30 = interp1(F10datenum + 1, F30, guviData.timestamps, 'previous', 100);
+guviData.F30A = interp1(F10datenum, F30A, guviData.timestamps, 'previous', 100);
+
+swarmData.F30 = interp1(F10datenum + 1, F30, swarmData.timestamps, 'previous', 100);
+swarmData.F30A = interp1(F10datenum, F30A, swarmData.timestamps, 'previous', 100);
 
 end
 

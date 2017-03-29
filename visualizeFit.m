@@ -1,4 +1,4 @@
-function [] = visualizeFit(saveFolder, includeSwarm, fullscreenFigs)
+function [] = visualizeFit(saveFolder, fullscreenFigs, satellite)
 aeThreshold = 0;
 
 if nargin == 2
@@ -24,10 +24,21 @@ end
 
 [originalRhoStruct] = removeAndFixData(originalRhoStruct, aeThreshold);
 
-if ~includeSwarm
-    removeInd = originalRhoStruct.swarm;
-    originalRhoStruct = removeDataPoints(originalRhoStruct, removeInd, false, true, false, false);
+N = length(originalRhoStruct.data);
+if strcmpi(satellite,'goce')
+    removeInd = ~ismember(1:N, originalRhoStruct.goce);
+elseif strcmpi(satellite,'champ')
+    removeInd = ~ismember(1:N, originalRhoStruct.champ);
+elseif strcmpi(satellite,'grace')
+    removeInd = ~ismember(1:N, originalRhoStruct.grace);
+elseif strcmpi(satellite,'swarm')
+    removeInd = ~ismember(1:N, originalRhoStruct.swarm);
+elseif strcmpi(satellite,'all')
+    removeInd = false(N,1);
+elseif strcmpi(satellite,'allNoSwarm')
+    removeInd = ismember(1:N, originalRhoStruct.swarm);
 end
+originalRhoStruct = removeDataPoints(originalRhoStruct, removeInd, false, true, false, false);
 
  numBiasesStruct = struct('O', 5, 'N2', 6,...
      'He', 5, 'Ar', 2, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
@@ -45,7 +56,7 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 130;
+z = 400;
 lat = -90:5:90;
 lst = 0:0.5:24;
 lon = 0;
@@ -60,11 +71,12 @@ latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'dT', coeffStruct, numBiasesStruct);
+    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
 
 if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat
 else
+    if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
     [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
 
     save('msisDtmComparison.mat', 'msisRho')
@@ -74,6 +86,7 @@ end
 if exist('ilComparison.mat', 'file')
     load ilComparison.mat
 else
+    if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
     [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
 
     save('ilComparison.mat', 'ilRho')
@@ -84,7 +97,8 @@ if ~isfield(originalRhoStruct, 'dst')
     save('ilData.mat', 'originalRhoStruct', '-append');
 end
 
-modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
+ind = ~removeInd;
+modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind));
 
 %   plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
 %    modelStruct, 'O/M', 'Kp3h', 'lat', saveFolder,fullscreenFigs);
@@ -102,7 +116,7 @@ modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 % % % % 
 % % % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 % % % 
-% computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder);
+ computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder, satellite);
 % % % % 
 %     plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %     plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
@@ -112,7 +126,7 @@ modelStruct = struct('il', ilRho, 'msis', msisRho, 'dtm', dtmRho);
 %     plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %     plotStormFig(originalRhoStruct, modelStruct, '2015-04-09', '2015-04-14', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %
-% analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs);
+ analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
 
 end
 
@@ -311,7 +325,7 @@ end
 
 end
 
-function [] = analyzeStormTimes(rhoStruct, modelStruct, saveFolder, fullscreenFigs)
+function [] = analyzeStormTimes(rhoStruct, modelStruct, saveFolder, fullscreenFigs, satellite)
 
 [stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -50);
 rawCorr = zeros(length(stormBeginInd),3);
@@ -398,7 +412,7 @@ outputCell(1,1:end) = {'Begin', 'End', 'Mean F10.7', 'Min Dst', 'SatInfo (0=GO:1
                         'OA O/M IL', 'OA O/M MSIS', 'OA O/M DTM',...
                         'OA RMS IL', 'OA RMS MSIS','OA RMS DTM'};
 
-cell2csv([saveFolder, '/storms.csv'], outputCell);
+cell2csv([saveFolder, '/storms.',satellite,'.csv'], outputCell);
 
 fontsize = 15;
 if fullscreenFigs
@@ -598,9 +612,9 @@ He = He / (4 * u2g);
 
 end
 
-function [] = computeStatistics(rhoStruct, ilRho, msisRho, dtmRho, saveFolder)
+function [] = computeStatistics(rhoStruct, ilRho, msisRho, dtmRho, saveFolder, satellite)
 
-outputFile = fopen([saveFolder,'/','stat.out'], 'w');
+outputFile = fopen([saveFolder,'/','stat.',satellite,'.out'], 'w');
 fprintf(outputFile, '%s \n', 'Full model')
 fprintf(outputFile, 'IL O/C: %f \n', mean(rhoStruct.data./ilRho));
 fprintf(outputFile, 'MSIS O/C: %f \n', mean(rhoStruct.data./msisRho));
