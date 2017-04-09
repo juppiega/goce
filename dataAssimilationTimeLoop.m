@@ -4,7 +4,7 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 %     assimilationWindowLength: in hours.
 
 
-loopModelAssimilation('2002-09-12', '2002-09-26', 'CHAMP', 'GRACE', modelString, assimilationWindowLength, ensembleSize, TexStd);
+loopModelAssimilation('2002-09-12', '2002-09-26', 'CHAMP', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, TexStd);
 
 
 end
@@ -89,6 +89,7 @@ step = 1;
 while assBegin < t1
     removeInd = assimiStruct.timestamps < assBegin | assimiStruct.timestamps >= assEnd | ~prevRmInd;
     S = removeDataPoints(assimiStruct, removeInd);
+    S.data = log(S.data);
     if isempty(S.data)
         continue
     end
@@ -304,6 +305,7 @@ plotStruct.Tex(~removeInd,1) = mean(TexArray,2);
 plotStruct.Tex(~removeInd,2) = mean(TexArray,2) - std(TexArray,[],2);
 plotStruct.Tex(~removeInd,3) = mean(TexArray,2) + std(TexArray,[],2);
 
+ensPredictions = exp(ensPredictions);
 plotStruct.rho(~removeInd,1) = mean(ensPredictions,2);
 plotStruct.rho(~removeInd,2) = mean(ensPredictions,2) - std(ensPredictions,[],2);
 plotStruct.rho(~removeInd,3) = mean(ensPredictions,2) + std(ensPredictions,[],2);

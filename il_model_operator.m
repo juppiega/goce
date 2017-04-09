@@ -24,6 +24,7 @@ Z = computeGeopotentialHeight(S.altitude);
 
 [rho, O, N2, He, Ar, O2, T] = ...
     computeRho(T0, dT0, Tex, Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+rho = log(rho);
 
 if nargout > 1
     outputStruct = struct('O', O, 'N2', N2, 'He', He, 'Ar', Ar, 'O2', O2, 'Tex', Tex,...
