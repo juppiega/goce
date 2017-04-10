@@ -1,9 +1,9 @@
 function [rho, outputStruct] =...
     dummyThermosphere(state, observationStruct, index)
 
-T0 = clamp(300, 507 + state(1), 700);
-dT0 = clamp(1, 12 + state(2), 20);
-Tex = clamp(T0+1, 1030 + bulge(state(3:11), observationStruct), 5000);
+T0 = clamp(300, 507 + state(2), 700);
+dT0 = clamp(1, 12 + state(3), 20);
+Tex = clamp(T0+1, 1030 + bulge(state(4:11), observationStruct), 5000);
 OlbDens = log(8.47E10);
 N2lbDens = log(3.2E11);
 HelbDens = log(2.5E7);

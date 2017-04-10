@@ -1,15 +1,15 @@
-function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembleSize, TexStd)
+function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembleSize, Fstd)
 % INPUT:
 %     modelString: 'dummy' for test, 'full' for complete model
 %     assimilationWindowLength: in hours.
 
 
-loopModelAssimilation('2002-09-12', '2002-09-26', 'CHAMP', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, TexStd);
+loopModelAssimilation('2004-01-01', '2004-07-02', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
 
 
 end
 
-function loopModelAssimilation(beginDay, endDay, assSatellite, plotSatellite, modelString, windowLen, ensembleSize, TexStd)
+function loopModelAssimilation(beginDay, endDay, assSatellite, plotSatellite, modelString, windowLen, ensembleSize, Fstd)
 
 load('ilData.mat', 'rhoStruct', 'OStruct', 'HeStruct', 'N2Struct', 'ArStruct', 'O2Struct')
 
@@ -18,17 +18,16 @@ t0 = datenum(beginDay);
 t1 = datenum(endDay);
 if strcmpi(assSatellite, 'CHAMP')
     removeInd = ~ismember(1:length(rhoStruct.data), rhoStruct.champ);
-    removeTimes = rhoStruct.timestamps < t0 - windowLen/24/2 | ...
-                    rhoStruct.timestamps > t1;
-    removeInd(removeTimes) = true;
-    assimiStruct = removeDataPoints(rhoStruct, removeInd, false,true,true,true);
 elseif strcmpi(assSatellite, 'GRACE')
     removeInd = ~ismember(1:length(rhoStruct.data), rhoStruct.grace);
-    removeTimes = rhoStruct.timestamps < t0 - windowLen/24/2 | ...
-                    rhoStruct.timestamps > t1;
-    removeInd(removeTimes) = true;
-    assimiStruct = removeDataPoints(rhoStruct, removeInd, false,true,true,true);
+elseif strcmpi(assSatellite, 'CH/GR')
+    removeInd = ~ismember(1:length(rhoStruct.data), [rhoStruct.grace, rhoStruct.champ]);
 end
+
+removeTimes = rhoStruct.timestamps < t0 - windowLen/24/2 | ...
+                rhoStruct.timestamps > t1;
+removeInd(removeTimes) = true;
+assimiStruct = removeDataPoints(rhoStruct, removeInd, false,true,true,true);
 
 if strcmpi(plotSatellite, 'CHAMP')
     removeInd = ~ismember(1:length(rhoStruct.data), rhoStruct.champ);
@@ -86,9 +85,11 @@ assBegin = t0 - windowLen/24/2;
 assEnd = t0 + windowLen/24/2;
 prevRmInd = ones(size(assimiStruct.timestamps));
 step = 1;
+obsRank = ones(size(assimiStruct.data));
 while assBegin < t1
     removeInd = assimiStruct.timestamps < assBegin | assimiStruct.timestamps >= assEnd | ~prevRmInd;
     S = removeDataPoints(assimiStruct, removeInd);
+    S.sigma = S.sigma ./ S.data;
     S.data = log(S.data);
     if isempty(S.data)
         continue
@@ -99,10 +100,10 @@ while assBegin < t1
     ensStd = std(ensemble, 0, 2);
     %ensemble = bsxfun(@plus, (1 + inflFac)*bsxfun(@minus, ensemble, ensMean), ensMean);
     if step > 1
-        ensemble(3,:) = (TexStd)/ensStd(3) * (ensemble(3,:)-ensMean(3)) + ensMean(3);
+        ensemble(1,:) = (Fstd)/ensStd(1) * (ensemble(1,:)-ensMean(1)) + ensMean(1);
         %ensemble(2,:) = (0.2)/ensStd(2) * (ensemble(2,:)-ensMean(2)) + ensMean(2);
     end
-    [ensemble,d(~removeInd),r(~removeInd),c,P] = ...
+    [ensemble,d(~removeInd),r(~removeInd),c,P,obsRank(~removeInd)] = ...
         assimilateDataAndUpdateEnsemble(ensemble, modelOperator, S, true);
     covdiag = [covdiag; diag(c)'];
     
@@ -129,7 +130,7 @@ end
 [dataRho, plotTime] = computeOrbitAverage(plotStruct.data, plotStruct.latitude, plotStruct.timestamps);
 [refOrbAver, plotTime] = computeOrbitAverage(refModel, plotStruct.latitude, plotStruct.timestamps);
 t = plotTime;
-i = t(end)-10 <= t & t <= t(end); % Last 10 days
+i = t(1)+5 <= t & t <= t(end); 
 %ensRho(:,1) = 1.05*mean(dataRho(i)./ensRho(i,1)) * ensRho(:,1); % TESTAUS
 
 figure;
@@ -158,7 +159,7 @@ ylim([0.8*min(plotStruct.data), 1.25*max(plotStruct.data)])
 % legend(plotSatellite,'Ens. mean', 'Upper 95%', 'Lower 95%')
 % axis tight
 
-[refOrbAver] = computeOrbitAverage(refModel, plotStruct.latitude, plotStruct.timestamps);
+%[refOrbAver] = computeOrbitAverage(refModel, plotStruct.latitude, plotStruct.timestamps);
 
 refRMS = rms(dataRho(i)./refOrbAver(i)-1);
 ensMeanRMS = rms(dataRho(i)./ensRho(i,1)-1);
@@ -223,6 +224,16 @@ set(gca,'fontsize', 15)
 set(gca,'ydir','reverse')
 axis tight;
 
+figure;
+numBins = 20;
+t = assimiStruct.timestamps;
+i = t(1)+60 <= t & t <= t(end);
+h = histogram(obsRank(i), numBins);
+counts = get(h,'Values');
+title('Rank prob. histogram', 'fontsize', 15)
+expected = length(assimiStruct.data(i)) / numBins;
+chiSqStat = sum((counts-expected).^2 ./ expected);
+fprintf('Chi Sq.: %f\n', chiSqStat);
 
 writeCorrectedModelToFiles(plotStruct, plotSatellite);
 
@@ -307,8 +318,8 @@ plotStruct.Tex(~removeInd,3) = mean(TexArray,2) + std(TexArray,[],2);
 
 ensPredictions = exp(ensPredictions);
 plotStruct.rho(~removeInd,1) = mean(ensPredictions,2);
-plotStruct.rho(~removeInd,2) = mean(ensPredictions,2) - std(ensPredictions,[],2);
-plotStruct.rho(~removeInd,3) = mean(ensPredictions,2) + std(ensPredictions,[],2);
+plotStruct.rho(~removeInd,2) = quantile(ensPredictions,0.025,2);
+plotStruct.rho(~removeInd,3) = quantile(ensPredictions,0.975,2);
 if any(plotStruct.rho < 0)
     a = 1;
 end
@@ -329,6 +340,10 @@ mkdir(foldername);
 
 while plotStruct.timestamps(end) > date
     ind = find(date <= plotStruct.timestamps & plotStruct.timestamps < date + 1);
+    if isempty(ind)
+        date = date + 1;
+        continue
+    end
     doy = round(plotStruct.doy(ind(1)));
     sec = (plotStruct.timestamps(ind) - date) * 86400;
     

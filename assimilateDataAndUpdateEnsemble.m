@@ -1,4 +1,4 @@
-function [ensemble,innovations,residuals,covariance,P] = ...
+function [ensemble,innovations,residuals,covariance,P,obsRank] = ...
                     assimilateDataAndUpdateEnsemble(ensemble, observationOperator, ...
                                                     observationsStruct, statistics)
 % INPUT: 
@@ -46,10 +46,15 @@ A = bsxfun(@minus, ensemble, mean(ensemble, 2));
 Hx = zeros(numData, numMembers);
 for i = 1:numMembers
     simObs = observationOperator(ensemble(:,i), observationsStruct, i);
-    if any(isnan(simObs) | ~isfinite(simObs) | ~isreal(simObs) | simObs <= 0)
+    if any(isnan(simObs) | ~isfinite(simObs) | ~isreal(simObs))
         error('Observation operator returned unphysical value!')
     end
     Hx(:,i) = simObs;
+end
+
+if statistics
+    [~,rankedEnsembleAndObs] = sort([Hx, observationsStruct.data], 2);
+    [~,obsRank] = find(rankedEnsembleAndObs == numMembers+1);
 end
 
 % Simulated data perturbations from ensemble mean.
@@ -72,7 +77,7 @@ if statistics
     residuals = zeros(numData, 1);
     for i = 1:numMembers
         simObs = observationOperator(ensemble(:,i), observationsStruct);
-        if any(isnan(simObs) | ~isfinite(simObs) | ~isreal(simObs) | simObs <= 0)
+        if any(isnan(simObs) | ~isfinite(simObs) | ~isreal(simObs))
             error('Observation operator returned unphysical value!')
         end
         residuals = residuals + (observationsStruct.data - simObs)/numMembers;

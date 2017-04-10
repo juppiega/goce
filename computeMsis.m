@@ -17,6 +17,10 @@ He = zeros(N,1);
 Ar = zeros(N,1);
 O2 = zeros(N,1);
 
+load F30toF10
+S.F = pF(1) * S.F + pF(2);
+S.FA = pF(1) * S.FA + pF(2);
+
 targetCount = round(N / 10000);
 barWidth = 50;
 p = TimedProgressBar( targetCount, barWidth, ...
