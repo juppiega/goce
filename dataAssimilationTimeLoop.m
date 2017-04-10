@@ -1,10 +1,10 @@
-function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembleSize, Fstd)
+function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembleSize)
 % INPUT:
 %     modelString: 'dummy' for test, 'full' for complete model
 %     assimilationWindowLength: in hours.
 
-
-loopModelAssimilation('2004-01-01', '2004-07-02', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
+Fstd = sqrt(8);
+loopModelAssimilation('2002-08-14', '2002-08-24', 'GRACE', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
 
 
 end
@@ -69,7 +69,30 @@ if strcmpi(modelString,'dummy')
 else
     assimiStruct = addCoeffsToStruct(assimiStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
     plotStruct = addCoeffsToStruct(plotStruct, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
-    refModel = il_model_operator(zeros(size(ensemble,1),1), plotStruct, 1);
+    
+    if ~exist('rhoStruct_il.mat', 'file')
+        load optCoeff.mat
+        TexStruct.coeffInd = TexInd;
+        coeffStruct = struct('TexCoeff' , optCoeff(TexInd),... 
+        'OCoeff', optCoeff(OInd),...
+        'N2Coeff' , optCoeff(N2Ind),...
+        'HeCoeff' , optCoeff(HeInd),...
+        'O2Coeff' , optCoeff(O2Ind),...
+        'ArCoeff' , optCoeff(ArInd),...
+        'dTCoeff', dTCoeffs,...
+        'T0Coeff', T0Coeffs);
+        
+        numBiasesStruct = struct('O', 5, 'N2', 6,...
+        'He', 5, 'Ar', 2, 'O2', 0); 
+        
+        [ilRho] = computeComparisonData(rhoStruct, coeffStruct, numBiasesStruct);
+        
+        save('rhoStruct_il.mat','ilRho')
+    end
+    
+    load rhoStruct_il
+    
+    refModel = ilRho(~removeInd);
     %refModel = 1.05*mean(plotStruct.data./refModel) * refModel; % TESTAUS
     modelOperator = @il_model_operator;
 end
@@ -87,6 +110,7 @@ prevRmInd = ones(size(assimiStruct.timestamps));
 step = 1;
 obsRank = ones(size(assimiStruct.data));
 while assBegin < t1
+    datestr(assBegin)
     removeInd = assimiStruct.timestamps < assBegin | assimiStruct.timestamps >= assEnd | ~prevRmInd;
     S = removeDataPoints(assimiStruct, removeInd);
     S.sigma = S.sigma ./ S.data;
@@ -136,11 +160,11 @@ i = t(1)+5 <= t & t <= t(end);
 figure;
 % subplot(2,1,1)
 % if strcmpi(modelString,'dummy')
-    plot(repmat(plotTime,1,numFields+1), [dataRho, ensRho], 'linewidth', 2.0);
-    legend(plotSatellite,'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
+    %plot(repmat(plotTime,1,numFields+1), [dataRho, ensRho], 'linewidth', 2.0);
+    %legend(plotSatellite,'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
 % else
-%     plot(repmat(plotTime,1,numFields+2), [dataRho, refOrbAver, ensRho], 'linewidth', 2.0);
-%     legend(plotSatellite, 'IL', 'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
+     plot(repmat(plotTime,1,numFields+2), [dataRho, refOrbAver, ensRho], 'linewidth', 2.0);
+     legend(plotSatellite, 'IL', 'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
 % end
 datetick('x')
 title('Rho','fontsize',15)
@@ -224,16 +248,19 @@ set(gca,'fontsize', 15)
 set(gca,'ydir','reverse')
 axis tight;
 
-figure;
-numBins = 20;
-t = assimiStruct.timestamps;
-i = t(1)+60 <= t & t <= t(end);
-h = histogram(obsRank(i), numBins);
-counts = get(h,'Values');
-title('Rank prob. histogram', 'fontsize', 15)
-expected = length(assimiStruct.data(i)) / numBins;
-chiSqStat = sum((counts-expected).^2 ./ expected);
-fprintf('Chi Sq.: %f\n', chiSqStat);
+v = ver;
+if datenum(v(1).Date) > datenum('2015-01-01')
+    figure;
+    numBins = 20;
+    t = assimiStruct.timestamps;
+    i = t(1)+60 <= t & t <= t(end);
+    h = histogram(obsRank(i), numBins);
+    counts = get(h,'Values');
+    title('Rank prob. histogram', 'fontsize', 15)
+    expected = length(assimiStruct.data(i)) / numBins;
+    chiSqStat = sum((counts-expected).^2 ./ expected);
+    fprintf('Chi Sq.: %f\n', chiSqStat);
+end
 
 writeCorrectedModelToFiles(plotStruct, plotSatellite);
 
