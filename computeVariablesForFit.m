@@ -89,12 +89,6 @@ addStruct.mP60 = P(1,:)';
 P = legendre(7, x_mag);
 addStruct.mP70 = P(1,:)';
 
-if isfield(addStruct, 'F') && isfield(addStruct, 'FA')
-    addStruct.F2 = addStruct.F.^2;
-    addStruct.FA2 = addStruct.FA.^2;
-    addStruct.FtimesFA = addStruct.F .* addStruct.FA;
-end
-
 % Annual parameter.
 if ~isfield(addStruct, 'doy') || length(addStruct.doy) ~= length(x_mag) 
     [yr,~,~,~,~,~] = datevec(addStruct.timestamps);

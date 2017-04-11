@@ -10,7 +10,7 @@ S.latitudeTerm = a(k+1)*S.P10 + a(k+2)*S.P20 + a(k+3)*S.P30 + a(k+4)*S.P40 + a(k
 k = k + 14; % last param = 15
 
 % % Solar activity terms.
-S.solarTerm = a(k+1)*S.F + a(k+2)*S.F2 + a(k+3)*S.FA + a(k+4)*S.FA2 + a(k+5)*S.FtimesFA;
+S.solarTerm = a(k+1)*S.F + a(k+2)*S.F.^2 + a(k+3)*S.FA + a(k+4)*S.FA.^2 + a(k+5)*S.F.*S.FA;
 %a(k+1:k+5) = a(k+1:k+5) - 1;
 k = k + 5; % 20
 
