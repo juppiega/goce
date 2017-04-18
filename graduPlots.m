@@ -72,9 +72,7 @@ for i = 1:N
     ind = t <= rhoStruct.timestamps & rhoStruct.timestamps < t+dt/24;
     removeInd = ~ind;
     S = removeDataPoints(rhoStruct, removeInd);
-    if ~isempty(S.data)
-        S = computeVariablesForFit(S);
-    end
+    S = computeVariablesForFit(S);
     Sarray(i) = S;
     
     rIL = rms(S.data./ilRho(ind)-1);
