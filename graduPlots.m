@@ -110,8 +110,8 @@ for i = 1:length(assTimes)
 end
 
 figure;
-plot(assTimes, leadTimes, 'linewidth',2.0)
-ylabel('Ennusteaika [h]','fontsize',15)
+hist(leadTimes)
+xlabel('Ennusteaika [h]','fontsize',15)
 set(gca,'fontsize',15)
 
 end
