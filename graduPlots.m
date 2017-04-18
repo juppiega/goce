@@ -64,6 +64,9 @@ Sarray = repmat(S,N,1);
 ilRMS = zeros(N,1);
 t0 = assTimes(1);
 ilRMS = [];
+removeInd = false(size(rhoStruct.data));
+removeInd(rhoStruct.champ) = true;
+rhoStruct = removeDataPoints(rhoStruct, removeInd);
 for i = 1:N
     t = t0 + (i-1)*dt/24;
     ind = t <= rhoStruct.timestamps & rhoStruct.timestamps < t+dt/24;
