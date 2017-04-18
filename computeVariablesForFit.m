@@ -7,87 +7,87 @@ x_mag = cosd(90 - magLat);
 addStruct.lv = addStruct.longitude * pi / 180;
 
 % First degree functions.
-P = legendre(1, x);
-addStruct.P10 = P(1,:)';
-addStruct.P11 = P(2,:)';
+P = legendre_fixed(1, x);
+addStruct.P10 = f(1,P); 
+addStruct.P11 = f(2,P);
 
 % Second degree.
-P = legendre(2, x);
-addStruct.P20 = P(1,:)';
-addStruct.P21 = P(2,:)';
-addStruct.P22 = P(3,:)';
+P = legendre_fixed(2, x);
+addStruct.P20 = f(1,P);
+addStruct.P21 = f(2,P);
+addStruct.P22 = f(3,P);
 
 % Third degree.
-P = legendre(3, x);
-addStruct.P30 = P(1,:)';
-addStruct.P31 = P(2,:)';
-addStruct.P32 = P(3,:)';
-addStruct.P33 = P(4,:)';
+P = legendre_fixed(3, x);
+addStruct.P30 = f(1,P);
+addStruct.P31 = f(2,P);
+addStruct.P32 = f(3,P);
+addStruct.P33 = f(4,P);
 
 % Fourth degree.
-P = legendre(4, x);
-addStruct.P40 = P(1,:)';
-addStruct.P41 = P(2,:)';
-addStruct.P42 = P(3,:)';
-addStruct.P43 = P(4,:)';
-addStruct.P44 = P(5,:)';
+P = legendre_fixed(4, x);
+addStruct.P40 = f(1,P);
+addStruct.P41 = f(2,P);
+addStruct.P42 = f(3,P);
+addStruct.P43 = f(4,P);
+addStruct.P44 = f(5,P);
 
 % Fifth degree.
-P = legendre(5, x);
-addStruct.P50 = P(1,:)';
-addStruct.P51 = P(2,:)';
-addStruct.P52 = P(3,:)';
-addStruct.P53 = P(4,:)';
-addStruct.P54 = P(5,:)';
+P = legendre_fixed(5, x);
+addStruct.P50 = f(1,P);
+addStruct.P51 = f(2,P);
+addStruct.P52 = f(3,P);
+addStruct.P53 = f(4,P);
+addStruct.P54 = f(5,P);
 
 % Sixth degree.
-P = legendre(6, x);
-addStruct.P60 = P(1,:)';
-addStruct.P61 = P(2,:)';
-addStruct.P62 = P(3,:)';
-addStruct.P63 = P(4,:)';
-addStruct.P64 = P(5,:)';
+P = legendre_fixed(6, x);
+addStruct.P60 = f(1,P);
+addStruct.P61 = f(2,P);
+addStruct.P62 = f(3,P);
+addStruct.P63 = f(4,P);
+addStruct.P64 = f(5,P);
 
 % Seventh degree.
-P = legendre(7, x);
-addStruct.P70 = P(1,:)';
-addStruct.P71 = P(2,:)';
-addStruct.P74 = P(5,:)';
+P = legendre_fixed(7, x);
+addStruct.P70 = f(1,P);
+addStruct.P71 = f(2,P);
+addStruct.P74 = f(5,P);
 
 % First degree functions.
-P = legendre(1, x_mag);
-addStruct.mP10 = P(1,:)';
-addStruct.mP11 = P(2,:)';
+P = legendre_fixed(1, x_mag);
+addStruct.mP10 = f(1,P);
+addStruct.mP11 = f(2,P);
 
 % Second degree.
-P = legendre(2, x_mag);
-addStruct.mP20 = P(1,:)';
-addStruct.mP21 = P(2,:)';
+P = legendre_fixed(2, x_mag);
+addStruct.mP20 = f(1,P);
+addStruct.mP21 = f(2,P);
 
 % Third degree.
-P = legendre(3, x_mag);
-addStruct.mP30 = P(1,:)';
-addStruct.mP31 = P(2,:)';
-addStruct.mP32 = P(3,:)';
+P = legendre_fixed(3, x_mag);
+addStruct.mP30 = f(1,P);
+addStruct.mP31 = f(2,P);
+addStruct.mP32 = f(3,P);
 
 % Fourth degree.
-P = legendre(4, x_mag);
-addStruct.mP40 = P(1,:)';
-addStruct.mP41 = P(2,:)';
+P = legendre_fixed(4, x_mag);
+addStruct.mP40 = f(1,P);
+addStruct.mP41 = f(2,P);
 
 % Fifth degree.
-P = legendre(5, x_mag);
-addStruct.mP50 = P(1,:)';
-addStruct.mP51 = P(2,:)';
-addStruct.mP52 = P(3,:)';
+P = legendre_fixed(5, x_mag);
+addStruct.mP50 = f(1,P);
+addStruct.mP51 = f(2,P);
+addStruct.mP52 = f(3,P);
 
 % Sixth degree.
-P = legendre(6, x_mag);
-addStruct.mP60 = P(1,:)';
+P = legendre_fixed(6, x_mag);
+addStruct.mP60 = f(1,P);
 
 % Seventh degree.
-P = legendre(7, x_mag);
-addStruct.mP70 = P(1,:)';
+P = legendre_fixed(7, x_mag);
+addStruct.mP70 = f(1,P);
 
 % Annual parameter.
 if ~isfield(addStruct, 'doy') || length(addStruct.doy) ~= length(x_mag) 
@@ -119,5 +119,25 @@ addStruct.geomagnetic = zeros(length(x),1);
 %if ~isfield(addStruct,'Z') || (isfield(addStruct,'Z') && length(addStruct.altitude) ~= length(addStruct.Z))
     addStruct = computeGeopotentialHeight(addStruct);
 %end
+
+end
+
+function output = f(i,P)
+
+if isempty(P)
+    output = [];
+else
+    output = P(i,:)';
+end
+
+end
+
+function P = legendre_fixed(i,x)
+
+if isempty(x)
+    P = [];
+else
+    P = legendre(i,x);
+end
 
 end
