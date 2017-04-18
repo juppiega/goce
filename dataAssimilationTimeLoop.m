@@ -3,9 +3,9 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 %     modelString: 'dummy' for test, 'full' for complete model
 %     assimilationWindowLength: in hours.
 
-Fstd = sqrt(8);
-%Fstd = 20;
-loopModelAssimilation('2002-09-16', '2002-09-26', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
+Fstd = sqrt(6);
+%Fstd = 8;
+loopModelAssimilation('2008-06-01', '2009-05-31', 'CH/GR', 'GRACE', modelString, assimilationWindowLength, ensembleSize, Fstd);
 
 
 end
@@ -104,6 +104,7 @@ a = assimiStruct.sigma ./ assimiStruct.data;
 d = zeros(N,1);
 r = zeros(N,1);
 assTimes = [];
+ensMeans = zeros(size(ensemble,1),1);
 ensMeanF = [];
 covdiag = zeros(0,size(ensemble,1));
 
@@ -125,17 +126,24 @@ while assBegin < t1
     
     previousEnsemble = ensemble;
     
-    ensMean = mean(ensemble, 2);
-    ensStd = std(ensemble, 0, 2);
+    %ensMean = mean(ensemble, 2);
+    %ensStd = std(ensemble, 0, 2);
     %ensemble = bsxfun(@plus, (1 + inflFac)*bsxfun(@minus, ensemble, ensMean), ensMean);
-    if step > 1
-        ensemble(1,:) = (Fstd)/ensStd(1) * (ensemble(1,:)-ensMean(1)) + ensMean(1);
-        %ensemble(2,:) = (0.2)/ensStd(2) * (ensemble(2,:)-ensMean(2)) + ensMean(2);
-    end
+%     if step > 1
+%         ensemble(1,:) = (Fstd)/ensStd(1) * (ensemble(1,:)-ensMean(1)) + ensMean(1);
+%         %ensemble(2,:) = (0.2)/ensStd(2) * (ensemble(2,:)-ensMean(2)) + ensMean(2);
+%     end
     [ensemble,d(~removeInd),r(~removeInd),c,P,obsRank(~removeInd)] = ...
         assimilateDataAndUpdateEnsemble(ensemble, modelOperator, S, true);
+    ensMean = mean(ensemble, 2);
+    ensStd = std(ensemble, 0, 2);
+   % if step > 1
+        ensemble(1,:) = (Fstd)/ensStd(1) * (ensemble(1,:)-ensMean(1)) + ensMean(1);
+        %ensemble(2,:) = (0.2)/ensStd(2) * (ensemble(2,:)-ensMean(2)) + ensMean(2);
+    %end
     covdiag = [covdiag; diag(c)'];
-    ensMeanF = [ensMeanF; mean(ensemble(1,:))];
+    ensMeans = [ensMeans, ensMean];
+    ensMeanF = [ensMeanF; ensMean(1)];
     
     assTime = mean([assBegin; assEnd]);
     assTimes = [assTimes; assTime];
@@ -148,6 +156,7 @@ while assBegin < t1
     prevRmInd = removeInd;
     step = step + 1;
 end
+ensMeans = ensMeans(:,2:end);
 
 d = d(1:N);
 r = r(1:N);
@@ -175,12 +184,12 @@ figure;
     %legend(plotSatellite,'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
 % else
      plot(repmat(plotTime,1,numFields+2), [dataRho, refOrbAver, analRho], 'linewidth', 2.0);
-     legend(plotSatellite, 'IL', 'Ens. mean', '+ 1 \sigma', '- 1 \sigma')
+     legend(plotSatellite, 'IL', 'Keskiarvo', '+ 1 \sigma', '- 1 \sigma')
 % end
 datetick('x')
-title('Rho','fontsize',15)
+title('Tiheys','fontsize',15)
 set(gca,'fontsize', 15)
-ylabel('rho', 'fontsize',15)
+ylabel('Tiheys [kg/m^3]', 'fontsize',15)
 axis tight
 ylim([0.8*min(analStruct.data), 1.25*max(analStruct.data)])
 
@@ -206,7 +215,7 @@ fprintf('Improvement: %f\n', (1 - (ensMeanRMS./refRMS))*100);
 figure;
 subplot(3,1,1)
 plot(repmat(analStruct.timestamps,1,2), [d, r])
-legend('Innovations', 'Residuals');
+legend('Innovaatiot', 'Residuaalit');
 datetick('x')
 set(gca,'fontsize', 15)
 
@@ -219,7 +228,7 @@ set(gca,'fontsize', 15)
 subplot(3,1,3)
 tVar = sqrt(covdiag(:,1:3));
 plot(repmat(assTimes,1,3), tVar);
-legend('\sigma T0', '\sigma dT','\sigma Tex');
+legend('\sigma F30', '\sigma T0','\sigma dT');
 datetick('x')
 set(gca,'fontsize', 15)
 
@@ -246,9 +255,9 @@ surf(x,y,z,'edgecolor','none')
 shading interp
 colorbar
 view(2);
-xlabel('lst','fontsize',15)
-ylabel('lat','fontsize',15)
-title('Tex correction','fontsize',15)
+xlabel('Paikallisaika','fontsize',15)
+ylabel('Leveyspiiri','fontsize',15)
+title('Tex -korjaus','fontsize',15)
 axis tight
 
 refRMS = [];
@@ -264,9 +273,9 @@ figure;
 t = (floor(t0):ceil(t1)-1)';
 plot(repmat(t,1,3),[refRMS, bgRMS, analRMS])
 set(gca,'fontsize', 15)
-xlabel('Time','fontsize',15)
+xlabel('Aika','fontsize',15)
 ylabel('RMSE','fontsize',15)
-legend('IL','backg.','analysis')
+legend('IL','Tausta','Analyysi')
 datetick('x')
 
 figure('renderer', 'zbuffer');
@@ -291,7 +300,7 @@ subplot(3,1,1)
 surf(x,y,exp(zIL),'edgecolor','none')
 shading interp; colorbar; view(2);
 %xlabel('lst','fontsize',15)
-ylabel('lat','fontsize',15)
+ylabel('Leveyspiiri','fontsize',15)
 title('IL','fontsize',15)
 axis tight
 
@@ -299,15 +308,15 @@ subplot(3,1,2)
 surf(x,y,exp(zBg),'edgecolor','none')
 shading interp; colorbar; view(2);
 %xlabel('lst','fontsize',15)
-ylabel('lat','fontsize',15)
+ylabel('Leveyspiiri','fontsize',15)
 title('Background','fontsize',15)
 axis tight
 
 subplot(3,1,3)
 surf(x,y,exp(zAnalysis),'edgecolor','none')
 shading interp; colorbar; view(2);
-xlabel('lst','fontsize',15)
-ylabel('lat','fontsize',15)
+xlabel('Paikallisaika','fontsize',15)
+ylabel('Leveyspiiri','fontsize',15)
 title('Analysis','fontsize',15)
 axis tight
 
@@ -315,12 +324,12 @@ figure;
 plot(assTimes, ensMeanF, assimiStruct.timestamps, assimiStruct.F)
 datetick('x')
 set(gca,'fontsize', 15)
-xlabel('Time','fontsize',15)
+xlabel('Aika','fontsize',15)
 ylabel('F30','fontsize',15)
 
 figure;
 surf(log10(abs(c)),'edgecolor','none');
-title('Model covariance', 'fontsize', 15)
+title('Mallin kovarianssi', 'fontsize', 15)
 view(2);
 colorbar;
 set(gca,'fontsize', 15)
@@ -335,7 +344,7 @@ if datenum(v(1).Date) > datenum('2015-01-01')
     i = t(1)+60 <= t & t <= t(end);
     h = histogram(obsRank(i), numBins);
     counts = get(h,'Values');
-    title('Rank prob. histogram', 'fontsize', 15)
+    title('Sijoituslukujen jakauma', 'fontsize', 15)
     expected = length(assimiStruct.data(i)) / numBins;
     chiSqStat = sum((counts-expected).^2 ./ expected);
     fprintf('Chi Sq.: %f\n', chiSqStat);
@@ -346,7 +355,7 @@ writeCorrectedModelToFiles(analStruct, plotSatellite);
 filename = [plotSatellite,'_',beginDay,'_',endDay,'.mat'];
 save(filename, 'bgStruct')
 save(filename, 'analStruct','assimiStruct','d','r','P','obsRank','dataRho','analRho','bgRho','refOrbAver',...
-    'plotTime', 'covdiag','ensMeanF','assTimes','ensemble','windowLen', '-append')
+    'plotTime', 'covdiag','ensMeanF','ensMeans','assTimes','ensemble','windowLen', '-append')
 
 end
 
