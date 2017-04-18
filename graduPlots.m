@@ -1,6 +1,6 @@
 function [] = graduPlots()
 
-load GRACE_2004-01-01_2004-02-02.mat
+load GRACE_2002-08-01_2003-07-31.mat
 load('ilData.mat','rhoStruct')
 load rhoStruct_il.mat
 
