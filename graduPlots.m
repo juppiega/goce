@@ -72,7 +72,9 @@ for i = 1:N
     ind = t <= rhoStruct.timestamps & rhoStruct.timestamps < t+dt/24;
     removeInd = ~ind;
     S = removeDataPoints(rhoStruct, removeInd);
-    S = computeVariablesForFit(S);
+    if ~isempty(S.data)
+        S = computeVariablesForFit(S);
+    end
     Sarray(i) = S;
     
     rIL = rms(S.data./ilRho(ind)-1);
@@ -91,8 +93,12 @@ for i = 1:length(assTimes)
     endInd = beginInd + Nduration - 1;
     
     for k = beginInd : endInd
-        prediction = exp(il_model_operator(ensExample, Sarray(k), 1));
-        rAss = rms(Sarray(k).data./prediction-1);
+        if ~isempty(S.data)
+            prediction = exp(il_model_operator(ensExample, Sarray(k), 1));
+            rAss = rms(Sarray(k).data./prediction-1);
+        else
+            rAss = 0;
+        end
         assRMS = [assRMS, rAss];
         times = [times, t];
 
