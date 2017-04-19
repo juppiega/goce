@@ -1,6 +1,12 @@
 function [magneticLatitude, magneticLongitude] = convertToMagneticCoordinates(latitude, longitude, altitude)
 % [magneticLatitude] = convertToMagneticCoordinates(latitude, longitude, altitude)
 
+if isempty(latitude)
+    magneticLatitude = [];
+    magneticLongitude = [];
+    return
+end
+
 ecefXYZ = geod2ecef(latitude, longitude, altitude)';
 ecefToMagTransform = [0.33907 -0.91964 -0.19826; ...
                       0.93826  0.34594  0      ; ...

@@ -91,8 +91,8 @@ for i = 1:length(assTimes)
     endInd = beginInd + Nduration - 1;
     
     for k = beginInd : endInd
-        if ~isempty(S.data)
-            prediction = exp(il_model_operator(ensExample, Sarray(k), 1));
+        if ~isempty(Sarray(k).data)
+            prediction = exp(il_model_operator(ens, Sarray(k), 1));
             rAss = rms(Sarray(k).data./prediction-1);
         else
             rAss = 0;
@@ -116,8 +116,11 @@ for i = 1:length(assTimes)
     leadTimes = [leadTimes, leadTime*24];
 end
 
+plotMax = 72; % h
+leadTimes(leadTimes > plotMax) = [];
+numBins = round(plotMax / dt);
 figure;
-hist(leadTimes)
+hist(leadTimes, numBins)
 xlabel('Ennusteaika [h]','fontsize',15)
 set(gca,'fontsize',15)
 

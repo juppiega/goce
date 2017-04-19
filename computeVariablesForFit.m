@@ -1,6 +1,11 @@
 function [addStruct] = computeVariablesForFit(addStruct, computeMagDiurnal)
 
 x = cosd(90 - addStruct.latitude);
+if isempty(addStruct.longitude)
+    addStruct.longitude = [];
+    addStruct.latitude = [];
+    addStruct.altitude = [];
+end
 [magLat, magLon] = convertToMagneticCoordinates(addStruct.latitude, addStruct.longitude,...
                                                 addStruct.altitude);
 x_mag = cosd(90 - magLat);
@@ -93,7 +98,11 @@ addStruct.mP70 = f(1,P);
 if ~isfield(addStruct, 'doy') || length(addStruct.doy) ~= length(x_mag) 
     [yr,~,~,~,~,~] = datevec(addStruct.timestamps);
     yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
-    addStruct.doy = addStruct.timestamps - datenum(yearVec) + 1;
+    if ~isempty(addStruct.timestamps)
+        addStruct.doy = addStruct.timestamps - datenum(yearVec) + 1;
+    else
+        addStruct.doy = [];
+    end
 end
 
 % Diurnal parameter

@@ -5,7 +5,7 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 
 Fstd = sqrt(6);
 %Fstd = 8;
-loopModelAssimilation('2008-06-01', '2009-05-31', 'CH/GR', 'GRACE', modelString, assimilationWindowLength, ensembleSize, Fstd);
+loopModelAssimilation('2002-08-01', '2003-07-31', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
 
 
 end
