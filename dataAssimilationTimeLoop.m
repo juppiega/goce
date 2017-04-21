@@ -5,7 +5,7 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 
 Fstd = sqrt(6);
 %Fstd = 8;
-loopModelAssimilation('2002-08-01', '2002-08-31', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
+loopModelAssimilation('2002-08-02', '2002-12-31', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
 
 
 end
@@ -357,11 +357,16 @@ save(filename, 'bgStruct')
 save(filename, 'analStruct','assimiStruct','d','r','P','obsRank','dataRho','analRho','bgRho','refOrbAver',...
     'plotTime', 'covdiag','ensMeanF','ensMeans','assTimes','ensemble','windowLen', '-append')
 
-compareToTLE(t0, t1, ensMeans, assimiStruct, windowLen/24, modelString, plotID)
+plotID = [60,614,750,2389,3717,4330];
+compareToTLE(t0, t1, ensMeans, assimiStruct, assTimes, modelString, plotID, rhoStruct)
 
 end
 
-function compareToTLE(beginDate, endDate, ensMeans, assimiStruct, modelString, plotID)
+function compareToTLE(beginDate, endDate, ensemble, assimiStruct, assTimes, modelString, plotID, rhoStruct)
+
+if ndims(ensemble) == 2
+    ensemble = reshape(ensemble, [size(ensemble,1),1,size(ensemble,2)]);
+end
 
 if iscolumn(plotID)
     plotID = plotID';
@@ -376,7 +381,7 @@ if ~all(ismember(plotID, objectIDs))
     error(['Could not find requested object(s): ', num2str(plotID(~ismember(plotID, objectIDs))),' in Bfactors.dat'])
 end
 
-tleMap = downloadTLEs(objectIDs, beginDate, endDate);
+tleMap = downloadTLEs(plotID, beginDate, endDate); % Tahan plotIDs?
 
 assimilationWindow = 3;
 intWindow = assimilationWindow;
@@ -401,23 +406,21 @@ else
     modelOperator = @dummyThermosphere;
 end
 
+[Ftimes,order] = unique(rhoStruct.timestamps);
+F = rhoStruct.F(order);
+FA = rhoStruct.FA(order);
+aeInt = rhoStruct.aeInt(order,:);
+
+
 date = beginDate;
 oldTLEs = selectTLEs(tleMap, 'oldest');
 k = 1;
-% TARKISTA TÄSTÄ ETEENPÄIN!!!
 while date <= endDate
     assimilatableTLEs = findAssimilatableTLEs(tleMap, oldTLEs, date, date + assimilationWindow, intWindow);
     if ~isempty(keys(assimilatableTLEs))
-        S = computeBiRhoAndIntTerms(ensemble, modelOperator, oldTLEs, assimilatableTLEs, 0.5, 100);
-        S.sigma = S.sig_rho;
-        S.data = S.rhoObs;
-
-        ensMean = mean(ensemble, 2);
-        ensStd = std(ensemble, 0, 2);     
-        if k > 1
-            ensemble(3,:) = (TexStd)/ensStd(3) * (ensemble(3,:)-ensMean(3)) + ensMean(3);
-        end
-        [ensemble] = assimilateDataAndUpdateEnsemble(ensemble, obsOperator, S, false);
+        % KORJAA JA TARKISTA:
+        S = computeBiRhoAndIntTerms(ensemble, modelOperator, oldTLEs, assimilatableTLEs, 0.5, 100,...
+            Ftimes, F, FA, aeInt, assimiStruct, true, assTimes);
         
         ind = ismember(S.objectIDs,plotID);
         OM_DA = S.rhoObs(ind)./mean(S.rhoModel_DA(ind,:),2);
@@ -431,6 +434,12 @@ while date <= endDate
             end
         end
     end
+    
+    assimilatedObj = keys(assimilatableTLEs);
+    for i = 1:length(assimilatedObj)
+        oldTLEs(assimilatedObj{i}) = assimilatableTLEs(assimilatedObj{i});
+    end
+    
     date = date + assimilationWindow;
     k = k + 1;
     p.progress;

@@ -1,25 +1,25 @@
 function [fixStruct] = removeDataPoints(fixStruct, removeInd, removeBiasMatRows, fixSatIndices, fixZ, fixWeights)
 
-if (islogical(removeInd) && length(fixStruct.data) ~= length(removeInd))
+if (islogical(removeInd) && length(fixStruct.timestamps) ~= length(removeInd))
     error('Lengths of struct data and remove indices (logical vector) must be the same!')
 end
 
-fixStruct.data(removeInd) = [];
+if isfield(fixStruct, 'data'); fixStruct.data(removeInd) = []; end
 fixStruct.timestamps(removeInd) = [];
 fixStruct.latitude(removeInd) = [];
 fixStruct.longitude(removeInd) = [];
 fixStruct.solarTime(removeInd) = [];
 fixStruct.altitude(removeInd) = [];
-fixStruct.aeInt(removeInd,:) = [];
-fixStruct.F(removeInd) = [];
-fixStruct.FA(removeInd) = [];
-fixStruct.apNow(removeInd) = [];
-fixStruct.ap3h(removeInd) = [];
-fixStruct.ap6h(removeInd) = [];
-fixStruct.ap9h(removeInd) = [];
-fixStruct.ap12To33h(removeInd) = [];
-fixStruct.ap36To57h(removeInd) = [];
-fixStruct.Ap(removeInd) = [];
+if isfield(fixStruct, 'aeInt');fixStruct.aeInt(removeInd,:) = [];end
+if isfield(fixStruct, 'F');fixStruct.F(removeInd) = [];end
+if isfield(fixStruct, 'FA');fixStruct.FA(removeInd) = [];end
+if isfield(fixStruct, 'apNow'); fixStruct.apNow(removeInd) = [];end
+if isfield(fixStruct, 'ap3h');fixStruct.ap3h(removeInd) = [];end
+if isfield(fixStruct, 'ap6h');fixStruct.ap6h(removeInd) = [];end
+if isfield(fixStruct, 'ap9h');fixStruct.ap9h(removeInd) = [];end
+if isfield(fixStruct, 'ap12To33h');fixStruct.ap12To33h(removeInd) = [];end
+if isfield(fixStruct, 'ap36To57h');fixStruct.ap36To57h(removeInd) = [];end
+if isfield(fixStruct, 'Ap');fixStruct.Ap(removeInd) = [];end
 if isfield(fixStruct, 'dst')
     fixStruct.dst(removeInd) = [];
 end
@@ -69,6 +69,6 @@ if nargin > 2
     end
 end
 
-fixStruct.dataEnd = length(fixStruct.data);
+fixStruct.dataEnd = length(fixStruct.timestamps);
 
 end

@@ -1,18 +1,22 @@
 function [rho, outputStruct] =...
     il_take_time_into_account(states, S, index)
 
-assWindow = 0.5*(S.assTimes(2)-S.assTimes(1));
-if any(S.assTimes(1)-assWindow/2 < S.timestamps | S.timestamps > S.assTimes(end)+assWindow/2)
+assWindow = (S.assTimes(2)-S.assTimes(1));
+if ~all(S.assTimes(1)-assWindow/2 <= S.timestamps & S.timestamps <= S.assTimes(end)+assWindow/2)
     warning('Some timestamps out of ensemble time range.')
 end
 
 rho = zeros(size(S.timestamps));
-[~,beginInd] = find(min(abs(S.assTimes - S.timestamps(1))));
-[~,endInd] = find(min(abs(S.assTimes - S.timestamps(end))));
 
-for k = beginInd:endInd
-    state = states(:,1,k);
-    conserveInd = S.assTimes(k)-assWindow/2 <= S.timestamps & S.timestamps < S.assTimes(k)+assWindow/2;
+nearestWindows = interp1(S.assTimes, 1:length(S.assTimes), S.timestamps,'nearest','extrap');
+
+for k = min(nearestWindows):max(nearestWindows)
+    if ~iscolumn(states)
+        state = states(:,1,k);
+    else
+        state = states;
+    end
+    conserveInd = nearestWindows == k;
     removeInd = ~conserveInd;
     
     S_this = removeDataPoints(S, removeInd);
@@ -48,8 +52,11 @@ for k = beginInd:endInd
 end
 
 zeroInd = rho==0;
-rho(zeroInd) = interp1(1:length(rho), rho, find(zeroInd));
-rho = log(rho);
+if any(zeroInd)
+    error('Some densities were zero!')
+end
+
+%rho = log(rho);
 
 if nargout > 1
     outputStruct = struct('O', O, 'N2', N2, 'He', He, 'Ar', Ar, 'O2', O2, 'Tex', Tex,...

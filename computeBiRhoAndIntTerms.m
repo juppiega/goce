@@ -86,6 +86,9 @@ for i = 1:length(recentObjects)
         tDatenum(j) = datenum([yyyy,mo,dd,hh,mins,ss]);
     end
     
+    tDiff = tDatenum(end) - tDatenum(1);
+    fprintf('Sat: %d, tDiff [days]: %f\n', object, tDiff)
+    
     observationStruct = struct('latitude', lat, 'longitude', lon, 'solarTime', lst,...
                                'altitude', alt, 'timestamps', tDatenum);
     if nargin <= 11

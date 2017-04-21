@@ -72,6 +72,12 @@ while date <= endDate
             end
         end
     end
+    
+    assimilatedObj = keys(assimilatableTLEs);
+    for i = 1:length(assimilatedObj)
+        oldTLEs(assimilatedObj{i}) = assimilatableTLEs(assimilatedObj{i});
+    end
+    
     date = date + assimilationWindow;
     k = k + 1;
     p.progress;
