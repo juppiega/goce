@@ -1,8 +1,10 @@
 function [rho, outputStruct] =...
     il_model_operator(state, S, index)
 
-S.F = state(1);
-S.FA = state(1);
+if state(1) > 0
+    S.F = state(1);
+    S.FA = state(1);
+end
 
 T0 = clamp(200, evalT0(S, S.T0Coeff), 1000);
 dT0 = clamp(1, evalDT(S, S.dTCoeff), 30);

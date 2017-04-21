@@ -1,4 +1,4 @@
-function [ballisticOutput] = computeBiRhoAndIntTerms(ensemble, modelFunction, previousTLEs, recentTLEs, dt, maxBdeviation)
+function [ballisticOutput] = computeBiRhoAndIntTerms(ensemble, modelFunction, previousTLEs, recentTLEs, dt, maxBdeviation, Ftimes, F, FA, aeInt, assimiStruct, timeDepEns, assTimes)
 % [dt] minutes, [maxBdeviation] = relative (e.g. 0.1*Btrue <= Bi <= 10*Btrue => maxBdeviation = 10;
 
 mu = 3.986004418E14;
@@ -88,12 +88,41 @@ for i = 1:length(recentObjects)
     
     observationStruct = struct('latitude', lat, 'longitude', lon, 'solarTime', lst,...
                                'altitude', alt, 'timestamps', tDatenum);
-    observationStruct = computeVariablesForFit(observationStruct);
+    if nargin <= 11
+        observationStruct = computeVariablesForFit(observationStruct);
+    end
+    if nargin > 6
+        observationStruct.F = interp1(Ftimes, F, tDatenum);
+        observationStruct.FA = interp1(Ftimes, FA, tDatenum);
+        observationStruct.aeInt = interp1(Ftimes, aeInt, tDatenum);
+        observationStruct.dTCoeff = assimiStruct.dTCoeff;
+        observationStruct.T0Coeff = assimiStruct.T0Coeff;
+        observationStruct.TexCoeff = assimiStruct.TexCoeff;
+        observationStruct.OCoeff = assimiStruct.OCoeff;
+        observationStruct.N2Coeff = assimiStruct.N2Coeff;
+        observationStruct.HeCoeff = assimiStruct.HeCoeff;
+        observationStruct.ArCoeff = assimiStruct.ArCoeff;
+        observationStruct.O2Coeff = assimiStruct.O2Coeff;
+        observationStruct.O_numBiases = assimiStruct.O_numBiases;
+        observationStruct.N2_numBiases = assimiStruct.N2_numBiases;
+        observationStruct.He_numBiases = assimiStruct.He_numBiases;
+        observationStruct.Ar_numBiases = assimiStruct.Ar_numBiases;
+        observationStruct.O2_numBiases = assimiStruct.O2_numBiases;
+        if nargin > 11
+            observationStruct.assTimes = assTimes;
+        end
+    end
     
     densityMatrix = zeros(length(rMag), size(ensemble,2));
     
-    for j = 1:size(ensemble,2)
-        densityMatrix(:,j) = modelFunction(ensemble(:,j), observationStruct);
+    if nargin > 11 && timeDepEns
+        for j = 1:size(ensemble,2)
+            densityMatrix(:,j) = modelFunction(ensemble(:,j,:), observationStruct);
+        end
+    else
+        for j = 1:size(ensemble,2)
+            densityMatrix(:,j) = modelFunction(ensemble(:,j), observationStruct);
+        end
     end
     nonDA = modelFunction(zeros(size(ensemble,1),1), observationStruct);
     

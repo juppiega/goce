@@ -7,7 +7,7 @@ load rhoStruct_il.mat
 ensExample = ensMeans(:,end);
 timeExample = assTimes(length(assTimes));
 assWindow = round((assTimes(2)-assTimes(1)) * 24);
-dt = 6; % hours
+dt = 1.5; % hours
 if mod(24,dt) ~= 0
     error('dt must be a harmonic of 24 hours!');
 end
@@ -15,11 +15,11 @@ if mod(assWindow,dt) ~= 0
     error('dt must be a harmonic of the assimilation window length!');
 end
 
-duration = 2*7; %days
+duration = 1*7; %days
 endTime = timeExample + duration;
 assRMS = [];
 ilRMS = [];
-plotTimes = [];
+pt = [];
 t = timeExample;
 
 rhoStruct.dTCoeff = assimiStruct.dTCoeff;
@@ -46,12 +46,12 @@ while t < endTime
     rIL = rms(S.data./ilRho(ind)-1);
     assRMS = [assRMS, rAss];
     ilRMS = [ilRMS, rIL];
-    plotTimes = [plotTimes, t];
+    pt = [pt, t];
     
     t = t + dt/24;
 end
 figure;
-plot(plotTimes, assRMS, plotTimes, ilRMS, 'linewidth',2.0);
+plot(pt, assRMS, pt, ilRMS, 'linewidth',2.0);
 legend('Data-assimilaatio','IL')
 datetick('x')
 ylabel('RMSE','fontsize',15)
@@ -64,9 +64,12 @@ Sarray = repmat(S,N,1);
 ilRMS = zeros(N,1);
 t0 = assTimes(1);
 ilRMS = [];
+
 removeInd = false(size(rhoStruct.data));
 removeInd(rhoStruct.champ) = true;
 rhoStruct = removeDataPoints(rhoStruct, removeInd);
+ilRho(removeInd) = [];
+
 for i = 1:N
     t = t0 + (i-1)*dt/24;
     ind = t <= rhoStruct.timestamps & rhoStruct.timestamps < t+dt/24;
@@ -113,10 +116,13 @@ for i = 1:length(assTimes)
     else
         leadTime = times(leadTimeInd-1) - assTimes(i);
     end
+    if leadTime > 6
+        a=1;
+    end
     leadTimes = [leadTimes, leadTime*24];
 end
 
-plotMax = 72; % h
+plotMax = 1*7*24; % h
 leadTimes(leadTimes > plotMax) = [];
 numBins = round(plotMax / dt);
 figure;
