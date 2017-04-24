@@ -1,10 +1,10 @@
 function [rho, outputStruct] =...
     il_model_operator(state, S, index)
 
-if state(1) > 0
-    S.F = state(1);
-    S.FA = state(1);
-end
+% if state(1) > 0
+%     S.F = state(1);
+%     S.FA = state(1);
+% end
 
 T0 = clamp(200, evalT0(S, S.T0Coeff), 1000);
 dT0 = clamp(1, evalDT(S, S.dTCoeff), 30);
@@ -15,7 +15,7 @@ T0 = clamp(300, T0 + state(2), 700);
 dT0 = clamp(1, dT0 + state(3), 20);
 
 % Add T2 correction to Tex
-Tex = clamp(T0+1, Tex + bulge(state(4:11), S), 5000);
+Tex = clamp(T0+1, Tex + state(1) + bulge(state(4:11), S), 5000);
 
 OlbDens = evalMajorSpecies(S, S.OCoeff, S.O_numBiases);
 N2lbDens = evalMajorSpecies(S, S.N2Coeff, S.N2_numBiases);

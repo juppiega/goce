@@ -3,9 +3,9 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 %     modelString: 'dummy' for test, 'full' for complete model
 %     assimilationWindowLength: in hours.
 
-Fstd = sqrt(6);
-%Fstd = 8;
-loopModelAssimilation('2002-08-02', '2002-12-31', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
+Fstd = 24;
+%Fstd = sqrt(6);
+loopModelAssimilation('2004-01-01', '2004-05-31', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
 
 
 end
@@ -113,6 +113,7 @@ assEnd = t0 + windowLen/24/2;
 prevRmInd = ones(size(assimiStruct.timestamps));
 step = 1;
 obsRank = ones(size(assimiStruct.data));
+%rhoStruct.sigma(rhoStruct.champ) = rhoStruct.sigma(rhoStruct.champ) / 2; % TESTAUS!!!
 while assBegin < t1
     datestr(assBegin)
     removeInd = assimiStruct.timestamps < assBegin | assimiStruct.timestamps >= assEnd | ~prevRmInd;
@@ -278,47 +279,47 @@ ylabel('RMSE','fontsize',15)
 legend('IL','Tausta','Analyysi')
 datetick('x')
 
-figure('renderer', 'zbuffer');
-zAnalysis = reshape(modelOperator(ensMean,T), size(x,1), size(x,2));
-bgMean = mean(previousEnsemble,2);
-zBg = reshape(modelOperator(bgMean,T), size(x,1), size(x,2));
-
-[~,ind] = min(abs(assimiStruct.timestamps-assTimes(end)));
-controlEns = [assimiStruct.FA(ind); zeros(length(ensMean)-1,1)];
-zIL = reshape(modelOperator(controlEns,T), size(x,1), size(x,2));
-
-% subplot(4,1,1)
-% scatter3(S.solarTime, S.latitude, zeros(size(S.data)), 10.0, exp(S.data), ...
-%     'MarkerFaceColor', 'flat','Marker','o')
+% figure('renderer', 'zbuffer');
+% zAnalysis = reshape(modelOperator(ensMean,T), size(x,1), size(x,2));
+% bgMean = mean(previousEnsemble,2);
+% zBg = reshape(modelOperator(bgMean,T), size(x,1), size(x,2));
+% 
+% [~,ind] = min(abs(assimiStruct.timestamps-assTimes(end)));
+% controlEns = [assimiStruct.FA(ind); zeros(length(ensMean)-1,1)];
+% zIL = reshape(modelOperator(controlEns,T), size(x,1), size(x,2));
+% 
+% % subplot(4,1,1)
+% % scatter3(S.solarTime, S.latitude, zeros(size(S.data)), 10.0, exp(S.data), ...
+% %     'MarkerFaceColor', 'flat','Marker','o')
+% % shading interp; colorbar; view(2);
+% % %xlabel('lst','fontsize',15)
+% % ylabel('lat','fontsize',15)
+% % title('IL','fontsize',15)
+% % axis tight
+% 
+% subplot(3,1,1)
+% surf(x,y,exp(zIL),'edgecolor','none')
 % shading interp; colorbar; view(2);
 % %xlabel('lst','fontsize',15)
-% ylabel('lat','fontsize',15)
+% ylabel('Leveyspiiri','fontsize',15)
 % title('IL','fontsize',15)
 % axis tight
-
-subplot(3,1,1)
-surf(x,y,exp(zIL),'edgecolor','none')
-shading interp; colorbar; view(2);
-%xlabel('lst','fontsize',15)
-ylabel('Leveyspiiri','fontsize',15)
-title('IL','fontsize',15)
-axis tight
-
-subplot(3,1,2)
-surf(x,y,exp(zBg),'edgecolor','none')
-shading interp; colorbar; view(2);
-%xlabel('lst','fontsize',15)
-ylabel('Leveyspiiri','fontsize',15)
-title('Background','fontsize',15)
-axis tight
-
-subplot(3,1,3)
-surf(x,y,exp(zAnalysis),'edgecolor','none')
-shading interp; colorbar; view(2);
-xlabel('Paikallisaika','fontsize',15)
-ylabel('Leveyspiiri','fontsize',15)
-title('Analysis','fontsize',15)
-axis tight
+% 
+% subplot(3,1,2)
+% surf(x,y,exp(zBg),'edgecolor','none')
+% shading interp; colorbar; view(2);
+% %xlabel('lst','fontsize',15)
+% ylabel('Leveyspiiri','fontsize',15)
+% title('Background','fontsize',15)
+% axis tight
+% 
+% subplot(3,1,3)
+% surf(x,y,exp(zAnalysis),'edgecolor','none')
+% shading interp; colorbar; view(2);
+% xlabel('Paikallisaika','fontsize',15)
+% ylabel('Leveyspiiri','fontsize',15)
+% title('Analysis','fontsize',15)
+% axis tight
 
 figure;
 plot(assTimes, ensMeanF, assimiStruct.timestamps, assimiStruct.F)
@@ -341,7 +342,7 @@ if datenum(v(1).Date) > datenum('2015-01-01')
     figure;
     numBins = 20;
     t = assimiStruct.timestamps;
-    i = t(1)+60 <= t & t <= t(end);
+    i = t(1)+10 <= t & t <= t(end);
     h = histogram(obsRank(i), numBins);
     counts = get(h,'Values');
     title('Sijoituslukujen jakauma', 'fontsize', 15)
@@ -362,7 +363,7 @@ compareToTLE(t0, t1, ensMeans, assimiStruct, assTimes, modelString, plotID, rhoS
 
 end
 
-function compareToTLE(beginDate, endDate, ensemble, assimiStruct, assTimes, modelString, plotID, rhoStruct)
+function [] = compareToTLE(beginDate, endDate, ensemble, assimiStruct, assTimes, modelString, plotID, rhoStruct)
 
 if ndims(ensemble) == 2
     ensemble = reshape(ensemble, [size(ensemble,1),1,size(ensemble,2)]);
@@ -426,8 +427,9 @@ while date <= endDate
         OM_DA = S.rhoObs(ind)./mean(S.rhoModel_DA(ind,:),2);
         OM_IL = S.rhoObs(ind)./S.rhoModel_IL(ind);
         plotTimes(k) = date + assimilationWindow/2;
+        this_computed_satell = S.objectIDs(ind);
         for j = 1:length(plotID)
-            objInd = find(S.objectIDs == plotID(j));
+            objInd = find(this_computed_satell == plotID(j));
             if ~isempty(objInd)
                 plotOM(k,j,1) = OM_DA(objInd);
                 plotOM(k,j,2) = OM_IL(objInd);
@@ -458,12 +460,13 @@ for i = 1:length(plotID)
     pt = plotTimes(ind);
     pOM_DA = plotOM(ind,i,1);
     pOM_IL = plotOM(ind,i,2);
+    if isempty(pOM_DA); continue; end
     [hAx(i)] = plot(pt, pOM_DA,'linewidth', 2.0);
     h_IL = plot(pt, pOM_IL,'--','linewidth', 2.0);
     set(h_IL,'color',get(hAx(i),'color'));
 end
 title('\rho_{obs} / \rho_{model}','fontsize',15)
-legend(hAx(hAx~=0),strsplit(num2str(plotID)));
+legend(hAx(hAx~=0),strsplit(num2str(plotID(hAx~=0))));
 datetick('x')
 set(gca,'fontsize',15)
 grid on

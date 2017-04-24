@@ -22,10 +22,10 @@ for k = min(nearestWindows):max(nearestWindows)
     S_this = removeDataPoints(S, removeInd);
     S_this = computeVariablesForFit(S_this);
     
-    if state(1) > 0
-        S_this.F = state(1);
-        S_this.FA = state(1);
-    end
+%     if state(1) > 0
+%         S_this.F = state(1);
+%         S_this.FA = state(1);
+%     end
 
     T0 = clamp(200, evalT0(S_this, S_this.T0Coeff), 1000);
     dT0 = clamp(1, evalDT(S_this, S_this.dTCoeff), 30);
@@ -36,7 +36,7 @@ for k = min(nearestWindows):max(nearestWindows)
     dT0 = clamp(1, dT0 + state(3), 20);
 
     % Add T2 correction to Tex
-    Tex = clamp(T0+1, Tex + bulge(state(4:11), S_this), 5000);
+    Tex = clamp(T0+1, Tex + state(1) + bulge(state(4:11), S_this), 5000);
 
     OlbDens = evalMajorSpecies(S_this, S_this.OCoeff, S_this.O_numBiases);
     N2lbDens = evalMajorSpecies(S_this, S_this.N2Coeff, S_this.N2_numBiases);

@@ -128,10 +128,14 @@ for i = 1:length(recentObjects)
         end
     end
     nonDA = modelFunction(zeros(size(ensemble,1),1), observationStruct);
+    if any(nonDA < 0); nonDA = exp(nonDA); end
     
     observationStruct = struct('latitude', lat, 'longitude', lon, 'solarTime', lst,...
                                'altitude', alt, 'timestamps', tDatenum);
     
+    if(any(densityMatrix < 0))
+        densityMatrix = exp(densityMatrix);
+    end
     integralMatrix_DA = bsxfun(@times, ((1E3*vMag).^3).*windFac, densityMatrix);
     
     integrationTimes = (tJulDay - tJulDay(1))*86400;
@@ -142,7 +146,7 @@ for i = 1:length(recentObjects)
     BtrueThis = recentTLEs(object).Btrue;
     BratioThis = BiThis./recentTLEs(object).Btrue;
     if ~(BtrueThis/maxBdeviation <= mean(BiThis) && mean(BiThis) <= BtrueThis*maxBdeviation)
-        warning(['Object ',object,' disqualified, because Bi/Btrue = ', BratioThis])
+        warning(['Object ',num2str(object),' disqualified, because Bi/Btrue = ', num2str(BratioThis)])
     end
     Bi(i,:) = BiThis;
     Bratio(i,:) = BratioThis;
