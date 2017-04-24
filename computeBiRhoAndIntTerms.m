@@ -1,4 +1,5 @@
-function [ballisticOutput] = computeBiRhoAndIntTerms(ensemble, modelFunction, previousTLEs, recentTLEs, dt, maxBdeviation, Ftimes, F, FA, aeInt, assimiStruct, timeDepEns, assTimes)
+function [ballisticOutput] = computeBiRhoAndIntTerms(ensemble, modelFunction, previousTLEs, recentTLEs, dt, maxBdeviation, ...
+    Ftimes, F, FA, aeInt, assimiStruct, timeDepEns, assTimes, computeNonDA)
 % [dt] minutes, [maxBdeviation] = relative (e.g. 0.1*Btrue <= Bi <= 10*Btrue => maxBdeviation = 10;
 
 mu = 3.986004418E14;
@@ -10,17 +11,20 @@ ballisticOutput = struct('Bi', [], 'Bratio', [], 'objectIDs',[],'rhoObs',[],'rho
 recentObjects = keys(recentTLEs);
 Bi = zeros(length(recentObjects), size(ensemble,2));
 Bratio = zeros(length(recentObjects), size(ensemble,2));
-objectIDs = zeros(length(recentObjects));
-rhoObs = zeros(length(recentObjects));
-sig_rho = zeros(length(recentObjects));
+objectIDs = zeros(length(recentObjects),1);
+rhoObs = zeros(length(recentObjects),1);
+sig_rho = zeros(length(recentObjects),1);
+assocAlt = zeros(length(recentObjects),1);
 rhoModel_DA = zeros(length(recentObjects), size(ensemble,2));
 rhoModel_IL = zeros(length(recentObjects), 1);
 
-for i = 1:length(recentObjects)
+numInputs = nargin;
+
+parfor i = 1:length(recentObjects)
     
     object = recentObjects{i};
     if ~isKey(previousTLEs, object)
-        warning(['Object ', object, ' could not be found in the previousTLEs!'])
+        warning(['Object ', num2str(object), ' could not be found in the previousTLEs!'])
         continue;
     end
     
@@ -30,7 +34,7 @@ for i = 1:length(recentObjects)
     nMean = 0.5*(n1 + n2);
     dn = n2 - n1;
     if dn <= 0
-        warning(['Object ', object, ' ignored due to decreased mean motion!'])
+        warning(['Object ', num2str(object), ' ignored due to decreased mean motion!'])
         continue;
     end
     
@@ -87,14 +91,14 @@ for i = 1:length(recentObjects)
     end
     
     tDiff = tDatenum(end) - tDatenum(1);
-    fprintf('Sat: %d, tDiff [days]: %f\n', object, tDiff)
+    %fprintf('Sat: %d, tDiff [days]: %f\n', object, tDiff)
     
     observationStruct = struct('latitude', lat, 'longitude', lon, 'solarTime', lst,...
                                'altitude', alt, 'timestamps', tDatenum);
-    if nargin <= 11
+    if numInputs <= 11 || ~timeDepEns
         observationStruct = computeVariablesForFit(observationStruct);
     end
-    if nargin > 6
+    if numInputs > 6
         observationStruct.F = interp1(Ftimes, F, tDatenum);
         observationStruct.FA = interp1(Ftimes, FA, tDatenum);
         observationStruct.aeInt = interp1(Ftimes, aeInt, tDatenum);
@@ -111,14 +115,14 @@ for i = 1:length(recentObjects)
         observationStruct.He_numBiases = assimiStruct.He_numBiases;
         observationStruct.Ar_numBiases = assimiStruct.Ar_numBiases;
         observationStruct.O2_numBiases = assimiStruct.O2_numBiases;
-        if nargin > 11
+        if numInputs > 11
             observationStruct.assTimes = assTimes;
         end
     end
     
     densityMatrix = zeros(length(rMag), size(ensemble,2));
     
-    if nargin > 11 && timeDepEns
+    if numInputs > 11 && timeDepEns
         for j = 1:size(ensemble,2)
             densityMatrix(:,j) = modelFunction(ensemble(:,j,:), observationStruct);
         end
@@ -127,7 +131,11 @@ for i = 1:length(recentObjects)
             densityMatrix(:,j) = modelFunction(ensemble(:,j), observationStruct);
         end
     end
-    nonDA = modelFunction(zeros(size(ensemble,1),1), observationStruct);
+    if numInputs <= 13 || computeNonDA
+        nonDA = modelFunction(zeros(size(ensemble,1),1), observationStruct);
+    else
+        nonDA = mean(densityMatrix,2);
+    end
     if any(nonDA < 0); nonDA = exp(nonDA); end
     
     observationStruct = struct('latitude', lat, 'longitude', lon, 'solarTime', lst,...
@@ -142,6 +150,11 @@ for i = 1:length(recentObjects)
     integral_IL = trapz(integrationTimes, ((1E3*vMag).^3).*windFac.*nonDA);
     integrals = trapz(integrationTimes, integralMatrix_DA);
     
+    intV3Fdt = trapz(integrationTimes, ((1E3*vMag).^3).*windFac);
+    
+    assocAlt_this = trapz(integrationTimes, ((1E3*vMag).^3).*windFac.*nonDA.*alt) / ...
+                    trapz(integrationTimes, ((1E3*vMag).^3).*windFac.*nonDA);
+    
     BiThis = d./integrals;
     BtrueThis = recentTLEs(object).Btrue;
     BratioThis = BiThis./recentTLEs(object).Btrue;
@@ -151,14 +164,14 @@ for i = 1:length(recentObjects)
     Bi(i,:) = BiThis;
     Bratio(i,:) = BratioThis;
     objectIDs(i) = object;
-    intV3Fdt = trapz(integrationTimes, ((1E3*vMag).^3).*windFac);
     rhoModel_DA(i,:) = integrals / intV3Fdt;
     rhoModel_IL(i) = integral_IL / intV3Fdt;
     rhoObs(i) = d / (recentTLEs(object).Btrue * intV3Fdt);
     sig_rho(i) = (recentTLEs(object).sig_Btrue * d/intV3Fdt) / BtrueThis.^2;
-    ballisticOutput.intProperties(object) = struct('V3F',((1E3*vMag).^3).*windFac, 'intTimes',integrationTimes,...
-                                                    'observationStruct', observationStruct, 'r', rVec,'v',vVec,'F',windFac,...
-                                                    'intV3Fdt', intV3Fdt);
+    assocAlt(i) = assocAlt_this;
+    %ballisticOutput.intProperties(object) = struct('V3F',((1E3*vMag).^3).*windFac, 'intTimes',integrationTimes,...
+    %                                                'observationStruct', observationStruct, 'r', rVec,'v',vVec,'F',windFac,...
+    %                                                'intV3Fdt', intV3Fdt);
 end
 
 ind = objectIDs > 0;
@@ -169,6 +182,7 @@ rhoModel_DA = rhoModel_DA(ind,:);
 rhoModel_IL = rhoModel_IL(ind);
 rhoObs = rhoObs(ind);
 sig_rho = sig_rho(ind);
+assocAlt = assocAlt(ind);
 
 ballisticOutput.Bi = Bi;
 ballisticOutput.Bratio = Bratio;
@@ -177,5 +191,6 @@ ballisticOutput.rhoModel_DA = rhoModel_DA;
 ballisticOutput.rhoModel_IL = rhoModel_IL;
 ballisticOutput.rhoObs = rhoObs;
 ballisticOutput.sig_rho = sig_rho;
+ballisticOutput.assocAlt = assocAlt;
 
 end
