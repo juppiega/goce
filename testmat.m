@@ -14,7 +14,8 @@
 %   3.1 (2 dec, 2008) - fix tsince/1440.0 in jd update
 
    % these are set in sgp4init
-   global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
+   %global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
+   [tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2] = getgravc( 72 );
 
    global opsmode
 

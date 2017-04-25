@@ -18,12 +18,29 @@ assocAlt = zeros(length(recentObjects),1);
 rhoModel_DA = zeros(length(recentObjects), size(ensemble,2));
 rhoModel_IL = zeros(length(recentObjects), 1);
 
+if nargin <= 6
+    Ftimes = [];
+    F = [];
+    FA = [];
+    aeInt = [];
+    assimiStruct = struct;
+end
+
+if nargin <= 11
+    timeDepEns = false;
+    assTimes = [];
+end
+
+if nargin <= 13
+    computeNonDA = true;
+end
+
 numInputs = nargin;
 
-for i = 1:length(recentObjects)
+parfor i = 1:length(recentObjects)
     
     object = recentObjects{i};
-    disp(object)
+    %disp(object)
     if ~isKey(previousTLEs, object)
         warning(['Object ', num2str(object), ' could not be found in the previousTLEs!'])
         continue;

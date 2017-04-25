@@ -208,9 +208,9 @@ function [  atime,  em,     argpm,  inclm,  xli,    mm,     xni,...
        nm = no + dndt;
    end
 
-   global idebug dbgfile
-   if idebug
-       debug4;
-   end
+%    global idebug dbgfile
+%    if idebug
+%        debug4;
+%    end
 
    return;

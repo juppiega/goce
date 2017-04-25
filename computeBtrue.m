@@ -132,7 +132,7 @@ for i = 1:length(IDs)
     assAlt_this = assAlt(ind,i);
     
     Btrue(i) = mean(Bi_this);
-    Btrue_sig(i) = std(Bi_this);
+    Btrue_sig(i) = std(Bi_this)/sqrt(sum(ind));
     assAltAver(i) = mean(assAlt_this);
     if sum(plotIDs == IDs(i)) > 0
         figure;

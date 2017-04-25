@@ -107,7 +107,8 @@ function [satrec, r, v] = sgp4(satrec,tsince);
    temp4    =   1.5e-12;
 
    %  // sgp4fix identify constants and allow alternate values
-   global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
+   %global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
+   [tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2] = getgravc( 72 );
    vkmpersec     = radiusearthkm * xke/60.0;
    
    % /* --------------------- clear sgp4 error flag ----------------- */
@@ -169,14 +170,36 @@ function [satrec, r, v] = sgp4(satrec,tsince);
        satrec.error = 2;
    end
    am = (xke / nm)^x2o3 * tempa * tempa;
+   if isempty(am)
+       disp('Isempty(am)')
+       nm
+       xke
+       j2
+       j3
+       x2o3
+       tempa
+   end
    nm = xke / am^1.5;
    em = em - tempe;
 
    % // fix tolerance for error recognition
+   try
+       stopNow = false;
    if ((em >= 1.0) || (em < -0.001) || (am < 0.95))
 %       fprintf(1,'# error em %f\n', em);
        satrec.error = 1;
    end
+   catch
+       %disp(em)
+       disp('Catch')
+       
+       disp('Catch end')
+       stopNow = true;
+   end
+   if stopNow
+       error('')
+   end
+
 %   sgp4fix change test condition for eccentricity
    if (em < 1.0e-6)
        em  = 1.0e-6;

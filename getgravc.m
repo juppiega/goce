@@ -30,7 +30,7 @@
 
 function [tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2] = getgravc(whichconst);
 
-   global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
+   %global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
       switch whichconst
           case 721
            % -- wgs-72 low precision str#3 constants --

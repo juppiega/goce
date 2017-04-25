@@ -243,9 +243,9 @@ function [ sinim,cosim,sinomm,cosomm,snodm,cnodm,day,e3,ee2,em,emsq,gam,...
    xh2  =  -2.0 * s2 * z22;
    xh3  =  -2.0 * s2 * (z23 - z21);
 
-   global idebug dbgfile
-   if idebug
-       debug2;
-   end
+%    global idebug dbgfile
+%    if idebug
+%        debug2;
+%    end
 
    return;

@@ -114,7 +114,7 @@ function [  em,     argpm,  inclm,  mm,     nm,     nodem, irez,...
    zns    = 1.19459e-5;
 
    %     // sgp4fix identify constants and allow alternate values
-   global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
+   [tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2] = getgravc( 72 ); 
 
    % /* -------------------- deep space initialization ------------ */
    irez = 0;
@@ -307,9 +307,9 @@ function [  em,     argpm,  inclm,  mm,     nm,     nodem, irez,...
        nm    = no + dndt;
    end
 
-   global idebug dbgfile
-   if idebug
-       debug3;
-   end
+%    global idebug dbgfile
+%    if idebug
+%        debug3;
+%    end
 
    return;

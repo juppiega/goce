@@ -1,6 +1,6 @@
 function [ensemble,innovations,residuals,covariance,P,obsRank] = ...
                     assimilateDataAndUpdateEnsemble(ensemble, observationOperator, ...
-                                                    observationsStruct, statistics)
+                                                    observationsStruct, statistics, computeObsRank)
 % INPUT: 
 %     ensemble: Ensemble of models. Double matrix size nxN, where n is the number of
 %               states and N the number of members (size of the ensemble).
@@ -18,7 +18,8 @@ function [ensemble,innovations,residuals,covariance,P,obsRank] = ...
 %     IN THE STRUCT MUST HAVE THE SAME UNIT (e.g. kg/m^-3 or K etc.).
 
 % Argument checks.
-if isrow(observationsStruct.data) || isrow(observationsStruct.sigma)
+if length(observationsStruct.data) > 1 &&...
+    (isrow(observationsStruct.data) || isrow(observationsStruct.sigma))
     error('Data in the observation struct must be aligned in column vectors!')
 end
 if length(observationsStruct.data) == 0
@@ -52,9 +53,12 @@ for i = 1:numMembers
     Hx(:,i) = simObs;
 end
 
-if statistics
+if statistics || (nargin>4 && computeObsRank)
     [~,rankedEnsembleAndObs] = sort([Hx, observationsStruct.data], 2);
     [~,obsRank] = find(rankedEnsembleAndObs == numMembers+1);
+    innovations = [];
+    residuals = [];
+    covariance = [];
 end
 
 % Simulated data perturbations from ensemble mean.

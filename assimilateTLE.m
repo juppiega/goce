@@ -2,6 +2,17 @@ function [] = assimilateTLE(beginDateStr, endDateStr, modelString, ...
     assimilationWindow, intWindow, independentID, TexStd)
 % [assimilationWindow] = days, [intWindow] = days
 
+if ~verLessThan('matlab','8.6')
+    poolobj = gcp('nocreate'); % If no pool, do not create new one.
+    if isempty(poolobj)
+        parpool();
+    end
+else
+    if matlabpool('size') == 0
+        matlabpool('open',feature('numCores'))
+    end
+end
+
 if iscolumn(independentID)
     independentID = independentID';
 end
@@ -49,6 +60,7 @@ else
     modelOperator = @dummyThermosphere;
 end
 
+obsRank = [];
 date = beginDate;
 oldTLEs = selectTLEs(tleMap, 'oldest');
 k = 1;
@@ -56,21 +68,23 @@ while date <= endDate
     assimilatableTLEs = findAssimilatableTLEs(tleMap, oldTLEs, date, date + assimilationWindow, intWindow);
     if ~isempty(keys(assimilatableTLEs))
         if strcmpi(modelString,'full')
-            S = computeBiRhoAndIntTerms(ensemble, modelOperator, oldTLEs, assimilatableTLEs, 0.5, 100, Ftimes,F,FA,aeInt,assimiStruct);
+            S = computeBiRhoAndIntTerms(ensemble, modelOperator, oldTLEs, assimilatableTLEs, 0.5, 100, Ftimes,F,FA,aeInt,assimiStruct,false,[],true);
         else
             S = computeBiRhoAndIntTerms(ensemble, modelOperator, oldTLEs, assimilatableTLEs, 0.5, 100);
         end
         
         ind = ismember(S.objectIDs,independentID);
-        OM_DA = S.rhoObs(ind)./mean(S.rhoModel_DA(ind,:),2);
-        OM_IL = S.rhoObs(ind)./S.rhoModel_IL(ind);
-        plotTimes(k) = date + assimilationWindow/2;
-        this_computed_satell = S.objectIDs(ind);
-        for j = 1:length(independentID)
-            objInd = find(this_computed_satell == independentID(j));
-            if ~isempty(objInd)
-                plotOM(k,j,1) = OM_DA(objInd);
-                plotOM(k,j,2) = OM_IL(objInd);
+        if sum(ind) > 0
+            OM_DA = S.rhoObs(ind)./mean(S.rhoModel_DA(ind,:),2);
+            OM_IL = S.rhoObs(ind)./S.rhoModel_IL(ind);
+            plotTimes(k) = date + assimilationWindow/2;
+            this_computed_satell = S.objectIDs(ind);
+            for j = 1:length(independentID)
+                objInd = find(this_computed_satell == independentID(j));
+                if ~isempty(objInd)
+                    plotOM(k,j,1) = OM_DA(objInd);
+                    plotOM(k,j,2) = OM_IL(objInd);
+                end
             end
         end
         
@@ -90,7 +104,11 @@ while date <= endDate
         if k > 1
             ensemble(1,:) = (TexStd)/ensStd(1) * (ensemble(1,:)-ensMean(1)) + ensMean(1);
         end
-        [ensemble] = assimilateDataAndUpdateEnsemble(ensemble, obsOperator, S, false);
+        [ensemble,~,~,~,~,obsRank_this] = ...
+            assimilateDataAndUpdateEnsemble(ensemble, obsOperator, S, false, true);
+        if k > 3
+            obsRank = [obsRank; obsRank_this];
+        end
         
     end
     
@@ -127,6 +145,10 @@ legend(hAx(hAx~=0),strsplit(num2str(independentID(hAx~=0))));
 datetick('x')
 set(gca,'fontsize',15)
 grid on
+
+figure;
+hist(obsRank, 20);
+title('Sijoituslukujen jakauma','fontsize',15);
 
 end
 

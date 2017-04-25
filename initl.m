@@ -62,7 +62,7 @@ function [  ainv,   ao,     con41,  con42,  cosio,  cosio2, einv,...
 
    % /* -------------------- wgs-72 earth constants ----------------- */
    %     // sgp4fix identify constants and allow alternate values
-   global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
+   [tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2] = getgravc( 72 );
    x2o3   = 2.0 / 3.0;
    global opsmode
 

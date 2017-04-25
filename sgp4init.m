@@ -133,7 +133,7 @@ function [satrec] = sgp4init(whichconst, satrec, xbstar, xecco, epoch, ...
 
    %     /* -------------------- wgs-72 earth constants ----------------- */
    %     // sgp4fix identify constants and allow alternate values
-   global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
+   %global tumin mu radiusearthkm xke j2 j3 j4 j3oj2  
    [tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2] = getgravc( whichconst );
 
    ss     = 78.0 / radiusearthkm + 1.0;

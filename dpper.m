@@ -187,9 +187,9 @@ function [  ep,     inclp,  nodep, argpp,  mp]...
        end
    end % // if init == 'n'
 
-   global idebug dbgfile
-   if idebug
-       debug1;
-   end
+%    global idebug dbgfile
+%    if idebug
+%        debug1;
+%    end
 
    return;

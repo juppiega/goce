@@ -55,7 +55,8 @@
 function [satrec, startmfe, stopmfe, deltamin] = twoline2rv(whichconst, longstr1, ...
           longstr2, typerun,typeinput)
 
-    global tumin radiusearthkm xke j2 j3 j4 j3oj2  
+    %global tumin radiusearthkm xke j2 j3 j4 j3oj2  
+    [tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2] = getgravc( whichconst );
 
     deg2rad  =   pi / 180.0;         %  0.01745329251994330;  % [deg/rad]
     xpdotp   =  1440.0 / (2.0*pi);   % 229.1831180523293;  % [rev/day]/[rad/min]  

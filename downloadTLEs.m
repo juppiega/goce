@@ -1,4 +1,12 @@
 function tleMap = downloadTLEs(objectIDs, beginDatenums, endDatenums, ignoreBtrue)
+pause on
+
+downloadFreq = 19; % per minute
+dt = 60 / downloadFreq / 86400;
+persistent previousTime
+if isempty(previousTime)
+    previousTime = 0;
+end
 
 load Bfactors.dat
 
@@ -17,13 +25,19 @@ end
 tleMap = containers.Map('KeyType', 'double', 'ValueType', 'any'); % Sorted by ascending epoch (oldest first).
 
 for i = 1:length(objectIDs)
-    disp(objectIDs(i))
+    t = now;
+    
     beginString = datestr(beginDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
     endString = datestr(endDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
     
+    if (t - previousTime) < dt
+        pause((previousTime + dt - t)*86400);
+    end
     command = ['python tleDownloader.py ',num2str(objectIDs(i)),' ',...
                 beginString,' ',endString, ' tleAccess.txt'];
-            
+    disp(objectIDs(i))
+    previousTime = now;
+      
     [status, output] = system(command);
     if status ~= 0
         error(['Something wrong with python script tleDownloader.py. System output: ', output])
