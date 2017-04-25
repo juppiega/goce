@@ -17,6 +17,7 @@ end
 tleMap = containers.Map('KeyType', 'double', 'ValueType', 'any'); % Sorted by ascending epoch (oldest first).
 
 for i = 1:length(objectIDs)
+    disp(objectIDs(i))
     beginString = datestr(beginDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
     endString = datestr(endDatenums(i), 'yyyy-mm-dd-HH:MM:SS');
     

@@ -20,9 +20,10 @@ rhoModel_IL = zeros(length(recentObjects), 1);
 
 numInputs = nargin;
 
-parfor i = 1:length(recentObjects)
+for i = 1:length(recentObjects)
     
     object = recentObjects{i};
+    disp(object)
     if ~isKey(previousTLEs, object)
         warning(['Object ', num2str(object), ' could not be found in the previousTLEs!'])
         continue;

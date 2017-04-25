@@ -1,6 +1,13 @@
 function computeBtrue(beginDateStr, endDateStr, excludeBegin, excludeEnd, windowLen, plotIDs)
 % [windowLen] = days
 
+if ~verLessThan('matlab','8.6')
+    poolobj = gcp('nocreate'); % If no pool, do not create new one.
+    if isempty(poolobj)
+        parpool();
+    end
+end
+
 modelString = 'full';
 beginDate = datenum(beginDateStr);
 endDate = datenum(endDateStr);
@@ -8,6 +15,9 @@ excludeBegin = datenum(excludeBegin);
 excludeEnd = datenum(excludeEnd);
 
 IDs = load('assimilationSatellites.dat');
+if isrow(IDs)
+    IDs = IDs';
+end
 tleMap = downloadTLEs(IDs, beginDate, endDate, true); % Tahan IDss?
 
 assimilationWindow = windowLen;
@@ -136,7 +146,7 @@ IDs(rmInd) = [];
 Btrue(rmInd) = [];
 Btrue_sig(rmInd) = [];
 assAltAver(rmInd) = [];
-saveForm = [IDs',Btrue',Btrue_sig',assAltAver'];
+saveForm = [IDs,Btrue,Btrue_sig,assAltAver];
 filename = ['Bfactors_',datestr(beginDate),'_',datestr(endDate),'.dat'];
 csvwrite(filename,saveForm);
     
