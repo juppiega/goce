@@ -8,9 +8,9 @@ if ~verLessThan('matlab','8.6')
         parpool();
     end
 else
-    if matlabpool('size') == 0
-        matlabpool('open',feature('numCores'))
-    end
+%     if matlabpool('size') == 0
+%         matlabpool('open',feature('numCores'))
+%     end
 end
 
 if iscolumn(independentID)
@@ -140,7 +140,7 @@ for i = 1:length(independentID)
     h_IL = plot(pt, pOM_IL,'--','linewidth', 2.0);
     set(h_IL,'color',get(hAx(i),'color'));
 end
-title('\rho_{obs} / \rho_{model}','fontsize',15)
+title(['\rho_{hav.} / \rho_{malli}',num2str(TexStd)],'fontsize',15)
 legend(hAx(hAx~=0),strsplit(num2str(independentID(hAx~=0))));
 datetick('x')
 set(gca,'fontsize',15)
@@ -148,7 +148,7 @@ grid on
 
 figure;
 hist(obsRank, 20);
-title('Sijoituslukujen jakauma','fontsize',15);
+title(['Sijoituslukujen jakauma',num2str(TexStd)],'fontsize',15);
 
 end
 
