@@ -182,10 +182,11 @@ parfor i = 1:length(recentObjects)
     Bi(i,:) = BiThis;
     Bratio(i,:) = BratioThis;
     objectIDs(i) = object;
-    rhoModel_DA(i,:) = integrals / intV3Fdt;
-    rhoModel_IL(i) = integral_IL / intV3Fdt;
-    rhoObs(i) = d / (recentTLEs(object).Btrue * intV3Fdt);
+    rhoModel_DA(i,:) = log(integrals / intV3Fdt);
+    rhoModel_IL(i) = log(integral_IL / intV3Fdt);
+    rhoObs(i) = log(d / (recentTLEs(object).Btrue * intV3Fdt));
     sig_rho(i) = (recentTLEs(object).sig_Btrue * d/intV3Fdt) / BtrueThis.^2;
+    sig_rho(i) = sig_rho(i) / exp(rhoObs(i));
     assocAlt(i) = assocAlt_this;
     %ballisticOutput.intProperties(object) = struct('V3F',((1E3*vMag).^3).*windFac, 'intTimes',integrationTimes,...
     %                                                'observationStruct', observationStruct, 'r', rVec,'v',vVec,'F',windFac,...

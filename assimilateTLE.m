@@ -8,9 +8,9 @@ if ~verLessThan('matlab','8.6')
         parpool();
     end
 else
-%     if matlabpool('size') == 0
-%         matlabpool('open',feature('numCores'))
-%     end
+    if matlabpool('size') == 0
+        matlabpool('open',feature('numCores'))
+    end
 end
 
 if iscolumn(independentID)
@@ -75,8 +75,8 @@ while date <= endDate
         
         ind = ismember(S.objectIDs,independentID);
         if sum(ind) > 0
-            OM_DA = S.rhoObs(ind)./mean(S.rhoModel_DA(ind,:),2);
-            OM_IL = S.rhoObs(ind)./S.rhoModel_IL(ind);
+            OM_DA = exp(S.rhoObs(ind))./exp(mean(S.rhoModel_DA(ind,:),2));
+            OM_IL = exp(S.rhoObs(ind))./exp(S.rhoModel_IL(ind));
             plotTimes(k) = date + assimilationWindow/2;
             this_computed_satell = S.objectIDs(ind);
             for j = 1:length(independentID)
@@ -88,14 +88,14 @@ while date <= endDate
             end
         end
         
-        conserveInd = ~ismember(S.objectIDs, independentID);
-        S.Bi = S.Bi(conserveInd,:);
-        S.Bratio = S.Bratio(conserveInd,:);
-        S.objectIDs = S.objectIDs(conserveInd,:);
-        S.rhoObs = S.rhoObs(conserveInd,:);
-        S.rhoModel_DA = S.rhoModel_DA(conserveInd,:);
-        S.rhoModel_IL = S.rhoModel_IL(conserveInd,:);
-        S.sig_rho = S.sig_rho(conserveInd,:);
+%         conserveInd = ~ismember(S.objectIDs, independentID);
+%         S.Bi = S.Bi(conserveInd,:);
+%         S.Bratio = S.Bratio(conserveInd,:);
+%         S.objectIDs = S.objectIDs(conserveInd,:);
+%         S.rhoObs = S.rhoObs(conserveInd,:);
+%         S.rhoModel_DA = S.rhoModel_DA(conserveInd,:);
+%         S.rhoModel_IL = S.rhoModel_IL(conserveInd,:);
+%         S.sig_rho = S.sig_rho(conserveInd,:);
         S.sigma = S.sig_rho;
         S.data = S.rhoObs;
 
