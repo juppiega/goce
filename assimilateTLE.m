@@ -24,6 +24,8 @@ endDate = datenum(endDateStr);
 
 load Bfactors.dat
 objectIDs = Bfactors(:,1);
+conserveInd = Bfactors(:,4) < 550;
+objectIDs = objectIDs(conserveInd);
 
 if ~all(ismember(independentID, objectIDs))
     error(['Could not find requested object(s): ', num2str(independentID(~ismember(independentID, objectIDs))),' in Bfactors.dat'])
