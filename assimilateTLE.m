@@ -67,6 +67,7 @@ k = 1;
 while date <= endDate
     assimilatableTLEs = findAssimilatableTLEs(tleMap, oldTLEs, date, date + assimilationWindow, intWindow);
     if ~isempty(keys(assimilatableTLEs))
+        fprintf('Num obj.: %d\n', length(keys(assimilatableTLEs)))
         if strcmpi(modelString,'full')
             S = computeBiRhoAndIntTerms(ensemble, modelOperator, oldTLEs, assimilatableTLEs, 0.5, 100, Ftimes,F,FA,aeInt,assimiStruct,false,[],true);
         else
