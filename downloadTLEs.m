@@ -57,6 +57,11 @@ for i = 1:length(objectIDs)
     
     tleLine2 = fgetl(tleFile);
     satrec = twoline2rv(72, tleLine1, tleLine2, '0', '0');
+    if 2*pi/satrec.no >= 225
+        warning(['Object ',num2str(objectIDs(i)),' disqualified , because T >= 225 min (not LEO)'])
+        fclose(tleFile);
+        continue;
+    end
     
     [~,output] = system(['wc -l ', outputName]);
     c = strsplit(output);
