@@ -33,7 +33,7 @@ tleMap = downloadTLEs(objectIDs, beginDate, endDate);
 
 M = floor((endDate-beginDate)/assimilationWindow) + 3;
 plotTimes = zeros(M,1);
-plotOM = zeros(M,length(independentID),2);
+plotOM = zeros(M,length(independentID),3);
 plotMap = containers.Map('keytype','double','valuetype','double');
 for i = 1:length(independentID);
     plotMap(independentID(i)) = i;
@@ -101,14 +101,42 @@ while date <= endDate
 
         ensMean = mean(ensemble, 2);
         ensStd = std(ensemble, 0, 2);     
+        [ensemble,~,~,~,~,obsRank_this] = ...
+            assimilateDataAndUpdateEnsemble(ensemble, obsOperator, S, false, true);
         if k > 1
             ensemble(1,:) = (TexStd)/ensStd(1) * (ensemble(1,:)-ensMean(1)) + ensMean(1);
         end
-        [ensemble,~,~,~,~,obsRank_this] = ...
-            assimilateDataAndUpdateEnsemble(ensemble, obsOperator, S, false, true);
         if k > 3
             obsRank = [obsRank; obsRank_this];
         end
+        
+        % Compute analysis for the independent objects
+        if sum(ind) > 0
+            analysisTLEs = containers.Map('KeyType', 'double', 'ValueType', 'any');
+            for i = 1:length(independentID)
+                if sum(S.objectIDs == independentID(i)) > 0
+                    analysisTLEs(independentID(i)) = assimilatableTLEs(independentID(i));
+                end
+            end
+
+            if strcmpi(modelString,'full')
+                S = computeBiRhoAndIntTerms(ensemble, modelOperator, oldTLEs, analysisTLEs, 0.5, 100, Ftimes,F,FA,aeInt,assimiStruct,false,[],true);
+            else
+                S = computeBiRhoAndIntTerms(ensemble, modelOperator, oldTLEs, analysisTLEs, 0.5, 100);
+            end
+            
+            ind = ismember(S.objectIDs,independentID);
+            OM_DA = exp(S.rhoObs(ind))./exp(mean(S.rhoModel_DA(ind,:),2));
+            this_computed_satell = S.objectIDs(ind);
+            for j = 1:length(independentID)
+                objInd = find(this_computed_satell == independentID(j));
+                if ~isempty(objInd)
+                    plotOM(k,j,3) = OM_DA(objInd);
+                end
+            end
+        end
+        
+        
         
     end
     
@@ -133,7 +161,7 @@ hAx = zeros(size(independentID));
 for i = 1:length(independentID)
     ind = plotOM(:,i,1) > 0;
     pt = plotTimes(ind);
-    pOM_DA = plotOM(ind,i,1);
+    pOM_DA = plotOM(ind,i,3); % analysis = 3, bg. = 1
     pOM_IL = plotOM(ind,i,2);
     if isempty(pOM_DA); continue; end
     [hAx(i)] = plot(pt, pOM_DA,'linewidth', 2.0);
