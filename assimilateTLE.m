@@ -31,6 +31,8 @@ if ~all(ismember(independentID, objectIDs))
     error(['Could not find requested object(s): ', num2str(independentID(~ismember(independentID, objectIDs))),' in Bfactors.dat'])
 end
 
+load('ilData.mat','originalRhoStruct');
+
 tleMap = downloadTLEs(objectIDs, beginDate, endDate);
 
 M = floor((endDate-beginDate)/assimilationWindow) + 3;
@@ -62,6 +64,8 @@ else
     modelOperator = @dummyThermosphere;
 end
 
+rhoStruct = originalRhoStruct;
+
 obsRank = [];
 date = beginDate;
 oldTLEs = selectTLEs(tleMap, 'oldest');
@@ -90,6 +94,33 @@ while date <= endDate
                 end
             end
         end
+        
+        removeInd = rhoStruct.timestamps < date | rhoStruct.timestamps >= date+assimilationWindow;
+        CH_GR = removeDataPoints(rhoStruct, removeInd,false,true,true,true);
+        CH_GR = averageRho(CH_GR, true, 240);
+        consInd = false(size(CH_GR.data)); consInd(1:6:end) = true;
+        CH_GR = removeDataPoints(CH_GR, ~consInd,false,true,true,true);
+        CH_GR.sigma = CH_GR.sigma ./ CH_GR.data;
+        CH_GR.data = log(CH_GR.data);
+        CH_GR = computeVariablesForFit(CH_GR);
+        fprintf('Num CH_GR.: %d\n', length(CH_GR.data))
+              
+        CH_GR.dTCoeff = assimiStruct.dTCoeff;
+        CH_GR.T0Coeff = assimiStruct.T0Coeff;
+        CH_GR.TexCoeff = assimiStruct.TexCoeff;
+        CH_GR.OCoeff = assimiStruct.OCoeff;
+        CH_GR.N2Coeff = assimiStruct.N2Coeff;
+        CH_GR.HeCoeff = assimiStruct.HeCoeff;
+        CH_GR.ArCoeff = assimiStruct.ArCoeff;
+        CH_GR.O2Coeff = assimiStruct.O2Coeff;
+        CH_GR.O_numBiases = assimiStruct.O_numBiases;
+        CH_GR.N2_numBiases = assimiStruct.N2_numBiases;
+        CH_GR.He_numBiases = assimiStruct.He_numBiases;
+        CH_GR.Ar_numBiases = assimiStruct.Ar_numBiases;
+        CH_GR.O2_numBiases = assimiStruct.O2_numBiases;
+        [ensemble] = ...
+            assimilateDataAndUpdateEnsemble(ensemble, @il_model_operator, CH_GR, false, false);
+        
         
 %         conserveInd = ~ismember(S.objectIDs, independentID);
 %         S.Bi = S.Bi(conserveInd,:);

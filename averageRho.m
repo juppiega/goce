@@ -1,6 +1,9 @@
-function [S, removeInd] = averageRho(S, isRho)
+function [S, removeInd] = averageRho(S, isRho, averTime)
+% [averTime] = sec
 
-averTime = 120; % sec
+if nargin <= 2 || averTime <= 0
+    averTime = 120; % sec
+end
 
 dt = diff(S.timestamps); dt = [dt; dt(end)] * 86400;
 averInterval = abs(averTime ./ dt); 
