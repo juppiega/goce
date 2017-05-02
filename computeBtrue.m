@@ -94,10 +94,10 @@ for i = 1:length(plotIDs)
     if isempty(p_Bi); continue; end
     [hAx(i)] = plot(pt, p_Bi,'linewidth', 2.0);
 end
-title('Bi','fontsize',15)
+title('B_i','fontsize',15)
 legend(hAx(hAx~=0),strsplit(num2str(plotIDs(hAx~=0))));
 datetick('x')
-ylabel('Bi [m^2 / kg]','fontsize',15)
+ylabel('B_i [m^2 / kg]','fontsize',15)
 set(gca,'fontsize',15)
 grid on
 line([excludeBegin, excludeBegin], get(gca,'ylim'));
@@ -137,6 +137,7 @@ for i = 1:length(IDs)
     if sum(plotIDs == IDs(i)) > 0
         figure;
         hist(Bi_this)
+        set(gca,'fontsize',15)
     end
     
 end
