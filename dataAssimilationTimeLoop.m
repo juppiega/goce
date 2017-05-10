@@ -221,11 +221,12 @@ figure;
 % set(gca,'fontsize', 15)
 
 %subplot(3,1,2)
-t = [assTimes(1):3:assTimes(1)+18];
+t = [assTimes(1):3:assTimes(1)+24];
 semilogy(t, (sum(covdiag(1:length(t),:),2)),'linewidth',2.0);
 title('sum(diag(B))','fontsize', 15);
 datetick('x')
 set(gca,'fontsize', 15)
+axis tight
 
 % subplot(3,1,3)
 % tVar = sqrt(covdiag(:,1:3));
@@ -289,7 +290,7 @@ bgMean = mean(previousEnsemble,2);
 zBg = reshape(modelOperator(bgMean,T), size(x,1), size(x,2));
 
 [~,ind] = min(abs(assimiStruct.timestamps-assTimes(end)));
-controlEns = [assimiStruct.FA(ind); zeros(length(ensMean)-1,1)];
+controlEns = [zeros(length(ensMean),1)];
 zIL = reshape(modelOperator(controlEns,T), size(x,1), size(x,2));
 
 % subplot(4,1,1)
@@ -308,6 +309,7 @@ shading interp; colorbar; view(2);
 ylabel('Leveyspiiri','fontsize',15)
 title('IL','fontsize',15)
 axis tight
+clims = caxis;
 
 % subplot(3,1,2)
 % surf(x,y,exp(zBg),'edgecolor','none')
@@ -324,6 +326,7 @@ xlabel('Paikallisaika [h]','fontsize',15)
 ylabel('Leveyspiiri','fontsize',15)
 title('Analysis','fontsize',15)
 axis tight
+caxis(clims);
 
 figure;
 plot(assTimes, ensMeanF, assimiStruct.timestamps, assimiStruct.F)

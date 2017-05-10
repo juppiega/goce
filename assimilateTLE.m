@@ -66,10 +66,14 @@ end
 
 rhoStruct = originalRhoStruct;
 
+Tex_series = [];
+dT_series = [];
+T0_series = [];
 obsRank = [];
 date = beginDate;
 oldTLEs = selectTLEs(tleMap, 'oldest');
 k = 1;
+assTimes = [];
 while date <= endDate
     assimilatableTLEs = findAssimilatableTLEs(tleMap, oldTLEs, date, date + assimilationWindow, intWindow);
     if ~isempty(keys(assimilatableTLEs))
@@ -94,7 +98,7 @@ while date <= endDate
                 end
             end
         end
-        
+        assTimes = [assTimes; date + assimilationWindow/2];
 %         removeInd = rhoStruct.timestamps < date | rhoStruct.timestamps >= date+assimilationWindow;
 %         CH_GR = removeDataPoints(rhoStruct, removeInd,false,true,true,true);
 %         CH_GR = averageRho(CH_GR, true, 240);
@@ -171,8 +175,9 @@ while date <= endDate
             end
         end
         
-        
-        
+        Tex_series = vertcat(Tex_series, [quantile(ensemble(1,:),0.1), mean(ensemble(1,:)), quantile(ensemble(1,:),0.9)]);
+        T0_series = vertcat(T0_series, [quantile(ensemble(2,:),0.1), mean(ensemble(2,:)), quantile(ensemble(2,:),0.9)]);
+        dT_series = vertcat(dT_series, [quantile(ensemble(3,:),0.1), mean(ensemble(3,:)), quantile(ensemble(3,:),0.9)]);
     end
     
     assimilatedObj = keys(assimilatableTLEs);
@@ -188,6 +193,36 @@ p.stop;
 ind = plotTimes > 0;
 plotTimes = plotTimes(ind);
 plotOM = plotOM(ind,:,:);
+
+figure;
+subplot(3,1,1)
+plot(assTimes,Tex_series(:,1),'r--','linewidth',2.0)
+hold on
+plot(assTimes,Tex_series(:,2),'b','linewidth',2.0)
+plot(assTimes,Tex_series(:,3),'r--','linewidth',2.0)
+set(gca,'fontsize',15)
+title('\Delta T_{ex}','fontsize',15)
+set(gca,'xtick',[])
+
+subplot(3,1,2)
+plot(assTimes,T0_series(:,1),'r--','linewidth',2.0)
+hold on
+plot(assTimes,T0_series(:,2),'b','linewidth',2.0)
+plot(assTimes,T0_series(:,3),'r--','linewidth',2.0)
+set(gca,'fontsize',15)
+title('\Delta T_{0}','fontsize',15)
+set(gca,'xtick',[])
+
+subplot(3,1,3)
+plot(assTimes,dT_series(:,1),'r--','linewidth',2.0)
+hold on
+plot(assTimes,dT_series(:,2),'b','linewidth',2.0)
+plot(assTimes,dT_series(:,3),'r--','linewidth',2.0)
+set(gca,'fontsize',15)
+title('\Delta T','fontsize',15)
+set(gca,'xtick',[])
+
+
 
 figure;
 %hold all;
@@ -220,6 +255,11 @@ for i = 1:length(independentID)
     [analBetter, p_analWorse] = ttest((pOM_IL(k)-1).^2, (pOM_anal(k)-1).^2,'tail','right');
     [bgBetter, p_bgWorse] = ttest((pOM_IL(k)-1).^2, (pOM_bg(k)-1).^2,'tail','right');
     fprintf('%d: anal. better: %d (%f), bg. better: %d (%f)\n', independentID(i), analBetter, p_analWorse, bgBetter, p_bgWorse);
+    
+    rms_IL = rms(pOM_IL(k)-1);
+    rms_anal = rms(pOM_anal(k)-1);
+    rms_bg = rms(pOM_bg(k)-1);
+    fprintf('%d: IL_rms: %f, bg_rms: %f, anal_rms: %f\n',independentID(i),rms_IL,rms_bg,rms_anal)
 end
 %title(['\rho_{hav.} / \rho_{malli}'],'fontsize',15)
 %legend(hAx(hAx~=0),strsplit(num2str(independentID(hAx~=0))));
