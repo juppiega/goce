@@ -95,41 +95,41 @@ while date <= endDate
             end
         end
         
-        removeInd = rhoStruct.timestamps < date | rhoStruct.timestamps >= date+assimilationWindow;
-        CH_GR = removeDataPoints(rhoStruct, removeInd,false,true,true,true);
-        CH_GR = averageRho(CH_GR, true, 240);
-        consInd = false(size(CH_GR.data)); consInd(1:6:end) = true;
-        CH_GR = removeDataPoints(CH_GR, ~consInd,false,true,true,true);
-        CH_GR.sigma = CH_GR.sigma ./ CH_GR.data;
-        CH_GR.data = log(CH_GR.data);
-        CH_GR = computeVariablesForFit(CH_GR);
-        fprintf('Num CH_GR.: %d\n', length(CH_GR.data))
-              
-        CH_GR.dTCoeff = assimiStruct.dTCoeff;
-        CH_GR.T0Coeff = assimiStruct.T0Coeff;
-        CH_GR.TexCoeff = assimiStruct.TexCoeff;
-        CH_GR.OCoeff = assimiStruct.OCoeff;
-        CH_GR.N2Coeff = assimiStruct.N2Coeff;
-        CH_GR.HeCoeff = assimiStruct.HeCoeff;
-        CH_GR.ArCoeff = assimiStruct.ArCoeff;
-        CH_GR.O2Coeff = assimiStruct.O2Coeff;
-        CH_GR.O_numBiases = assimiStruct.O_numBiases;
-        CH_GR.N2_numBiases = assimiStruct.N2_numBiases;
-        CH_GR.He_numBiases = assimiStruct.He_numBiases;
-        CH_GR.Ar_numBiases = assimiStruct.Ar_numBiases;
-        CH_GR.O2_numBiases = assimiStruct.O2_numBiases;
-        [ensemble] = ...
-            assimilateDataAndUpdateEnsemble(ensemble, @il_model_operator, CH_GR, false, false);
+%         removeInd = rhoStruct.timestamps < date | rhoStruct.timestamps >= date+assimilationWindow;
+%         CH_GR = removeDataPoints(rhoStruct, removeInd,false,true,true,true);
+%         CH_GR = averageRho(CH_GR, true, 240);
+%         consInd = false(size(CH_GR.data)); consInd(1:6:end) = true;
+%         CH_GR = removeDataPoints(CH_GR, ~consInd,false,true,true,true);
+%         CH_GR.sigma = CH_GR.sigma ./ CH_GR.data;
+%         CH_GR.data = log(CH_GR.data);
+%         CH_GR = computeVariablesForFit(CH_GR);
+%         fprintf('Num CH_GR.: %d\n', length(CH_GR.data))
+%               
+%         CH_GR.dTCoeff = assimiStruct.dTCoeff;
+%         CH_GR.T0Coeff = assimiStruct.T0Coeff;
+%         CH_GR.TexCoeff = assimiStruct.TexCoeff;
+%         CH_GR.OCoeff = assimiStruct.OCoeff;
+%         CH_GR.N2Coeff = assimiStruct.N2Coeff;
+%         CH_GR.HeCoeff = assimiStruct.HeCoeff;
+%         CH_GR.ArCoeff = assimiStruct.ArCoeff;
+%         CH_GR.O2Coeff = assimiStruct.O2Coeff;
+%         CH_GR.O_numBiases = assimiStruct.O_numBiases;
+%         CH_GR.N2_numBiases = assimiStruct.N2_numBiases;
+%         CH_GR.He_numBiases = assimiStruct.He_numBiases;
+%         CH_GR.Ar_numBiases = assimiStruct.Ar_numBiases;
+%         CH_GR.O2_numBiases = assimiStruct.O2_numBiases;
+%         [ensemble] = ...
+%             assimilateDataAndUpdateEnsemble(ensemble, @il_model_operator, CH_GR, false, false);
         
-        
-%         conserveInd = ~ismember(S.objectIDs, independentID);
-%         S.Bi = S.Bi(conserveInd,:);
-%         S.Bratio = S.Bratio(conserveInd,:);
-%         S.objectIDs = S.objectIDs(conserveInd,:);
-%         S.rhoObs = S.rhoObs(conserveInd,:);
-%         S.rhoModel_DA = S.rhoModel_DA(conserveInd,:);
-%         S.rhoModel_IL = S.rhoModel_IL(conserveInd,:);
-%         S.sig_rho = S.sig_rho(conserveInd,:);
+        S_orig = S;
+        conserveInd = ~ismember(S.objectIDs, independentID);
+        S.Bi = S.Bi(conserveInd,:);
+        S.Bratio = S.Bratio(conserveInd,:);
+        S.objectIDs = S.objectIDs(conserveInd,:);
+        S.rhoObs = S.rhoObs(conserveInd,:);
+        S.rhoModel_DA = S.rhoModel_DA(conserveInd,:);
+        S.rhoModel_IL = S.rhoModel_IL(conserveInd,:);
+        S.sig_rho = S.sig_rho(conserveInd,:);
         S.sigma = S.sig_rho;
         S.data = S.rhoObs;
 
@@ -145,6 +145,7 @@ while date <= endDate
         end
         
         % Compute analysis for the independent objects
+        S = S_orig;
         if sum(ind) > 0
             analysisTLEs = containers.Map('KeyType', 'double', 'ValueType', 'any');
             for i = 1:length(independentID)
@@ -189,24 +190,40 @@ plotTimes = plotTimes(ind);
 plotOM = plotOM(ind,:,:);
 
 figure;
-hold all;
+%hold all;
 ylim([min(plotOM(:)), max(plotOM(:))])
 hAx = zeros(size(independentID));
+N_ind = length(independentID);
 for i = 1:length(independentID)
     ind = plotOM(:,i,1) > 0;
     pt = plotTimes(ind);
-    pOM_DA = plotOM(ind,i,3); % analysis = 3, bg. = 1
+    pOM_anal = plotOM(ind,i,3); % analysis = 3, bg. = 1
     pOM_IL = plotOM(ind,i,2);
-    if isempty(pOM_DA); continue; end
-    [hAx(i)] = plot(pt, pOM_DA,'linewidth', 2.0);
-    h_IL = plot(pt, pOM_IL,'--','linewidth', 2.0);
+    pOM_bg = plotOM(ind,i,1); % analysis = 3, bg. = 1
+    subplot(N_ind,1,i);
+    if isempty(pOM_anal); continue; end
+    [hAx(i)] = plot(pt, pOM_anal,'linewidth', 2.0);
+    hold all;
+    h_bg = plot(pt, pOM_bg,'--','linewidth', 2.0);
+    set(h_bg,'color',get(hAx(i),'color'));
+    h_IL = plot(pt, pOM_IL,':','linewidth', 2.0);
     set(h_IL,'color',get(hAx(i),'color'));
+    hold off;
+    set(gca,'xtick',[])
+    
+    set(gca,'fontsize',15)
+    %grid on
+    title([num2str(independentID(i))],'fontsize',15);
+    %ylabel('\rho_{hav.} / \rho_{malli}','fontsize',15)
+    
+    k = 3:length(pOM_IL);
+    [analBetter, p_analWorse] = ttest((pOM_IL(k)-1).^2, (pOM_anal(k)-1).^2,'tail','right');
+    [bgBetter, p_bgWorse] = ttest((pOM_IL(k)-1).^2, (pOM_bg(k)-1).^2,'tail','right');
+    fprintf('%d: anal. better: %d (%f), bg. better: %d (%f)\n', independentID(i), analBetter, p_analWorse, bgBetter, p_bgWorse);
 end
-title(['\rho_{hav.} / \rho_{malli}',num2str(TexStd)],'fontsize',15)
-legend(hAx(hAx~=0),strsplit(num2str(independentID(hAx~=0))));
+%title(['\rho_{hav.} / \rho_{malli}'],'fontsize',15)
+%legend(hAx(hAx~=0),strsplit(num2str(independentID(hAx~=0))));
 datetick('x')
-set(gca,'fontsize',15)
-grid on
 
 figure;
 hist(obsRank, 20);

@@ -86,6 +86,7 @@ assAlt = assAlt(ind,:);
 
 figure; % TODO: Piirra exludejen valiin pystyviivat
 hAx = zeros(size(plotIDs));
+subplot(2,1,1)
 for i = 1:length(plotIDs)
     k = find(IDs == plotIDs(i));
     ind = Bi(:,k) > 0;
@@ -97,14 +98,18 @@ end
 title('B_i','fontsize',15)
 legend(hAx(hAx~=0),strsplit(num2str(plotIDs(hAx~=0))));
 datetick('x')
+%set(gca,'xtick',[])
+set(gca,'xticklabel',[])
 ylabel('B_i [m^2 / kg]','fontsize',15)
 set(gca,'fontsize',15)
-grid on
-line([excludeBegin, excludeBegin], get(gca,'ylim'));
-line([excludeEnd, excludeEnd], get(gca,'ylim'));
+xlim1 = get(gca,'xlim');
+%grid on
+line([excludeBegin, excludeBegin], get(gca,'ylim'),'color','r');
+line([excludeEnd, excludeEnd], get(gca,'ylim'),'color','r');
 
-figure;
+%figure;
 hAx = zeros(size(plotIDs));
+subplot(2,1,2)
 for i = 1:length(plotIDs)
     k = find(IDs == plotIDs(i));
     ind = assAlt(:,k) > 0;
@@ -116,11 +121,12 @@ end
 title('Tiheyskorkeus','fontsize',15)
 legend(hAx(hAx~=0),strsplit(num2str(plotIDs(hAx~=0))));
 datetick('x')
+xlim(xlim1);
 ylabel('Korkeus [km]','fontsize',15)
 set(gca,'fontsize',15)
-grid on
-line([excludeBegin, excludeBegin], get(gca,'ylim'));
-line([excludeEnd, excludeEnd], get(gca,'ylim'));
+%grid on
+line([excludeBegin, excludeBegin], get(gca,'ylim'),'color','r');
+line([excludeEnd, excludeEnd], get(gca,'ylim'),'color','r');
 
 Btrue = zeros(size(IDs));
 Btrue_sig = zeros(size(IDs));

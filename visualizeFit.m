@@ -17,7 +17,7 @@ end
 
 % Check the existence of the data file.
 if exist('ilData.mat', 'file')
-    load('ilData.mat', 'originalRhoStruct', 'dTCoeffs', 'T0Coeffs')
+    load('ilData.mat', 'originalRhoStruct')
     %load('ilData.mat', 'rhoStruct', 'dTCoeffs', 'T0Coeffs') % TESTAUS
 else
     error('File ilData.mat not found!')
@@ -61,7 +61,7 @@ z = 400;
 lat = -90:5:90;
 lst = 0:0.5:24;
 lon = 0;
-doy = 1;
+doy = 180;
 F = 70;
 FA = 70;
 aeInt = 20*ones(1,7);
@@ -71,35 +71,36 @@ lonMean = false;
 latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
+onlyIL = true;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'rho', coeffStruct, numBiasesStruct);
+    sameColorBars, 'yx', 'rho', onlyIL, coeffStruct, numBiasesStruct);
 
-if exist('msisDtmComparison.mat', 'file')
-    load msisDtmComparison.mat
-else
-    if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
-    [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
-
-    save('msisDtmComparison.mat', 'msisRho')
-    save('msisDtmComparison.mat', 'dtmRho', '-append')
-end
-
-if exist('ilComparison.mat', 'file')
-    load ilComparison.mat
-else
-    if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
-    [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
-
-    save('ilComparison.mat', 'ilRho')
-end
-
-if ~isfield(originalRhoStruct, 'dst')
-    originalRhoStruct = computeDst(originalRhoStruct);
-    save('ilData.mat', 'originalRhoStruct', '-append');
-end
-
-ind = ~removeInd;
-modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind));
+% if exist('msisDtmComparison.mat', 'file')
+%     load msisDtmComparison.mat
+% else
+%     if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
+%     [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
+% 
+%     save('msisDtmComparison.mat', 'msisRho')
+%     save('msisDtmComparison.mat', 'dtmRho', '-append')
+% end
+% 
+% if exist('ilComparison.mat', 'file')
+%     load ilComparison.mat
+% else
+%     if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
+%     [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
+% 
+%     save('ilComparison.mat', 'ilRho')
+% end
+% 
+% if ~isfield(originalRhoStruct, 'dst')
+%     originalRhoStruct = computeDst(originalRhoStruct);
+%     save('ilData.mat', 'originalRhoStruct', '-append');
+% end
+% 
+% ind = ~removeInd;
+% modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind));
 % 
 %    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
 %     modelStruct, 'O/M', 'Kp3h', 'lat', saveFolder,fullscreenFigs);
@@ -117,7 +118,7 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 % % % % % 
 % % % % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 % % % % 
-computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder, satellite);
+%computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder, satellite);
 % % % % % 
 %      plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
@@ -127,12 +128,12 @@ computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder, satelli
 %      plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2015-04-09', '2015-04-14', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 
- analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
+% analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
 
 end
 
 function [] = plotSurfs(altitude, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, ...
-    devFromXmean, sameColorBars, paramOrder, paramName, coeffStruct, numBiasesStruct)
+    devFromXmean, sameColorBars, paramOrder, paramName, onlyIL, coeffStruct, numBiasesStruct)
 
 [X, Y, xname, yname] = findSurfXY(altitude, lat, lst, lon, doy, paramOrder);
 
@@ -194,7 +195,7 @@ TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
 T0Coeffs = coeffStruct.T0Coeff;
 
 if ~strcmpi(paramName, 'Tex') && ~strcmpi(paramName, 'T0') && ~strcmpi(paramName, 'dT')
-    [Tex, dT0, T0] = findTempsForFit(S, TexCoeffs, dTCoeffs, T0Coeffs);
+    [Tex, dT0, T0] = findTempsForFit_this(S, TexCoeffs, dTCoeffs, T0Coeffs);
     OlbDens = evalMajorSpecies(S, coeffStruct.OCoeff, numBiasesStruct.O);
     N2lbDens = evalMajorSpecies(S, coeffStruct.N2Coeff, numBiasesStruct.N2);
     HelbDens = evalMajorSpecies(S, coeffStruct.HeCoeff, numBiasesStruct.He);
@@ -284,6 +285,11 @@ end
 
 figure('renderer', 'zbuffer');
 
+if onlyIL
+    plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 15);
+    return
+end
+
 if sameColorBars
     subplot(3,1,1);
     %clims = plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16);
@@ -313,6 +319,16 @@ else
 
 end
 
+
+end
+
+function [Tex, dT0, T0] = findTempsForFit_this(varStruct, TexCoeffs, dTCoeffs, T0Coeffs, coeff)
+
+Tex_est = evalTex(varStruct, TexCoeffs);
+
+T0 = clamp(200, evalT0(varStruct, T0Coeffs), 1000);
+dT0 = clamp(1, evalDT(varStruct, dTCoeffs), 30);
+Tex = clamp(T0+1, Tex_est, 5000);
 
 end
 
