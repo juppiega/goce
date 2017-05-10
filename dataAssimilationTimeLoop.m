@@ -3,9 +3,9 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 %     modelString: 'dummy' for test, 'full' for complete model
 %     assimilationWindowLength: in hours.
 
-Fstd = 24;
-%Fstd = sqrt(6);
-loopModelAssimilation('2004-01-01', '2004-05-31', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
+%Fstd = 24;
+Fstd = 5;
+loopModelAssimilation('2003-01-01', '2003-01-15', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
 
 
 end
@@ -214,24 +214,25 @@ fprintf('EnKF FGAT RMS: %f\n', ensMeanRMS);
 fprintf('Improvement: %f\n', (1 - (ensMeanRMS./refRMS))*100);
 
 figure;
-subplot(3,1,1)
-plot(repmat(analStruct.timestamps,1,2), [d, r])
-legend('Innovaatiot', 'Residuaalit');
+% subplot(3,1,1)
+% plot(repmat(analStruct.timestamps,1,2), [d, r])
+% legend('Innovaatiot', 'Residuaalit');
+% datetick('x')
+% set(gca,'fontsize', 15)
+
+%subplot(3,1,2)
+t = [assTimes(1):3:assTimes(1)+18];
+semilogy(t, (sum(covdiag(1:length(t),:),2)),'linewidth',2.0);
+title('sum(diag(B))','fontsize', 15);
 datetick('x')
 set(gca,'fontsize', 15)
 
-subplot(3,1,2)
-plot(assTimes, sum(covdiag,2));
-legend('sum(diag(B))');
-datetick('x')
-set(gca,'fontsize', 15)
-
-subplot(3,1,3)
-tVar = sqrt(covdiag(:,1:3));
-plot(repmat(assTimes,1,3), tVar);
-legend('\sigma F30', '\sigma T0','\sigma dT');
-datetick('x')
-set(gca,'fontsize', 15)
+% subplot(3,1,3)
+% tVar = sqrt(covdiag(:,1:3));
+% plot(repmat(assTimes,1,3), tVar);
+% legend('\sigma F30', '\sigma T0','\sigma dT');
+% datetick('x')
+% set(gca,'fontsize', 15)
 
 figure;
 plot(analStruct.timestamps, analStruct.Tex)
@@ -244,7 +245,9 @@ figure('renderer', 'zbuffer');
 T.latitude = y(:);
 T.solarTime = x(:);
 T.altitude = 400*ones(size(x(:)));
-T.doy = 180*ones(size(x(:)));
+T.F = mean(S.F);
+T.FA = mean(S.FA);
+T.doy = 10*ones(size(x(:)));
 T.timestamps = now*ones(size(x(:)));
 T.longitude = 180*ones(size(x(:)));
 T = addCoeffsToStruct(T, OStruct, HeStruct, N2Struct, ArStruct, O2Struct);
@@ -256,9 +259,10 @@ surf(x,y,z,'edgecolor','none')
 shading interp
 colorbar
 view(2);
-xlabel('Paikallisaika','fontsize',15)
+xlabel('Paikallisaika [h]','fontsize',15)
 ylabel('Leveyspiiri','fontsize',15)
-title('Tex -korjaus','fontsize',15)
+title('T_{ex} -korjaus','fontsize',15)
+set(gca,'fontsize', 15)
 axis tight
 
 refRMS = [];
@@ -279,32 +283,32 @@ ylabel('RMSE','fontsize',15)
 legend('IL','Tausta','Analyysi')
 datetick('x')
 
-% figure('renderer', 'zbuffer');
-% zAnalysis = reshape(modelOperator(ensMean,T), size(x,1), size(x,2));
-% bgMean = mean(previousEnsemble,2);
-% zBg = reshape(modelOperator(bgMean,T), size(x,1), size(x,2));
-% 
-% [~,ind] = min(abs(assimiStruct.timestamps-assTimes(end)));
-% controlEns = [assimiStruct.FA(ind); zeros(length(ensMean)-1,1)];
-% zIL = reshape(modelOperator(controlEns,T), size(x,1), size(x,2));
-% 
-% % subplot(4,1,1)
-% % scatter3(S.solarTime, S.latitude, zeros(size(S.data)), 10.0, exp(S.data), ...
-% %     'MarkerFaceColor', 'flat','Marker','o')
-% % shading interp; colorbar; view(2);
-% % %xlabel('lst','fontsize',15)
-% % ylabel('lat','fontsize',15)
-% % title('IL','fontsize',15)
-% % axis tight
-% 
-% subplot(3,1,1)
-% surf(x,y,exp(zIL),'edgecolor','none')
+figure('renderer', 'zbuffer');
+zAnalysis = reshape(modelOperator(ensMean,T), size(x,1), size(x,2));
+bgMean = mean(previousEnsemble,2);
+zBg = reshape(modelOperator(bgMean,T), size(x,1), size(x,2));
+
+[~,ind] = min(abs(assimiStruct.timestamps-assTimes(end)));
+controlEns = [assimiStruct.FA(ind); zeros(length(ensMean)-1,1)];
+zIL = reshape(modelOperator(controlEns,T), size(x,1), size(x,2));
+
+% subplot(4,1,1)
+% scatter3(S.solarTime, S.latitude, zeros(size(S.data)), 10.0, exp(S.data), ...
+%     'MarkerFaceColor', 'flat','Marker','o')
 % shading interp; colorbar; view(2);
 % %xlabel('lst','fontsize',15)
-% ylabel('Leveyspiiri','fontsize',15)
+% ylabel('lat','fontsize',15)
 % title('IL','fontsize',15)
 % axis tight
-% 
+
+subplot(2,1,1)
+surf(x,y,exp(zIL),'edgecolor','none')
+shading interp; colorbar; view(2);
+%xlabel('lst','fontsize',15)
+ylabel('Leveyspiiri','fontsize',15)
+title('IL','fontsize',15)
+axis tight
+
 % subplot(3,1,2)
 % surf(x,y,exp(zBg),'edgecolor','none')
 % shading interp; colorbar; view(2);
@@ -312,14 +316,14 @@ datetick('x')
 % ylabel('Leveyspiiri','fontsize',15)
 % title('Background','fontsize',15)
 % axis tight
-% 
-% subplot(3,1,3)
-% surf(x,y,exp(zAnalysis),'edgecolor','none')
-% shading interp; colorbar; view(2);
-% xlabel('Paikallisaika','fontsize',15)
-% ylabel('Leveyspiiri','fontsize',15)
-% title('Analysis','fontsize',15)
-% axis tight
+
+subplot(2,1,2)
+surf(x,y,exp(zAnalysis),'edgecolor','none')
+shading interp; colorbar; view(2);
+xlabel('Paikallisaika [h]','fontsize',15)
+ylabel('Leveyspiiri','fontsize',15)
+title('Analysis','fontsize',15)
+axis tight
 
 figure;
 plot(assTimes, ensMeanF, assimiStruct.timestamps, assimiStruct.F)
@@ -359,7 +363,7 @@ save(filename, 'analStruct','assimiStruct','d','r','P','obsRank','dataRho','anal
     'plotTime', 'covdiag','ensMeanF','ensMeans','assTimes','ensemble','windowLen', '-append')
 
 plotID = [60,614,750,2389,3717,4330];
-compareToTLE(t0, t1, ensMeans, assimiStruct, assTimes, modelString, plotID, rhoStruct)
+%compareToTLE(t0, t1, ensMeans, assimiStruct, assTimes, modelString, plotID, rhoStruct)
 
 end
 
