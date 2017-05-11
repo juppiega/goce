@@ -126,14 +126,14 @@ while date <= endDate
 %             assimilateDataAndUpdateEnsemble(ensemble, @il_model_operator, CH_GR, false, false);
         
         S_orig = S;
-        conserveInd = ~ismember(S.objectIDs, independentID);
-        S.Bi = S.Bi(conserveInd,:);
-        S.Bratio = S.Bratio(conserveInd,:);
-        S.objectIDs = S.objectIDs(conserveInd,:);
-        S.rhoObs = S.rhoObs(conserveInd,:);
-        S.rhoModel_DA = S.rhoModel_DA(conserveInd,:);
-        S.rhoModel_IL = S.rhoModel_IL(conserveInd,:);
-        S.sig_rho = S.sig_rho(conserveInd,:);
+%         conserveInd = ~ismember(S.objectIDs, independentID);
+%         S.Bi = S.Bi(conserveInd,:);
+%         S.Bratio = S.Bratio(conserveInd,:);
+%         S.objectIDs = S.objectIDs(conserveInd,:);
+%         S.rhoObs = S.rhoObs(conserveInd,:);
+%         S.rhoModel_DA = S.rhoModel_DA(conserveInd,:);
+%         S.rhoModel_IL = S.rhoModel_IL(conserveInd,:);
+%         S.sig_rho = S.sig_rho(conserveInd,:);
         S.sigma = S.sig_rho;
         S.data = S.rhoObs;
 
@@ -202,7 +202,8 @@ plot(assTimes,Tex_series(:,2),'b','linewidth',2.0)
 plot(assTimes,Tex_series(:,3),'r--','linewidth',2.0)
 set(gca,'fontsize',15)
 title('\Delta T_{ex}','fontsize',15)
-set(gca,'xtick',[])
+xlim([beginDate, endDate]);
+set(gca,'xticklabel',[])
 
 subplot(3,1,2)
 plot(assTimes,T0_series(:,1),'r--','linewidth',2.0)
@@ -211,7 +212,8 @@ plot(assTimes,T0_series(:,2),'b','linewidth',2.0)
 plot(assTimes,T0_series(:,3),'r--','linewidth',2.0)
 set(gca,'fontsize',15)
 title('\Delta T_{0}','fontsize',15)
-set(gca,'xtick',[])
+xlim([beginDate, endDate]);
+set(gca,'xticklabel',[])
 
 subplot(3,1,3)
 plot(assTimes,dT_series(:,1),'r--','linewidth',2.0)
@@ -220,7 +222,8 @@ plot(assTimes,dT_series(:,2),'b','linewidth',2.0)
 plot(assTimes,dT_series(:,3),'r--','linewidth',2.0)
 set(gca,'fontsize',15)
 title('\Delta T','fontsize',15)
-set(gca,'xtick',[])
+datetick('x')
+xlim([beginDate, endDate]);
 
 
 
@@ -244,7 +247,9 @@ for i = 1:length(independentID)
     h_IL = plot(pt, pOM_IL,':','linewidth', 2.0);
     set(h_IL,'color',get(hAx(i),'color'));
     hold off;
-    set(gca,'xtick',[])
+    %set(gca,'xticklabel',[])
+    datetick('x');
+    xlim([beginDate, endDate]);
     
     set(gca,'fontsize',15)
     %grid on
@@ -263,7 +268,7 @@ for i = 1:length(independentID)
 end
 %title(['\rho_{hav.} / \rho_{malli}'],'fontsize',15)
 %legend(hAx(hAx~=0),strsplit(num2str(independentID(hAx~=0))));
-datetick('x')
+
 
 figure;
 hist(obsRank, 20);
