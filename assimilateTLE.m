@@ -262,7 +262,7 @@ for i = 1:length(independentID)
     title([num2str(independentID(i))],'fontsize',15);
     %ylabel('\rho_{hav.} / \rho_{malli}','fontsize',15)
     
-    k = 3:length(pOM_IL);
+    k = 10:length(pOM_IL);
     [analBetter, p_analWorse] = ttest((pOM_IL(k)-1).^2, (pOM_anal(k)-1).^2,'tail','right');
     [bgBetter, p_bgWorse] = ttest((pOM_IL(k)-1).^2, (pOM_bg(k)-1).^2,'tail','right');
     fprintf('%d: anal. better: %d (%f), bg. better: %d (%f)\n', independentID(i), analBetter, p_analWorse, bgBetter, p_bgWorse);
