@@ -126,14 +126,14 @@ while date <= endDate
 %             assimilateDataAndUpdateEnsemble(ensemble, @il_model_operator, CH_GR, false, false);
         
         S_orig = S;
-%         conserveInd = ~ismember(S.objectIDs, independentID);
-%         S.Bi = S.Bi(conserveInd,:);
-%         S.Bratio = S.Bratio(conserveInd,:);
-%         S.objectIDs = S.objectIDs(conserveInd,:);
-%         S.rhoObs = S.rhoObs(conserveInd,:);
-%         S.rhoModel_DA = S.rhoModel_DA(conserveInd,:);
-%         S.rhoModel_IL = S.rhoModel_IL(conserveInd,:);
-%         S.sig_rho = S.sig_rho(conserveInd,:);
+        conserveInd = ~ismember(S.objectIDs, independentID);
+        S.Bi = S.Bi(conserveInd,:);
+        S.Bratio = S.Bratio(conserveInd,:);
+        S.objectIDs = S.objectIDs(conserveInd,:);
+        S.rhoObs = S.rhoObs(conserveInd,:);
+        S.rhoModel_DA = S.rhoModel_DA(conserveInd,:);
+        S.rhoModel_IL = S.rhoModel_IL(conserveInd,:);
+        S.sig_rho = S.sig_rho(conserveInd,:);
         S.sigma = S.sig_rho;
         S.data = S.rhoObs;
 
@@ -203,6 +203,7 @@ plot(assTimes,Tex_series(:,2),'b','linewidth',2.0)
 set(gca,'fontsize',15)
 [mean(Tex_series(:,2)),std(Tex_series(:,2))]
 title('\Delta T_{ex}','fontsize',15)
+ylabel('K','fontsize',15)
 xlim([beginDate, endDate]);
 set(gca,'xticklabel',[])
 
@@ -214,6 +215,7 @@ plot(assTimes,T0_series(:,2),'b','linewidth',2.0)
 set(gca,'fontsize',15)
 [mean(T0_series(:,2)),std(T0_series(:,2))]
 title('\Delta T_{0}','fontsize',15)
+ylabel('K','fontsize',15)
 xlim([beginDate, endDate]);
 set(gca,'xticklabel',[])
 
@@ -223,6 +225,7 @@ subplot(3,1,3)
 plot(assTimes,dT_series(:,2),'b','linewidth',2.0)
 %plot(assTimes,dT_series(:,3),'r--','linewidth',2.0)
 set(gca,'fontsize',15)
+ylabel('K/km','fontsize',15)
 [mean(dT_series(:,2)),std(dT_series(:,2))]
 title('\Delta T','fontsize',15)
 datetick('x')
