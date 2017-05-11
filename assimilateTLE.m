@@ -196,31 +196,34 @@ plotOM = plotOM(ind,:,:);
 
 figure;
 subplot(3,1,1)
-plot(assTimes,Tex_series(:,1),'r--','linewidth',2.0)
-hold on
+%plot(assTimes,Tex_series(:,1),'r--','linewidth',2.0)
+%hold on
 plot(assTimes,Tex_series(:,2),'b','linewidth',2.0)
-plot(assTimes,Tex_series(:,3),'r--','linewidth',2.0)
+%plot(assTimes,Tex_series(:,3),'r--','linewidth',2.0)
 set(gca,'fontsize',15)
+[mean(Tex_series(:,2)),std(Tex_series(:,2))]
 title('\Delta T_{ex}','fontsize',15)
 xlim([beginDate, endDate]);
 set(gca,'xticklabel',[])
 
 subplot(3,1,2)
-plot(assTimes,T0_series(:,1),'r--','linewidth',2.0)
-hold on
+%plot(assTimes,T0_series(:,1),'r--','linewidth',2.0)
+%hold on
 plot(assTimes,T0_series(:,2),'b','linewidth',2.0)
-plot(assTimes,T0_series(:,3),'r--','linewidth',2.0)
+%plot(assTimes,T0_series(:,3),'r--','linewidth',2.0)
 set(gca,'fontsize',15)
+[mean(T0_series(:,2)),std(T0_series(:,2))]
 title('\Delta T_{0}','fontsize',15)
 xlim([beginDate, endDate]);
 set(gca,'xticklabel',[])
 
 subplot(3,1,3)
-plot(assTimes,dT_series(:,1),'r--','linewidth',2.0)
-hold on
+%plot(assTimes,dT_series(:,1),'r--','linewidth',2.0)
+%hold on
 plot(assTimes,dT_series(:,2),'b','linewidth',2.0)
-plot(assTimes,dT_series(:,3),'r--','linewidth',2.0)
+%plot(assTimes,dT_series(:,3),'r--','linewidth',2.0)
 set(gca,'fontsize',15)
+[mean(dT_series(:,2)),std(dT_series(:,2))]
 title('\Delta T','fontsize',15)
 datetick('x')
 xlim([beginDate, endDate]);
