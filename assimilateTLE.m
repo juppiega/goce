@@ -254,14 +254,14 @@ for i = 1:length(independentID)
     pOM_anal = plotOM(ind,i,3); % analysis = 3, bg. = 1
     pOM_IL = plotOM(ind,i,2);
     pOM_bg = plotOM(ind,i,1); % analysis = 3, bg. = 1
-    pOM_max = 7.5*(plotOM(ind,i,4)-pOM_anal)+pOM_anal; pOM_max(1:2) = plotOM(ind(1:2),i,4);
-    pOM_min = 7.5*(plotOM(ind,i,5)-pOM_anal)+pOM_anal; pOM_min(1:2) = plotOM(ind(1:2),i,5);
+    pOM_max = 5*(plotOM(ind,i,4)-pOM_anal)+pOM_anal; pOM_max(1:2) = plotOM(ind(1:2),i,4);
+    pOM_min = 5*(plotOM(ind,i,5)-pOM_anal)+pOM_anal; pOM_min(1:2) = plotOM(ind(1:2),i,5);
     subplot(N_ind,1,i);
     if isempty(pOM_anal); continue; end
     [hAx(i)] = plot(pt, pOM_anal,'k','linewidth', 2.0);
     hold all;
-    plot(pt, pOM_max,'r--','linewidth', 2.0);
-    plot(pt, pOM_min,'r--','linewidth', 2.0);
+    plot(pt, pOM_max,'r','linewidth', 2.0);
+    plot(pt, pOM_min,'r','linewidth', 2.0);
     h_IL = plot(pt, pOM_IL,'g','linewidth', 2.0);
     %set(h_IL,'color',get(hAx(i),'color'));
     hold off;
