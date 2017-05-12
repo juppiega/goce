@@ -5,7 +5,7 @@ function dataAssimilationTimeLoop(modelString, assimilationWindowLength, ensembl
 
 %Fstd = 24;
 Fstd = 5;
-loopModelAssimilation('2003-01-01', '2003-01-15', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
+loopModelAssimilation('2003-01-01', '2003-01-31', 'CH/GR', 'CHAMP', modelString, assimilationWindowLength, ensembleSize, Fstd);
 
 
 end
@@ -227,6 +227,7 @@ title('sum(diag(B))','fontsize', 15);
 datetick('x')
 set(gca,'fontsize', 15)
 axis tight
+sum(covdiag(end,:))
 
 % subplot(3,1,3)
 % tVar = sqrt(covdiag(:,1:3));
