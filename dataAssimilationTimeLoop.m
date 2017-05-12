@@ -309,6 +309,7 @@ shading interp; colorbar; view(2);
 %xlabel('lst','fontsize',15)
 ylabel('Leveyspiiri','fontsize',15)
 title('IL','fontsize',15)
+set(gca,'fontsize', 15)
 axis tight
 clims = caxis;
 
@@ -326,6 +327,7 @@ shading interp; colorbar; view(2);
 xlabel('Paikallisaika [h]','fontsize',15)
 ylabel('Leveyspiiri','fontsize',15)
 title('Analysis','fontsize',15)
+set(gca,'fontsize', 15)
 axis tight
 caxis(clims);
 
