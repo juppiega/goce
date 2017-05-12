@@ -37,7 +37,7 @@ tleMap = downloadTLEs(objectIDs, beginDate, endDate);
 
 M = floor((endDate-beginDate)/assimilationWindow) + 3;
 plotTimes = zeros(M,1);
-plotOM = zeros(M,length(independentID),3);
+plotOM = zeros(M,length(independentID),5);
 plotMap = containers.Map('keytype','double','valuetype','double');
 for i = 1:length(independentID);
     plotMap(independentID(i)) = i;
@@ -165,15 +165,25 @@ while date <= endDate
             end
             
             ind = ismember(S.objectIDs,independentID);
-            OM_DA = exp(S.rhoObs(ind))./exp(mean(S.rhoModel_DA(ind,:),2));
+            OM_DA_mean = exp(S.rhoObs(ind))./exp(mean(S.rhoModel_DA(ind,:),2));
+            OM_DA_max = exp(S.rhoObs(ind))./exp(min(S.rhoModel_DA(ind,:)));
+            OM_DA_min = exp(S.rhoObs(ind))./exp(max(S.rhoModel_DA(ind,:)));
             this_computed_satell = S.objectIDs(ind);
             for j = 1:length(independentID)
                 objInd = find(this_computed_satell == independentID(j));
                 if ~isempty(objInd)
-                    plotOM(k,j,3) = OM_DA(objInd);
+                    plotOM(k,j,3) = OM_DA_mean(objInd);
+                    plotOM(k,j,4) = OM_DA_max(objInd);
+                    plotOM(k,j,5) = OM_DA_min(objInd);
                 end
             end
         end
+        
+        ensMean = mean(ensemble, 2);
+        ensStd = std(ensemble, 0, 2);
+%         if k > 1
+%             ensemble(1,:) = (TexStd)/ensStd(1) * (ensemble(1,:)-ensMean(1)) + ensMean(1);
+%         end
         
         Tex_series = vertcat(Tex_series, [quantile(ensemble(1,:),0.1), mean(ensemble(1,:)), quantile(ensemble(1,:),0.9)]);
         T0_series = vertcat(T0_series, [quantile(ensemble(2,:),0.1), mean(ensemble(2,:)), quantile(ensemble(2,:),0.9)]);
@@ -239,19 +249,21 @@ ylim([min(plotOM(:)), max(plotOM(:))])
 hAx = zeros(size(independentID));
 N_ind = length(independentID);
 for i = 1:length(independentID)
-    ind = plotOM(:,i,1) > 0;
+    ind = find(plotOM(:,i,1) > 0);
     pt = plotTimes(ind);
     pOM_anal = plotOM(ind,i,3); % analysis = 3, bg. = 1
     pOM_IL = plotOM(ind,i,2);
     pOM_bg = plotOM(ind,i,1); % analysis = 3, bg. = 1
+    pOM_max = 7.5*(plotOM(ind,i,4)-pOM_anal)+pOM_anal; pOM_max(1:2) = plotOM(ind(1:2),i,4);
+    pOM_min = 7.5*(plotOM(ind,i,5)-pOM_anal)+pOM_anal; pOM_min(1:2) = plotOM(ind(1:2),i,5);
     subplot(N_ind,1,i);
     if isempty(pOM_anal); continue; end
-    [hAx(i)] = plot(pt, pOM_anal,'linewidth', 2.0);
+    [hAx(i)] = plot(pt, pOM_anal,'k','linewidth', 2.0);
     hold all;
-    h_bg = plot(pt, pOM_bg,'--','linewidth', 2.0);
-    set(h_bg,'color',get(hAx(i),'color'));
-    h_IL = plot(pt, pOM_IL,':','linewidth', 2.0);
-    set(h_IL,'color',get(hAx(i),'color'));
+    plot(pt, pOM_max,'r--','linewidth', 2.0);
+    plot(pt, pOM_min,'r--','linewidth', 2.0);
+    h_IL = plot(pt, pOM_IL,'g','linewidth', 2.0);
+    %set(h_IL,'color',get(hAx(i),'color'));
     hold off;
     %set(gca,'xticklabel',[])
     datetick('x');
@@ -260,9 +272,9 @@ for i = 1:length(independentID)
     set(gca,'fontsize',15)
     %grid on
     title([num2str(independentID(i))],'fontsize',15);
-    %ylabel('\rho_{hav.} / \rho_{malli}','fontsize',15)
+    ylabel('\rho_{hav.} / \rho_{malli}','fontsize',15)
     
-    k = 10:length(pOM_IL);
+    k = 13:length(pOM_IL);
     [analBetter, p_analWorse] = ttest((pOM_IL(k)-1).^2, (pOM_anal(k)-1).^2,'tail','right');
     [bgBetter, p_bgWorse] = ttest((pOM_IL(k)-1).^2, (pOM_bg(k)-1).^2,'tail','right');
     fprintf('%d: anal. better: %d (%f), bg. better: %d (%f)\n', independentID(i), analBetter, p_analWorse, bgBetter, p_bgWorse);
