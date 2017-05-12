@@ -326,7 +326,7 @@ surf(x,y,exp(zAnalysis),'edgecolor','none')
 shading interp; colorbar; view(2);
 xlabel('Paikallisaika [h]','fontsize',15)
 ylabel('Leveyspiiri','fontsize',15)
-title('Analysis','fontsize',15)
+title('Analyysi','fontsize',15)
 set(gca,'fontsize', 15)
 axis tight
 caxis(clims);
