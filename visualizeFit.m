@@ -72,8 +72,19 @@ latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
 onlyIL = true;
-plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'rho', onlyIL, coeffStruct, numBiasesStruct);
+%plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
+%    sameColorBars, 'yx', 'rho', onlyIL, coeffStruct, numBiasesStruct);
+
+
+z = 125:5:600;
+lat = 60;
+lst = 15;
+lon = 25;
+doy = 172;
+F = 60;
+FA = 60;
+aeInt = 20*ones(1,7);
+plotProfile(z, lat, lst, lon, doy, F, FA, aeInt, 'T', coeffStruct, numBiasesStruct);
 
 % if exist('msisDtmComparison.mat', 'file')
 %     load msisDtmComparison.mat
@@ -129,6 +140,53 @@ plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMea
 %      plotStormFig(originalRhoStruct, modelStruct, '2015-04-09', '2015-04-14', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 
 % analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
+
+end
+
+function [] = plotProfile(z, lat, lst, lon, doy, F, FA, aeInt, parameter, coeffStruct, numBiasesStruct)
+
+N = length(z);
+S.aeInt = bsxfun(@times, ones(N,size(aeInt,2)), aeInt);
+S.latitude = zeros(N, 1) + lat;
+S.longitude = zeros(N, 1) + lon;
+S.solarTime = zeros(N,1) + lst;
+S.altitude = z';
+S.F = F * ones(N,1);
+S.FA = FA * ones(N,1);
+S.doy = zeros(N,1) + doy;
+S = computeVariablesForFit(S, false);
+S = computeGeopotentialHeight(S);
+
+TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
+T0Coeffs = coeffStruct.T0Coeff;
+
+[Tex, dT0, T0] = findTempsForFit_this(S, TexCoeffs, dTCoeffs, T0Coeffs);
+
+T = Tex - (Tex - T0) .* exp(-dT0 .* (S.Z) ./ (Tex - T0));
+
+figure;
+plot(T, z, 'r', 'linewidth', 2.0)
+ylabel('Korkeus [km]','fontsize',15)
+xlabel('Lämpötila [K]','fontsize',15)
+set(gca,'fontsize',15)
+xlims = get(gca,'xlim');
+xlims(2) = xlims(2) + 200;
+xlim(xlims);
+
+z0 = 130;
+T0_130 = interp1(z,T0,z0);
+dT_130 = interp1(z,dT0,z0);
+Tex = Tex(1);
+
+linesize = 2.0;
+gradientLine_T = [min(T), Tex-100];
+gradientLine_z = z0 + (1/dT_130).*(gradientLine_T - T0_130);
+hold all;
+plot(gradientLine_T, gradientLine_z, 'k--', 'linewidth', linesize);
+
+ylims = ylim;
+plot([Tex,Tex],[z0+100,ylims(2)], 'k--', 'linewidth', linesize)
+plot([T0_130,T0_130],[ylims(1),z0+200], 'k--', 'linewidth', linesize)
 
 end
 

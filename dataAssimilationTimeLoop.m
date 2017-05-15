@@ -339,7 +339,10 @@ xlabel('Aika','fontsize',15)
 ylabel('F30','fontsize',15)
 
 figure;
-surf(log10(abs(c)),'edgecolor','none');
+m = size(ensemble,1);
+v = zeros(m+1, m+1);
+v(1:m,1:m) = log10(abs(c));
+surf(v,'edgecolor','none');
 title('Mallin kovarianssi', 'fontsize', 15)
 view(2);
 colorbar;
