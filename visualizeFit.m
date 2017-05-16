@@ -86,33 +86,33 @@ FA = 60;
 aeInt = 20*ones(1,7);
 plotProfile(z, lat, lst, lon, doy, F, FA, aeInt, 'T', coeffStruct, numBiasesStruct);
 
-% if exist('msisDtmComparison.mat', 'file')
-%     load msisDtmComparison.mat
-% else
-%     if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
-%     [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
-% 
-%     save('msisDtmComparison.mat', 'msisRho')
-%     save('msisDtmComparison.mat', 'dtmRho', '-append')
-% end
-% 
-% if exist('ilComparison.mat', 'file')
-%     load ilComparison.mat
-% else
-%     if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
-%     [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
-% 
-%     save('ilComparison.mat', 'ilRho')
-% end
-% 
-% if ~isfield(originalRhoStruct, 'dst')
-%     originalRhoStruct = computeDst(originalRhoStruct);
-%     save('ilData.mat', 'originalRhoStruct', '-append');
-% end
-% 
-% ind = ~removeInd;
-% modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind));
-% 
+if exist('msisDtmComparison.mat', 'file')
+    load msisDtmComparison.mat
+else
+    if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
+    [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
+
+    save('msisDtmComparison.mat', 'msisRho')
+    save('msisDtmComparison.mat', 'dtmRho', '-append')
+end
+
+if exist('ilComparison.mat', 'file')
+    load ilComparison.mat
+else
+    if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
+    [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
+
+    save('ilComparison.mat', 'ilRho')
+end
+
+if ~isfield(originalRhoStruct, 'dst')
+    originalRhoStruct = computeDst(originalRhoStruct);
+    save('ilData.mat', 'originalRhoStruct', '-append');
+end
+
+ind = ~removeInd;
+modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind));
+
 %    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.latitude, 10, originalRhoStruct.data,...
 %     modelStruct, 'O/M', 'Kp3h', 'lat', saveFolder,fullscreenFigs);
 % % %  plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
@@ -129,7 +129,7 @@ plotProfile(z, lat, lst, lon, doy, F, FA, aeInt, 'T', coeffStruct, numBiasesStru
 % % % % % 
 % % % % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 % % % % 
-%computeStatistics(originalRhoStruct, ilRho, msisRho, dtmRho, saveFolder, satellite);
+computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 % % % % % 
 %      plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
@@ -139,7 +139,7 @@ plotProfile(z, lat, lst, lon, doy, F, FA, aeInt, 'T', coeffStruct, numBiasesStru
 %      plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2015-04-09', '2015-04-14', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 
-% analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
+analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
 
 end
 
@@ -659,7 +659,11 @@ He = He / (4 * u2g);
 
 end
 
-function [] = computeStatistics(rhoStruct, ilRho, msisRho, dtmRho, saveFolder, satellite)
+function [] = computeStatistics(rhoStruct, modelStruct, saveFolder, satellite)
+
+ilRho = modelStruct.il;
+msisRho = modelStruct.msis;
+dtmRho = modelStruct.dtm;
 
 outputFile = fopen([saveFolder,'/','stat.',satellite,'.out'], 'w');
 fprintf(outputFile, '%s \n', 'Full model')
