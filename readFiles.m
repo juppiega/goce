@@ -534,7 +534,7 @@ if solarFile == -1
     error('Solar index file open unsuccesful! Check that you have a file "proxies_unadjusted.dat" in your WORKING DIRECTORY.')
 end
 
-solarData = textscan(solarFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f', 'MultipleDelimsAsOne',1, 'CommentStyle','//');
+solarData = textscan(solarFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f', 'MultipleDelimsAsOne',1, 'CommentStyle','//');
 F30 = solarData{14};
 F30A = solarData{15};
 F10 = solarData{5};
