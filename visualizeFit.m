@@ -84,7 +84,7 @@ doy = 172;
 F = 60;
 FA = 60;
 aeInt = 20*ones(1,7);
-plotProfile(z, lat, lst, lon, doy, F, FA, aeInt, 'T', coeffStruct, numBiasesStruct);
+%plotProfile(z, lat, lst, lon, doy, F, FA, aeInt, 'T', coeffStruct, numBiasesStruct);
 
 if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat
@@ -129,15 +129,17 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 % % % % % 
 % % % % % plot2DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.data, modelStruct, 'O/M', 'AE16h', saveFolder)
 % % % % 
-computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
+%computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 % % % % % 
-%      plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+      plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2015-04-09', '2015-04-14', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%plotStormFig(originalRhoStruct, modelStruct, '2014-11-07', '2014-11-13', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+
 
 analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
 
@@ -618,47 +620,6 @@ set(gca, 'fontsize', fs);
 
 end
 
-function [Tex, rho, O, N2, He] = computeDtm(S)
-
-N = length(S.latitude);
-Tex = zeros(N,1);
-rho = zeros(N,1);
-O = zeros(N,1);
-N2 = zeros(N,1);
-He = zeros(N,1);
-
-dtm2013_mex();
-
-targetCount = round(N / 10000);
-barWidth = 50;
-p = TimedProgressBar( targetCount, barWidth, ...
-                    'Running DTM, ETA ', ...
-                    '. Now at ', ...
-                    'Completed in ' );
-
-
-load F30toF10
-S.F = pF(1) * S.F + pF(2);
-S.FA = pF(1) * S.FA + pF(2);
-for i = 1:N
-    [Tex(i),~,rho(i),~,~,d] = dtm2013_mex(S.doy(i), S.altitude(i), S.latitude(i), S.longitude(i), ...
-        S.solarTime(i), S.F(i), S.FA(i), S.ap3h(i), S.Ap(i));
-    O(i) = d(3); N2(i) = d(4); He(i) = d(2);
-    if mod(i, 10000) == 0
-        p.progress;
-    end
-end
-p.stop;
-
-rho = rho * 1E3;
-u2g = 1.6605402e-24;
-O = O / (16 * u2g);
-N2 = N2 / (28 * u2g);
-He = He / (4 * u2g);
-
-
-end
-
 function [] = computeStatistics(rhoStruct, modelStruct, saveFolder, satellite)
 
 ilRho = modelStruct.il;
@@ -1008,7 +969,7 @@ if ~isempty(strfind(lower(timeOfDay), 'morning'))
     if fullscreenFigs
         colormapFigHandle = figure('units','normalized','outerposition',[0 0 1 1]);
     else
-        colormapFigHandle = figure;
+        colormapFigHandle = figure('renderer', 'zbuffer');
     end
     satSubplot = 1;
     if numPlotRows == 3
@@ -1211,6 +1172,8 @@ for i = 1:numOfValuesInOrbit
     aeProxyDensityMatrix(:,i) = interpolatedAeProxy;
     timeMatrix(:,i) = tInterp;
 end
+
+figure('renderer', 'zbuffer');
 
 plotDensityLatitudeTimeSurf(firstDatenum, aeIntegral, timestamps1min, magneticLatitude, timestamps10s, latitudeMatrix, ...
     timeMatrix, goceDensityMatrix, msisDensityMatrix, dtmDensityMatrix, aeProxyDensityMatrix, timeOfDay, fullscreenFigs);
