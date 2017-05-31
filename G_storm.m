@@ -10,7 +10,7 @@ mag_lat = (a(k+1)+a(k+2)*S.P20+a(k+3)*S.P40 + (a(k+4)*S.P10+a(k+5)*S.P30).*(1+a(
            a(k+9)*S.FA+a(k+10)*S.FA.^2) .* Activity;
 k = k + 10;
 
-mag_lon = (a(k+1)*S.P21 + a(k+2)*S.P41 + a(k+3)*S.P61).*(1+a(k+4)*S.P10*cos(S.yv+a(k+5))).*cos(S.lv-a(k+6)).*Activity;
+mag_lon = (a(k+1)*S.P21 + a(k+2)*S.P41 + a(k+3)*S.P61).*(1+a(k+4)*S.P10.*cos(S.yv+a(k+5))).*cos(S.lv-a(k+6)).*Activity;
 k = k + 6;
 
 mag_lst = (a(k+1)*S.P11+a(k+2)*S.P31+a(k+3)*S.P51).*cos(S.dv-a(k+4)).*Activity;
