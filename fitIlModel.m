@@ -576,7 +576,7 @@ function JAC = computeJAC(fun, x, dataLen, tolX, paramsToFit)
 JAC = zeros(dataLen, length(paramsToFit));
 dx = max(0.25*tolX*abs(x), 1E-10);
 
-parfor i = 1:length(paramsToFit)
+for i = 1:length(paramsToFit)
     xForw = x; xBackw = x;
     k = paramsToFit(i);
     xForw(k) = x(k) + dx(k);
