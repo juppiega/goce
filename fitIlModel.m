@@ -597,7 +597,7 @@ for i = 1:length(paramsToFit)
         sumResult = sum(abs(result));
         if sumResult == 0
             dx(k) = dx(k) * 1E1;
-            if dx(k) > abs(x(k))
+            if (abs(x(k)) == 0 && dx(k) > 10) || (abs(x(k)) > 0 && dx(k) > abs(x(k)))
                 error(['Unable to compute derivative for variable ',num2str(k)])
             end
         end
