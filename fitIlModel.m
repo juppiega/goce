@@ -577,19 +577,30 @@ JAC = zeros(dataLen, length(paramsToFit));
 dx = max(0.25*tolX*abs(x), 1E-10);
 
 for i = 1:length(paramsToFit)
-    xForw = x; xBackw = x;
     k = paramsToFit(i);
-    xForw(k) = x(k) + dx(k);
-    xBackw(k) = x(k) - dx(k);
-    
-    F_forw = feval(fun, xForw);
-    F_backw = feval(fun, xBackw);
-    
-    result = (F_forw - F_backw) / (2*dx(k));
-    
-    infInd = ~isfinite(result);
-    if any(infInd)
-        result(infInd) = mean(result(~infInd));
+    sumResult = 0;
+    while sumResult == 0
+        xForw = x; xBackw = x;        
+        xForw(k) = x(k) + dx(k);
+        xBackw(k) = x(k) - dx(k);
+
+        F_forw = feval(fun, xForw);
+        F_backw = feval(fun, xBackw);
+
+        result = (F_forw - F_backw) / (2*dx(k));
+
+        infInd = ~isfinite(result);
+        if any(infInd)
+            result(infInd) = mean(result(~infInd));
+        end
+        
+        sumResult = sum(abs(result));
+        if sumResult == 0
+            dx(k) = dx(k) * 1E1;
+            if dx(k) > abs(x(k))
+                error(['Unable to compute derivative for variable ',num2str(k)])
+            end
+        end
     end
     
     JAC(:,i) = result;
