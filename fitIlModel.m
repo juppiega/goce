@@ -460,9 +460,9 @@ varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
 Gvec = G_majorTex(coeff, varStruct, varStruct.numBiases);
 
 if varStruct.numBiases == 0
-    residual = (varStruct.rhs ./ max(coeff(1) + Gvec, 1)) - 1;
+    residual = (exp(varStruct.rhs) ./ exp(max(coeff(1) + Gvec, 1))) - 1;
 elseif varStruct.numBiases > 0
-    residual = (varStruct.rhs ./ max(coeff(1) + sum(bsxfun(@times, coeff(2:varStruct.numBiases+1), varStruct.biases), 2) + Gvec, 1)) - 1;
+    residual = (exp(varStruct.rhs) ./ exp(max(coeff(1) + sum(bsxfun(@times, coeff(2:varStruct.numBiases+1), varStruct.biases), 2) + Gvec, 1))) - 1;
 else
     error('Incorrect number of biases!')
 end
@@ -489,7 +489,7 @@ function [residual] = computeSpeciesResidual_O2(varStruct, Tex, dT0, T0, coeff)
 varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
 averVal = coeff(1);
 
-residual = (varStruct.rhs ./ max(averVal, 1)) - 1;
+residual = (exp(varStruct.rhs) ./ exp(max(averVal, 1))) - 1;
 
 end
 
@@ -532,7 +532,7 @@ HelbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(HeStruct.coeffInd), HeStr
 ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
 O2lbDens = clamp(10, exp(coeff(O2Struct.coeffInd)), 1E20);
 modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
-residual(residInd) = (log(rhoStruct.data)./log(modelRho)) - 1;
+residual(residInd) = ((rhoStruct.data)./(modelRho)) - 1;%(log(rhoStruct.data)./log(modelRho)) - 1;
 
 if any(abs(residual) > 100)
     a=1;
