@@ -620,9 +620,20 @@ ind = [1 : 20+varStruct.numBiases, (53 : numQuietCoeffs-13)+varStruct.numBiases]
 
 end
 
-function [ind] = quietParams(varStruct, numQuietCoeffs)
+function [ind] = quietParams(var, numOtherCoeffs, trueInd)
 
-ind = 1 : numQuietCoeffs+varStruct.numBiases;
+if isnumeric(var)
+    ind = 1:(length(var) - numOtherCoeffs);
+else
+    ind = 1 : numOtherCoeffs+var.numBiases;
+end
+if nargin == 3 && trueInd
+    if isnumeric(var)
+        ind = ind + var(1) - 1;
+    else
+        ind = ind + var.coeffInd(1) - 1;
+    end
+end
 
 end
 
@@ -678,6 +689,7 @@ function [] = fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct
 global numCoeffs;
 numMinorCoeffs = 50;
 numQuietCoeffs = 112;
+numStormPrevious = numCoeffs - numQuietCoeffs;
 
 removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
@@ -707,6 +719,9 @@ weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Str
 %weights = ones(dataLen,1);
 
 [G_lb, G_ub] = G_bounds();
+if length(G_lb) + 1 ~= numCoeffs;
+    error('length(G_lb) + 1 ~= numCoeffs');
+end
 G_lb = 4 * G_lb; G_ub = 4 * G_ub;
 
 TexStruct.coeffInd = 1:numCoeffs;
@@ -789,7 +804,15 @@ if ~fitSimultaneously
         initGuess(otherInd) = 0;
     else
         paramsToFit = stormInd;
-        initGuess(quietInd) = quietCoeffs(quietInd);
+        load quietCoeffs.mat
+        %initGuess(quietInd) = quietCoeffs(quietInd);
+        numStormPrevious = TexInd(length(TexInd)) - numQuietCoeffs;
+        initGuess(quietParams(TexStruct,numQuietCoeffs,true)) = quietCoeffs(quietParams(TexInd,numStormPrevious,true));
+        initGuess(quietParams(OStruct,numQuietCoeffs,true)) = quietCoeffs(quietParams(OInd,numStormPrevious,true));
+        initGuess(quietParams(N2Struct,numQuietCoeffs,true)) = quietCoeffs(quietParams(N2Ind,numStormPrevious,true));
+        initGuess(quietParams(HeStruct,numQuietCoeffs,true)) = quietCoeffs(quietParams(HeInd,numStormPrevious,true));
+        initGuess(quietParams(ArStruct,numQuietCoeffs,true)) = quietCoeffs(quietParams(ArInd,numStormPrevious,true));
+        initGuess(O2Struct.coeffInd(1)) = quietCoeffs(O2Ind);
     end
 else
     paramsToFit = 1:length(initGuess);
@@ -797,7 +820,7 @@ end
 
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
 [comp] = fun(initGuess);
-error('Not complete');
+%error('Not complete');
 %[comp,JAC] = fun(initGuess);
 %[derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
 %[minDiff, indMin] = min(diff(derivNorms));

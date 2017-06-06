@@ -23,5 +23,7 @@ result = mag_lat + mag_lon + mag_lst;
 %                 geomParametrization(S, a(k+13:k+18), S.aeInt(:,3)) +...
 %                 geomParametrization(S, a(k+19:k+24), S.aeInt(:,5)) +...
 %                 geomParametrization(S, a(k+25:k+30), S.aeInt(:,6));
-
+% if isfield(S,'coeffInd') && length(S.coeffInd == 543) ~= 0; 
+%     aaaa = 1; 
+% end
 end
