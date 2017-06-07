@@ -796,9 +796,9 @@ function computeMajorSpeciesResidual(varStruct, Tex, dT0, T0, coeff) result(resi
     Gvec = G_majorTex(coeff, varStruct, varStruct%numBiases);
 
     if (varStruct%numBiases == 0) then
-        residual = (exp(rhs) / exp(max(coeff(1) + Gvec, dble(1)))) - 1;
+        residual = ((rhs) / (max(coeff(1) + Gvec, dble(1)))) - 1;
     elseif (varStruct%numBiases > 0) then
-        residual = (exp(rhs) / exp(max(coeff(1) + sumRowWise(coeff(2:varStruct%numBiases+1), varStruct%biases) + Gvec, dble(1))))&
+        residual = ((rhs) / (max(coeff(1) + sumRowWise(coeff(2:varStruct%numBiases+1), varStruct%biases) + Gvec, dble(1))))&
                      - 1;
     end if
 
@@ -832,7 +832,7 @@ function computeO2Residual(varStruct, Tex, dT0, T0, coeff) result(residual)
     allocate(rhs(size(Tex)))
     call computeDensityRHS(varStruct, Tex, dT0, T0, rhs);
 
-    residual = (exp(rhs) / exp(max(coeff(1), dble(1)))) - 1;
+    residual = ((rhs) / (max(coeff(1), dble(1)))) - 1;
 
 end function
 
