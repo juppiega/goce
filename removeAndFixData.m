@@ -45,7 +45,8 @@ yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
 rhoStruct.doy = rhoStruct.timestamps - datenum(yearVec) + 1;
 rhoStruct = computeGeopotentialHeight(rhoStruct);
 
-if nargin == 2 && nargout == 1
+%if nargin == 2 && nargout == 1
+if nargout == 1;
     return
 end
 
