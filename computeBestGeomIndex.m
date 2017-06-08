@@ -40,4 +40,6 @@ rhoDiff = rhoStruct.data ./ quietRho - 1;
 aeInt(rhoDiff < 0,:) = [];
 rhoDiff(rhoDiff < 0) = [];
 
+mdl = stepwiselm(aeInt, rhoDiff, 'upper','quadratic');
+
 end
