@@ -552,8 +552,8 @@ function G_storm(a, S)
 
     k = 0;
 
-    Activity = a(k+1)*S.aeInt(:,5) + a(k+2)*S.aeInt(:,7) + ...
-           a(k+3)*S.aeInt(:,2)**2 + a(k+4)*S.aeInt(:,3)**2 + ...
+    Activity = a(k+1)*S.aeInt(:,5) + a(k+2)*S.aeInt(:,7) + &
+           a(k+3)*S.aeInt(:,2)**2 + a(k+4)*S.aeInt(:,3)**2 + &
            a(k+5)*S.aeInt(:,4)**2 + a(k+6)*S.aeInt(:,7)**2;
     k = k + 6;
 
