@@ -57,7 +57,7 @@ aeIntAver(rhoDiff < 0,:) = [];
 times(rhoDiff < 0) = [];
 rhoDiff(rhoDiff < 0) = [];
 
-mdl = stepwiselm(aeIntAver, rhoDiff, 'upper','quadratic','intercept',true,'PEnter',0.33,'PRemove',0.5)
+mdl = stepwiselm(aeIntAver, rhoDiff, 'upper','quadratic','intercept',false,'PEnter',1E-7,'PRemove',1E-6)
 predDiff = predict(mdl,aeIntAver);
 figure;
 plot(times,predDiff, times,rhoDiff);
