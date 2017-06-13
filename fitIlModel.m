@@ -398,7 +398,7 @@ semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
 longitudinal = ones(1,13); longitudinal([2,5,6,9,12,13]) = 1E-4;
-geomagnetic = ones(1,31); geomagnetic([1,13,15,22,25,28]) = 0.0001;
+geomagnetic = ones(1,31); geomagnetic([1,13,15,22,25,28]) = 0.001;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, longitudinal, geomagnetic];
 lb = -ub;
@@ -594,7 +594,7 @@ for i = 1:length(paramsToFit)
             result(infInd) = mean(result(~infInd));
         end
         
-        sumResult = sum(abs(result));
+        sumResult = 1;%sum(abs(result));
         if sumResult == 0
             dx(k) = dx(k) * 1E1;
             if (abs(x(k)) == 0 && dx(k) > 10) || (abs(x(k)) > 0 && dx(k) > abs(x(k)))
@@ -820,7 +820,7 @@ end
 
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
 [comp] = fun(initGuess);
-error('Not complete');
+%error('Not complete');
 %[comp,JAC] = fun(initGuess);
 %[derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
 %[minDiff, indMin] = min(diff(derivNorms));
