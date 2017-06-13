@@ -18,7 +18,7 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 143;
+numCoeffs = 123;
 
 clear mex;
 % 
@@ -398,7 +398,7 @@ semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
 longitudinal = ones(1,13); longitudinal([2,5,6,9,12,13]) = 1E-4;
-geomagnetic = ones(1,31); geomagnetic([1,13,15,22,25,28]) = 0.001;
+geomagnetic = ones(1,11); geomagnetic(1) = 0.001; %geomagnetic([1,13,15,22,25,28]) = 0.001;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, longitudinal, geomagnetic];
 lb = -ub;

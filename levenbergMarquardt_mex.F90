@@ -559,17 +559,18 @@ function G_storm(a, S)
             a(k+10)*S%aeInt(:,4)**2 + a(k+11)*S%aeInt(:,7)**2;
     k = k + 11;
 
-    mag_lat = (a(k+1)+a(k+2)*S%P20+a(k+3)*S%P40 + (a(k+4)*S%P10+a(k+5)*S%P30)*(1+a(k+6)*S%FA+a(k+7)*S%FA**2)*cos(S%yv-a(k+8))+&
+    !mag_lat = (a(k+1)+a(k+2)*S%P20+a(k+3)*S%P40 + (a(k+4)*S%P10+a(k+5)*S%P30)*(1+a(k+6)*S%FA+a(k+7)*S%FA**2)*cos(S%yv-a(k+8))+&
                a(k+9)*S%FA+a(k+10)*S%FA**2) * Activity;
-    k = k + 10;
+    !k = k + 10;
 
-    mag_lon = (a(k+1)*S%P21 + a(k+2)*S%P41 + a(k+3)*S%P61)*(1+a(k+4)*S%P10*cos(S%yv+a(k+5)))*cos(S%lv-a(k+6))*Activity;
+    !mag_lon = (a(k+1)*S%P21 + a(k+2)*S%P41 + a(k+3)*S%P61)*(1+a(k+4)*S%P10*cos(S%yv+a(k+5)))*cos(S%lv-a(k+6))*Activity;
     k = k + 6;
 
-    mag_lst = (a(k+1)*S%P11+a(k+2)*S%P31+a(k+3)*S%P51)*cos(S%dv-a(k+4))*Activity;
+    !mag_lst = (a(k+1)*S%P11+a(k+2)*S%P31+a(k+3)*S%P51)*cos(S%dv-a(k+4))*Activity;
     k = k + 4;
 
-    G_storm = mag_lat + mag_lon + mag_lst;
+    !G_storm = mag_lat + mag_lon + mag_lst;
+    G_storm = Activity
 
     !G_storm = geomParametrization(S, a(k+1:k+6), S%aeInt(:,1)) +&
     !            geomParametrization(S, a(k+7:k+12), S%aeInt(:,2)) +&
