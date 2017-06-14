@@ -1175,6 +1175,7 @@ aeIntSwarm = zeros(length(swarmData.timestamps), length(lags));
 t = (timestampsAe - timestampsAe(1))*24*60; tInterp = t(1):t(end);
 aeInterp = interp1(t, ae, tInterp, 'linear', 0); tInterp = tInterp/1440 + timestampsAe(1);
 cumulativeAe = cumsum(aeInterp);
+save('aeData.mat','aeInterp','tInterp')
 
 oneHour = 60;
 for i = 1:length(lags)
