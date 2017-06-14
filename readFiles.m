@@ -1160,7 +1160,7 @@ function [aeIntGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, 
     computeAeIntegrals(ae, timestampsAe, timestampsGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData)
 %
 %lags = [2 4 8 16 21 30 40 50 60];
-lags = [2, 3, 6, 12, 24, 48, 72];
+lags = [2, 4, 6, 12, 24, 48, 72];
 aeIntGoce = zeros(length(timestampsGoce), length(lags));
 aeIntChamp = zeros(length(champData.timestamps), length(lags));
 aeIntGrace = zeros(length(graceData.timestamps), length(lags));
@@ -1179,8 +1179,11 @@ cumulativeAe = cumsum(aeInterp);
 oneHour = 60;
 for i = 1:length(lags)
     lag = lags(i) * oneHour;
-    aeInt = (cumulativeAe(lag + 1 : end) - cumulativeAe(1 : end - lag)) / (lag);
-    aeTime = tInterp(lag + 1 : end);
+    aeInt = computeAEintegralExp(aeInterp,tInterp,lags(i));
+    aeTime = tInterp;
+    %aeInt = (cumulativeAe(lag + 1 : end) - cumulativeAe(1 : end - lag)) / (lag);
+    %aeTime = tInterp(lag + 1 : end);
+       
     aeIntGoce(:,i) = interp1(aeTime, aeInt, timestampsGoce, 'linear', 0);
     aeIntChamp(:,i) = interp1(aeTime, aeInt, champData.timestamps, 'linear', 0);
     aeIntGrace(:,i) = interp1(aeTime, aeInt, graceData.timestamps, 'linear', 0);
