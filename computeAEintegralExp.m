@@ -20,4 +20,6 @@ for i = 1:length(cutInd)-1
     result(ind) = crossCorr(conserveInd);
 end
 
+result = result/sum(crossCorrFunc);
+
 end
