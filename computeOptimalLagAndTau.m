@@ -53,38 +53,75 @@ if globalMean
         aeIntAver(:,i) = computeOrbitAverage(aeInt(:,i), rhoStruct.latitude, rhoStruct.timestamps);
     end
     dstAver = computeOrbitAverage(rhoStruct.dst, rhoStruct.latitude, rhoStruct.timestamps);
-
-    % orbAver
-    quietInd = dstAver > 75; %all(aeIntAver < 200, 2);
-    modelRho(quietInd) = [];
-    obsRho(quietInd) = [];
-
-    rhoDiff = obsRho ./ modelRho - 1;
-    rmInd = rhoDiff < 0;
-    rhoDiff(rmInd) = [];
-
-    maxLag = 7; 
-    eTime = (1:1:50);
+    
+    maxLag = 6; 
+    eTime = (1:1:49);
     crossCorrs = zeros(length(eTime), maxLag+1);
-
+    
+    aeInt = zeros(length(times),length(eTime));
     for i = 1:length(eTime)
-        aeInt = computeAEintegralExp(ae, t_ae, eTime(i))';
-        aeInt = interp1(t_ae', aeInt, rhoStruct.timestamps);
-        aeInt = computeOrbitAverage(aeInt, rhoStruct.latitude, rhoStruct.timestamps);
-        aeInt(quietInd) = [];
-        aeInt(rmInd) = [];
-
-        crossCorr_this = xcorr(rhoDiff, aeInt, maxLag,'coeff');
-        crossCorrs(i,:) = crossCorr_this(maxLag+1:end);
-        if eTime(i) == 24
-            a=1;
-        end
+        aeInt_this = computeAEintegralExp(ae, t_ae, eTime(i))';
+        aeInt_this = interp1(t_ae', aeInt_this, rhoStruct.timestamps);
+        aeInt(:,i) = computeOrbitAverage(aeInt_this, rhoStruct.latitude, rhoStruct.timestamps);
     end
+    
+    [stormBeginInd, stormEndInd] = findStorms(rhoStruct, 'dst', -75);
+
+    numStorms = 0;
+    for i = 1:length(stormBeginInd)
+        ind = rhoStruct.timestamps(stormBeginInd(i)) <= times & times <= rhoStruct.timestamps(stormEndInd(i));
+        if sum(ind) < 2*maxLag + 1 || any(diff(times(ind))) > 125/1440
+            continue;
+        end
+        for k = 1:length(eTime)
+            crossCorr_this = xcorr(obsRho(ind), aeInt(ind,k), maxLag, 'coeff');
+            crossCorrs(k,:) = crossCorrs(k,:) + crossCorr_this(maxLag+1:end);
+        end
+        numStorms = numStorms + 1;
+    end
+    crossCorrs = crossCorrs / numStorms;
+    disp(numStorms)
+    
+%     % orbAver
+%     quietInd = dstAver > 75; %all(aeIntAver < 200, 2);
+%     modelRho(quietInd) = [];
+%     obsRho(quietInd) = [];
+% 
+%     rhoDiff = obsRho ./ modelRho - 1;
+%     rmInd = rhoDiff < 0;
+%     rhoDiff(rmInd) = [];
+% 
+%     maxLag = 7; 
+%     eTime = (1:1:50);
+%     crossCorrs = zeros(length(eTime), maxLag+1);
+% 
+%     for i = 1:length(eTime)
+%         aeInt = computeAEintegralExp(ae, t_ae, eTime(i))';
+%         aeInt = interp1(t_ae', aeInt, rhoStruct.timestamps);
+%         aeInt = computeOrbitAverage(aeInt, rhoStruct.latitude, rhoStruct.timestamps);
+%         aeInt(quietInd) = [];
+%         aeInt(rmInd) = [];
+% 
+%         crossCorr_this = xcorr(rhoDiff, aeInt, maxLag,'coeff');
+%         crossCorrs(i,:) = crossCorr_this(maxLag+1:end);
+%         if eTime(i) == 24
+%             a=1;
+%         end
+%     end
 
     [X,Y] = meshgrid(0:1:maxLag, eTime);
     Z = bsxfun(@rdivide, crossCorrs, crossCorrs(:,1));
     figure;
     surf(X,Y,Z,'edgecolor','none')
+    view(2);
+    colorbar;
+    axis tight;
+    set(gca,'fontsize',15);
+    ylabel('e-fold time [h]','fontsize',15);
+    xlabel('Lag [# orbits]','fontsize',15);
+    
+    figure;
+    surf(X,Y,crossCorrs,'edgecolor','none')
     view(2);
     colorbar;
     axis tight;
