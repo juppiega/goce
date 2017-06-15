@@ -74,8 +74,9 @@ if globalMean
     end
 
     [X,Y] = meshgrid(0:1:maxLag, eTime);
+    Z = bsxfun(@rdivide, crossCorrs, crossCorrs(:,1));
     figure;
-    surf(X,Y,crossCorrs,'edgecolor','none')
+    surf(X,Y,Z,'edgecolor','none')
     view(2);
     colorbar;
     axis tight;
