@@ -1,4 +1,4 @@
-function [] = computeOptimalLagAndTau(satellite)
+function [] = computeOptimalLagAndTau(satellite, globalMean)
 
 load aeData.mat
 ae = aeInterp;
@@ -39,46 +39,85 @@ aeInt = rhoStruct.aeInt;
 rhoStruct.aeInt = zeros(size(rhoStruct.aeInt))+20;
 [modelRho] = computeComparisonData(rhoStruct, coeffStruct, numBiasesStruct);
 modelRho = modelRho * scaleFac;
-[modelRho, times] = computeOrbitAverage(modelRho, rhoStruct.latitude, rhoStruct.timestamps);%orbAver
 
-obsRho = computeOrbitAverage(rhoStruct.data, rhoStruct.latitude, rhoStruct.timestamps); % orbAver
-aeIntAver = zeros(length(times),size(aeInt,2));
-for i = 1:size(aeInt,2)
-    aeIntAver(:,i) = computeOrbitAverage(aeInt(:,i), rhoStruct.latitude, rhoStruct.timestamps);
-end
+if globalMean
+    [modelRho, times] = computeOrbitAverage(modelRho, rhoStruct.latitude, rhoStruct.timestamps);%orbAver
 
-% orbAver
-quietInd = all(aeIntAver < 500, 2);
-modelRho(quietInd) = [];
-obsRho(quietInd) = [];
+    obsRho = computeOrbitAverage(rhoStruct.data, rhoStruct.latitude, rhoStruct.timestamps); % orbAver
+    aeIntAver = zeros(length(times),size(aeInt,2));
+    for i = 1:size(aeInt,2)
+        aeIntAver(:,i) = computeOrbitAverage(aeInt(:,i), rhoStruct.latitude, rhoStruct.timestamps);
+    end
 
-rhoDiff = obsRho ./ modelRho - 1;
-rmInd = rhoDiff < 0;
-rhoDiff(rmInd) = [];
+    % orbAver
+    quietInd = all(aeIntAver < 200, 2);
+    modelRho(quietInd) = [];
+    obsRho(quietInd) = [];
 
-maxLag = 6; 
-eTime = (1:49);
-crossCorrs = zeros(length(eTime), maxLag+1);
+    rhoDiff = obsRho ./ modelRho - 1;
+    rmInd = rhoDiff < 0;
+    rhoDiff(rmInd) = [];
 
-for i = 1:length(eTime)
-    aeInt = computeAEintegralExp(ae, t_ae, eTime(i))';
-    aeInt = interp1(t_ae', aeInt, rhoStruct.timestamps);
-    aeInt = computeOrbitAverage(aeInt, rhoStruct.latitude, rhoStruct.timestamps);
-    aeInt(quietInd) = [];
-    aeInt(rmInd) = [];
+    maxLag = 6; 
+    eTime = (1:49);
+    crossCorrs = zeros(length(eTime), maxLag+1);
+
+    for i = 1:length(eTime)
+        aeInt = computeAEintegralExp(ae, t_ae, eTime(i))';
+        aeInt = interp1(t_ae', aeInt, rhoStruct.timestamps);
+        aeInt = computeOrbitAverage(aeInt, rhoStruct.latitude, rhoStruct.timestamps);
+        aeInt(quietInd) = [];
+        aeInt(rmInd) = [];
+
+        crossCorr_this = xcorr(rhoDiff, aeInt, maxLag,'coeff');
+        crossCorrs(i,:) = crossCorr_this(maxLag+1:end);
+    end
+
+    [X,Y] = meshgrid(0:1:maxLag, eTime);
+    figure;
+    surf(X,Y,crossCorrs,'edgecolor','none')
+    view(2);
+    colorbar;
+    axis tight;
+    set(gca,'fontsize',15);
+    ylabel('e-fold time [h]','fontsize',15);
+    xlabel('Lag [# orbits]','fontsize',15);
+
+else
+    zones = 0:15:90;
+    maxLag = 6; 
+    eTime = (1:49);
+    crossCorrs = zeros(length(eTime), maxLag+1, length(zones)-1);
     
-    crossCorr_this = xcorr(rhoDiff, aeInt, maxLag,'coeff');
-    crossCorrs(i,:) = crossCorr_this(maxLag+1:end);
-end
+    quietInd = all(aeInt < 200, 2);
+    rhoStruct = removeDataPoints(rhoStruct, quietInd, false, true, false, false);
+    modelRho(quietInd) = [];
+    for i = 1:length(zones)-1
+        ind = zones(i) <= abs(rhoStruct.latitude) & abs(rhoStruct.latitude) < zones(i+1);
+        rhoDiff = rhoStruct.data(ind) ./ modelRho(ind) - 1;
+        rmInd = rhoDiff < 0;
+        rhoDiff(rmInd) = [];
+        
+        for j = 1:length(eTime)
+            aeInt = computeAEintegralExp(ae, t_ae, eTime(j))';
+            aeInt = interp1(t_ae', aeInt, rhoStruct.timestamps(ind));
+            aeInt(rmInd) = [];
 
-[X,Y] = meshgrid(0:1:maxLag, eTime);
-figure;
-surf(X,Y,crossCorrs,'edgecolor','none')
-view(2);
-colorbar;
-axis tight;
-set(gca,'fontsize',15);
-ylabel('e-fold time [h]','fontsize',15);
-xlabel('Lag [# orbits]','fontsize',15);
+            crossCorr_this = xcorr(rhoDiff, aeInt, maxLag,'coeff');
+            crossCorrs(j,:,i) = crossCorr_this(maxLag+1:end);
+        end
+        
+        [X,Y] = meshgrid(0:1:maxLag, eTime);
+        figure;
+        surf(X,Y,crossCorrs,'edgecolor','none')
+        view(2);
+        colorbar;
+        axis tight;
+        set(gca,'fontsize',15);
+        title(num2str(mean(zones([i,i+1]))))
+        ylabel('e-fold time [h]','fontsize',15);
+        xlabel('Lag [# orbits]','fontsize',15);
+    end
+end
 
 end
