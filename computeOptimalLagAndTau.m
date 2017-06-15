@@ -63,8 +63,8 @@ if globalMean
     rmInd = rhoDiff < 0;
     rhoDiff(rmInd) = [];
 
-    maxLag = 6; 
-    eTime = (1:49);
+    maxLag = 7; 
+    eTime = (1:1:50);
     crossCorrs = zeros(length(eTime), maxLag+1);
 
     for i = 1:length(eTime)
@@ -76,6 +76,9 @@ if globalMean
 
         crossCorr_this = xcorr(rhoDiff, aeInt, maxLag,'coeff');
         crossCorrs(i,:) = crossCorr_this(maxLag+1:end);
+        if eTime(i) == 24
+            a=1;
+        end
     end
 
     [X,Y] = meshgrid(0:1:maxLag, eTime);
