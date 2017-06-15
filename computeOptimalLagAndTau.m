@@ -86,7 +86,7 @@ if globalMean
 else
     zones = 0:15:90;
     maxLag = 6; 
-    eTime = (1:49);
+    eTime = (1:3);
     crossCorrs = zeros(length(eTime), maxLag+1, length(zones)-1);
     
     quietInd = all(aeInt < 200, 2);
@@ -109,7 +109,7 @@ else
         
         [X,Y] = meshgrid(0:1:maxLag, eTime);
         figure;
-        surf(X,Y,crossCorrs,'edgecolor','none')
+        surf(X,Y,crossCorrs(:,:,i),'edgecolor','none')
         view(2);
         colorbar;
         axis tight;
