@@ -18,7 +18,7 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 123;
+numCoeffs = 133;
 
 clear mex;
 % 

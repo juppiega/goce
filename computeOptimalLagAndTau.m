@@ -1,4 +1,4 @@
-function [] = computeOptimalLagAndTau()
+function [] = computeOptimalLagAndTau(satellite)
 
 load aeData.mat
 ae = aeInterp;
@@ -56,18 +56,29 @@ rhoDiff = obsRho ./ modelRho - 1;
 rmInd = rhoDiff < 0;
 rhoDiff(rmInd) = [];
 
-maxLag = 48*60; 
-eTime = (1:72);
+maxLag = 6; 
+eTime = (1:49);
+crossCorrs = zeros(length(eTime), maxLag+1);
 
 for i = 1:length(eTime)
-    aeInt = computeAEintegralExp(ae, t_ae, eTime(i));
-    aeInt = interp(t_ae, aeInt, rhoStruct.timestamps);
+    aeInt = computeAEintegralExp(ae, t_ae, eTime(i))';
+    aeInt = interp1(t_ae', aeInt, rhoStruct.timestamps);
     aeInt = computeOrbitAverage(aeInt, rhoStruct.latitude, rhoStruct.timestamps);
     aeInt(quietInd) = [];
     aeInt(rmInd) = [];
     
-    crossCorr = xcorr(rhoDiff, aeInt, maxLag,'coeff');
-    
+    crossCorr_this = xcorr(rhoDiff, aeInt, maxLag,'coeff');
+    crossCorrs(i,:) = crossCorr_this(maxLag+1:end);
 end
+
+[X,Y] = meshgrid(0:1:maxLag, eTime);
+figure;
+surf(X,Y,crossCorrs,'edgecolor','none')
+view(2);
+colorbar;
+axis tight;
+set(gca,'fontsize',15);
+ylabel('e-fold time [h]','fontsize',15);
+xlabel('Lag [# orbits]','fontsize',15);
 
 end
