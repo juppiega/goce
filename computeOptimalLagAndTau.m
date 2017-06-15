@@ -5,6 +5,10 @@ ae = aeInterp;
 t_ae = tInterp;
 
 load('ilData.mat','rhoStruct');
+if ~isfield(rhoStruct,'dst')
+    rhoStruct = computeDst(rhoStruct);
+    save('ilData.mat','rhoStruct','-append')
+end
 
 load('optCoeff.mat');
 
@@ -16,7 +20,7 @@ elseif strcmpi(satellite,'champ')
 elseif strcmpi(satellite,'grace')
     removeInd = ~ismember(1:N, rhoStruct.grace); scaleFac = 0.9362;
 elseif strcmpi(satellite,'all')
-    removeInd = false(N,1); scaleFac = 0.9034;
+    removeInd = ismember(1:N, rhoStruct.swarm); scaleFac = 0.9034;
 end
 
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
@@ -48,9 +52,10 @@ if globalMean
     for i = 1:size(aeInt,2)
         aeIntAver(:,i) = computeOrbitAverage(aeInt(:,i), rhoStruct.latitude, rhoStruct.timestamps);
     end
+    dstAver = computeOrbitAverage(rhoStruct.dst, rhoStruct.latitude, rhoStruct.timestamps);
 
     % orbAver
-    quietInd = all(aeIntAver < 200, 2);
+    quietInd = dstAver > 75; %all(aeIntAver < 200, 2);
     modelRho(quietInd) = [];
     obsRho(quietInd) = [];
 
