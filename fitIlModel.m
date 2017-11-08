@@ -523,9 +523,9 @@ residual(residInd) = computeSpeciesResidual_major(N2Struct, Tex, dT0, T0, coeff(
 residInd = residInd(end) + (1:length(HeStruct.data));
 residual(residInd) = computeSpeciesResidual_major(HeStruct, Tex, dT0, T0, coeff(HeStruct.coeffInd));
 
-[Tex, dT0, T0] = findTempsForFit(ArStruct, TexStruct, dTCoeffs, T0Coeffs, coeff);
-residInd = residInd(end) + (1:length(ArStruct.data));
-residual(residInd) = computeSpeciesResidual_major(ArStruct, Tex, dT0, T0, coeff(ArStruct.coeffInd));
+%[Tex, dT0, T0] = findTempsForFit(ArStruct, TexStruct, dTCoeffs, T0Coeffs, coeff);
+%residInd = residInd(end) + (1:length(ArStruct.data));
+%residual(residInd) = computeSpeciesResidual_major(ArStruct, Tex, dT0, T0, coeff(ArStruct.coeffInd));
 
 [Tex, dT0, T0] = findTempsForFit(O2Struct, TexStruct, dTCoeffs, T0Coeffs, coeff);
 residInd = residInd(end) + (1:length(O2Struct.data));
@@ -536,9 +536,9 @@ residInd = residInd(end) + (1:length(rhoStruct.data));
 OlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(OStruct.coeffInd), OStruct.numBiases), 1E20);
 N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(N2Struct.coeffInd), N2Struct.numBiases), 1E20);
 HelbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(HeStruct.coeffInd), HeStruct.numBiases), 1E20);
-ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
+%ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, coeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
 O2lbDens = clamp(10, exp(coeff(O2Struct.coeffInd)), 1E20);
-modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
+modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens), 0.1);
 residual(residInd) = ((rhoStruct.data)./(modelRho)) - 1;%(log(rhoStruct.data)./log(modelRho)) - 1;
 
 if any(abs(residual) > 100)
@@ -579,9 +579,9 @@ residual(residInd) = computeSpeciesResidual_major(N2Struct, Tex, dT0, T0, allCoe
 residInd = residInd(end) + (1:length(HeStruct.data));
 residual(residInd) = computeSpeciesResidual_major(HeStruct, Tex, dT0, T0, allCoeff(HeStruct.coeffInd));
 
-[Tex, dT0, T0] = findTempsForFit(ArStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
-residInd = residInd(end) + (1:length(ArStruct.data));
-residual(residInd) = computeSpeciesResidual_major(ArStruct, Tex, dT0, T0, allCoeff(ArStruct.coeffInd));
+%[Tex, dT0, T0] = findTempsForFit(ArStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+%residInd = residInd(end) + (1:length(ArStruct.data));
+%residual(residInd) = computeSpeciesResidual_major(ArStruct, Tex, dT0, T0, allCoeff(ArStruct.coeffInd));
 
 [Tex, dT0, T0] = findTempsForFit(O2Struct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
 residInd = residInd(end) + (1:length(O2Struct.data));
@@ -592,9 +592,9 @@ residInd = residInd(end) + (1:length(rhoStruct.data));
 OlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(OStruct.coeffInd), OStruct.numBiases), 1E20);
 N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(N2Struct.coeffInd), N2Struct.numBiases), 1E20);
 HelbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(HeStruct.coeffInd), HeStruct.numBiases), 1E20);
-ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
+%ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
 O2lbDens = clamp(10, exp(allCoeff(O2Struct.coeffInd)), 1E20);
-modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
+modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens), 0.1);
 residual(residInd) = (log(rhoStruct.data)./log(modelRho)) - 1;%(log(rhoStruct.data)./log(modelRho)) - 1;
 
 if any(abs(residual) > 100)
@@ -638,9 +638,9 @@ residual(residInd) = computeSpeciesResidual_major(N2Struct, Tex, dT0, T0, allCoe
 residInd = residInd(end) + (1:length(HeStruct.data));
 residual(residInd) = computeSpeciesResidual_major(HeStruct, Tex, dT0, T0, allCoeff(HeStruct.coeffInd));
 
-[Tex, dT0, T0] = findTempsForFit(ArStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
-residInd = residInd(end) + (1:length(ArStruct.data));
-residual(residInd) = computeSpeciesResidual_major(ArStruct, Tex, dT0, T0, allCoeff(ArStruct.coeffInd));
+%[Tex, dT0, T0] = findTempsForFit(ArStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+%residInd = residInd(end) + (1:length(ArStruct.data));
+%residual(residInd) = computeSpeciesResidual_major(ArStruct, Tex, dT0, T0, allCoeff(ArStruct.coeffInd));
 
 [Tex, dT0, T0] = findTempsForFit(O2Struct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
 residInd = residInd(end) + (1:length(O2Struct.data));
@@ -651,9 +651,9 @@ residInd = residInd(end) + (1:length(rhoStruct.data));
 OlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(OStruct.coeffInd), OStruct.numBiases), 1E20);
 N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(N2Struct.coeffInd), N2Struct.numBiases), 1E20);
 HelbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(HeStruct.coeffInd), HeStruct.numBiases), 1E20);
-ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
+%ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
 O2lbDens = clamp(10, exp(allCoeff(O2Struct.coeffInd)), 1E20);
-modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
+modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens), 0.1);
 residual(residInd) = ((rhoStruct.data)./(modelRho)) - 1;%(log(rhoStruct.data)./log(modelRho)) - 1;
 
 if any(abs(residual) > 100)
@@ -848,10 +848,10 @@ numStormPrevious = numCoeffs - numQuietCoeffs;
 
 removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
-if ~quietData
+%if ~quietData
     removeInd = true(size(ArStruct.data)); removeInd(1) = false;
     ArStruct = removeDataPoints(ArStruct, removeInd, true, true, true, true);
-end
+%end
 
 % DEBUG
 %removeInd = true(size(rhoStruct.data)); removeInd(1) = false;
@@ -867,7 +867,7 @@ TexStruct = computeVariablesForFit(TexStruct);
 OStruct = computeVariablesForFit(OStruct);
 N2Struct = computeVariablesForFit(N2Struct);
 HeStruct = computeVariablesForFit(HeStruct);
-ArStruct = computeVariablesForFit(ArStruct);
+%ArStruct = computeVariablesForFit(ArStruct);
 O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
@@ -902,12 +902,13 @@ HeStruct.coeffInd = N2Struct.coeffInd(end) + (1:numCoeffs+HeStruct.numBiases);
 lb = [lb, log(0.5E7), zeros(1, HeStruct.numBiases)-0, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ub = [ub, log(1E8), zeros(1, HeStruct.numBiases)-0, G_ub];
 
-ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numCoeffs+ArStruct.numBiases);
-lb = [lb, log(0.5E9), zeros(1, ArStruct.numBiases)-0, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(2E9), zeros(1, ArStruct.numBiases)-0, G_ub];
+%ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numCoeffs+ArStruct.numBiases);
+%lb = [lb, log(0.5E9), zeros(1, ArStruct.numBiases)-0, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+%ub = [ub, log(2E9), zeros(1, ArStruct.numBiases)-0, G_ub];
 
 %ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numCoeffs+ArStruct.numBiases);
-O2Struct.coeffInd = ArStruct.coeffInd(end) + 1;
+%O2Struct.coeffInd = ArStruct.coeffInd(end) + 1;
+O2Struct.coeffInd = HeStruct.coeffInd(end) + 1;
 
 %startPoints = createRandomStartPoints(lb, ub, numStartPoints);
 %initGuess = list(startPoints);
@@ -923,25 +924,20 @@ initGuess(TexStruct.coeffInd(1)) = 950;
 initGuess(OStruct.coeffInd(1)) = log(4E10);
 initGuess(N2Struct.coeffInd(1)) = log(1.4E11);
 initGuess(HeStruct.coeffInd(1)) = log(2.2E7);
-initGuess(ArStruct.coeffInd(1)) = log(0.4E9);
+%initGuess(ArStruct.coeffInd(1)) = log(0.4E9);
 initGuess(O2Struct.coeffInd) = log(1.4E10);
 
 quietInd = [TexStruct.coeffInd(TexParams(TexStruct, numQuietCoeffs)),...
             OStruct.coeffInd(OParams(OStruct, numQuietCoeffs)),...
             N2Struct.coeffInd(N2Params(N2Struct, numQuietCoeffs)),...
             HeStruct.coeffInd(HeParams(HeStruct, numQuietCoeffs)),...
-            ArStruct.coeffInd(ArParams(ArStruct, numQuietCoeffs)),...
             O2Struct.coeffInd(1)]; 
-stormInd = [TexStruct.coeffInd(geomParams(TexStruct, numQuietCoeffs)),...
-            OStruct.coeffInd(geomParams(OStruct, numQuietCoeffs)),...
-            N2Struct.coeffInd(geomParams(N2Struct, numQuietCoeffs)),...
-            HeStruct.coeffInd(geomParams(HeStruct, numQuietCoeffs)),...
-            ArStruct.coeffInd(geomParams(ArStruct, numQuietCoeffs))]; 
+
 stormInd = [TexStruct.coeffInd(geomParams(TexStruct, numQuietCoeffs)),...
             OStruct.coeffInd(geomParams(OStruct, numQuietCoeffs)),...
             N2Struct.coeffInd(geomParams(N2Struct, numQuietCoeffs)),...
             HeStruct.coeffInd(geomParams(HeStruct, numQuietCoeffs))]; 
-initGuess(ArStruct.coeffInd(geomParams(ArStruct, numQuietCoeffs))) = 0;
+%initGuess(ArStruct.coeffInd(geomParams(ArStruct, numQuietCoeffs))) = 0;
 
 tolX = 1E-8;
 tolFun = 1E-6;
@@ -992,7 +988,7 @@ if ~fitSimultaneously
         initGuess(quietParams(OStruct,numQuietCoeffs,true)) = quietCoeffs(quietParams(OInd,numStormPrevious,true));
         initGuess(quietParams(N2Struct,numQuietCoeffs,true)) = quietCoeffs(quietParams(N2Ind,numStormPrevious,true));
         initGuess(quietParams(HeStruct,numQuietCoeffs,true)) = quietCoeffs(quietParams(HeInd,numStormPrevious,true));
-        initGuess(quietParams(ArStruct,numQuietCoeffs,true)) = quietCoeffs(quietParams(ArInd,numStormPrevious,true));
+        %initGuess(quietParams(ArStruct,numQuietCoeffs,true)) = quietCoeffs(quietParams(ArInd,numStormPrevious,true));
         initGuess(O2Struct.coeffInd(1)) = quietCoeffs(O2Ind);
     end
 else
@@ -1040,7 +1036,7 @@ if fitSimultaneously || fitBaseAgain
           Obiases = OStruct.coeffInd(2:1+OStruct.numBiases);
           N2biases = N2Struct.coeffInd(2:1+N2Struct.numBiases);
           HeBiases = HeStruct.coeffInd(2:1+HeStruct.numBiases);
-          ArBiases =  ArStruct.coeffInd(2:1+ArStruct.numBiases);
+          %ArBiases =  ArStruct.coeffInd(2:1+ArStruct.numBiases);
           initGuess(Obiases) = [0.0680	0.2379	0.0665	0.1053	-0.1162];
           initGuess(N2biases) = [-0.1043	0.1267	0.0401	-0.0289	0.1312	-0.1166];
           initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
@@ -1147,7 +1143,7 @@ i=find(ismember(ind,TexStruct.coeffInd)); paramErrors_Tex = sqrt(abs(diag(inv(JT
 i=find(ismember(ind,OStruct.coeffInd)); paramErrors_O = sqrt(abs(diag(inv(JTWJ(i,i)))));
 i=find(ismember(ind,N2Struct.coeffInd)); paramErrors_N2 = sqrt(abs(diag(inv(JTWJ(i,i)))));
 i=find(ismember(ind,HeStruct.coeffInd)); paramErrors_He = sqrt(abs(diag(inv(JTWJ(i,i)))));
-i=find(ismember(ind,ArStruct.coeffInd)); paramErrors_Ar = sqrt(abs(diag(inv(JTWJ(i,i)))));
+%i=find(ismember(ind,ArStruct.coeffInd)); paramErrors_Ar = sqrt(abs(diag(inv(JTWJ(i,i)))));
 if quietData
     paramErrors_O2 = sqrt(1/abs(JTWJ(end,end)));
     paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; ...
@@ -1172,7 +1168,7 @@ if ~fitSimultaneously
         [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, OStruct);
         [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, N2Struct);
         [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, HeStruct);
-        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, ArStruct);
+        %[optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, ArStruct);
         paramsToFit = [paramsToFit, O2Struct.coeffInd]; %optCoeff(O2Struct.coeffInd) = 20.0;
     else
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
@@ -1183,7 +1179,7 @@ else
         [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, OStruct);
         [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, N2Struct);
         [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, HeStruct);
-        [optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, ArStruct);
+        %[optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, ArStruct);
         paramsToFit = [paramsToFit, O2Struct.coeffInd]; %optCoeff(O2Struct.coeffInd) = 20.0;
     %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
     paramsToFit = sort([paramsToFit, stormInd]); % Testaus
@@ -1218,7 +1214,7 @@ TexInd = TexStruct.coeffInd; save(filename, 'TexInd', '-append');
 HeInd = HeStruct.coeffInd; save(filename, 'HeInd', '-append');
 OInd = OStruct.coeffInd; save(filename, 'OInd', '-append');
 N2Ind = N2Struct.coeffInd; save(filename, 'N2Ind', '-append');
-ArInd = ArStruct.coeffInd; save(filename, 'ArInd', '-append');
+%ArInd = ArStruct.coeffInd; save(filename, 'ArInd', '-append');
 O2Ind = O2Struct.coeffInd; save(filename, 'O2Ind', '-append');
 save(filename, 'JTWJ', '-append')
 save(filename, 'dTCoeffs', '-append');
@@ -1232,7 +1228,7 @@ wTex = ones(size(TexStruct.data)); wTex(TexStruct.de2) = length(TexStruct.aeE) /
 wO = ones(size(OStruct.data)); wO(OStruct.de2) = length(OStruct.aeENace) / length(OStruct.de2); wO(OStruct.guvi) = length(OStruct.aeENace) / length(OStruct.guvi);
 wN2 = ones(size(N2Struct.data)); wN2(N2Struct.de2) = length(N2Struct.aeENace) / length(N2Struct.de2); wN2(N2Struct.aeros) = 0.5*length(N2Struct.aeENace) / length(N2Struct.aeros); wN2(N2Struct.guvi) = length(N2Struct.aeENace) / length(N2Struct.guvi);
 wHe = ones(size(HeStruct.data)); wHe(HeStruct.de2) = length(HeStruct.aeENace) / length(HeStruct.de2); wHe(HeStruct.aeros) = 0.5*length(HeStruct.aeENace) / length(HeStruct.aeros); 
-wAr = ones(size(ArStruct.data)); wAr(ArStruct.de2) = 2*length(ArStruct.aeros) / length(ArStruct.de2);
+%wAr = ones(size(ArStruct.data)); wAr(ArStruct.de2) = 2*length(ArStruct.aeros) / length(ArStruct.de2);
 wO2 = ones(size(O2Struct.data));
 
 wAr = wAr / 4; wTex = wTex * 2; wN2 = wN2 / 2;

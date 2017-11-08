@@ -893,9 +893,9 @@ function modelMinimizationFunction(coeff) result(residual)
     !deallocate(residInd)
     
     !k = mexPrintf('Before Ar'//achar(13))
-    call findTempsForFit(ArStruct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex, dT0, T0);
-    residInd = residIndEnd + (/(i, i = 1, size(ArStruct%data))/); residIndEnd = residInd(size(residInd))
-    residual(residInd) = computeMajorSpeciesResidual(ArStruct, Tex, dT0, T0, coeff(ArStruct%coeffInd));
+    !call findTempsForFit(ArStruct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex, dT0, T0);
+    !residInd = residIndEnd + (/(i, i = 1, size(ArStruct%data))/); residIndEnd = residInd(size(residInd))
+    !residual(residInd) = computeMajorSpeciesResidual(ArStruct, Tex, dT0, T0, coeff(ArStruct%coeffInd));
     !deallocate(residInd)
     
     !k = mexPrintf('Before O2'//achar(13))
@@ -917,13 +917,13 @@ function modelMinimizationFunction(coeff) result(residual)
                      dble(1E20));
     HelbDens = clamp(dble(10), evalMajorSpecies(rhoStruct, coeff(HeStruct%coeffInd), HeStruct%numBiases), &
                      dble(1E20));
-    ArlbDens = clamp(dble(10), evalMajorSpecies(rhoStruct, coeff(ArStruct%coeffInd), ArStruct%numBiases), &
-                     dble(1E20));
+    !ArlbDens = clamp(dble(10), evalMajorSpecies(rhoStruct, coeff(ArStruct%coeffInd), ArStruct%numBiases), &
+                     !dble(1E20));
     allocate(O2lbDens(size(Tex)))
     O2lbDens_scalar = clamp(dble(10.0), exp(coeff(O2Struct%coeffInd)), dble(1E20))
     O2lbDens = O2lbDens_scalar(1)
     modelRho = clamp(dble(1E-20), computeRho(T0, dT0, Tex, rhoStruct%Z, OlbDens, N2lbDens, HelbDens, &
-                                             ArlbDens, O2lbDens), &
+                                             0.0D0, O2lbDens), &
                      dble(0.1));
 
     !write(ochar,'(ES15.8)') modelRho
@@ -1056,7 +1056,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     !k = mexPrintf('Before He'//achar(13))
     HeStruct = structToDerived_TexAndMajor(prhs(4), 'He')
     !k = mexPrintf('Before Ar'//achar(13))
-    ArStruct = structToDerived_TexAndMajor(prhs(5), 'Ar')
+    !ArStruct = structToDerived_TexAndMajor(prhs(5), 'Ar')
     !k = mexPrintf('Before O2'//achar(13))
     O2Struct = structToDerived_TexAndMajor(prhs(6), 'O2')
     !k = mexPrintf('Before Rho'//achar(13))
@@ -1153,7 +1153,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     call deallocateStruct(OStruct, 'O')
     call deallocateStruct(N2Struct, 'N2')
     call deallocateStruct(HeStruct, 'He')
-    call deallocateStruct(ArStruct, 'Ar')
+    !call deallocateStruct(ArStruct, 'Ar')
     call deallocateStruct(O2Struct, 'O2')
     call deallocateStruct(rhoStruct, 'rho')
     k = mexPrintf('Deallocation performed'//achar(13))
