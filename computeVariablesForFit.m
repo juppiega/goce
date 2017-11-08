@@ -68,27 +68,35 @@ addStruct.mP11 = f(2,P);
 P = legendre_fixed(2, x_mag);
 addStruct.mP20 = f(1,P);
 addStruct.mP21 = f(2,P);
+addStruct.mP22 = f(3,P);
 
 % Third degree.
 P = legendre_fixed(3, x_mag);
 addStruct.mP30 = f(1,P);
 addStruct.mP31 = f(2,P);
 addStruct.mP32 = f(3,P);
+addStruct.mP33 = f(4,P);
 
 % Fourth degree.
 P = legendre_fixed(4, x_mag);
 addStruct.mP40 = f(1,P);
 addStruct.mP41 = f(2,P);
+addStruct.mP42 = f(3,P);
+addStruct.mP43 = f(4,P);
 
 % Fifth degree.
 P = legendre_fixed(5, x_mag);
 addStruct.mP50 = f(1,P);
 addStruct.mP51 = f(2,P);
 addStruct.mP52 = f(3,P);
+addStruct.mP53 = f(4,P);
 
 % Sixth degree.
 P = legendre_fixed(6, x_mag);
 addStruct.mP60 = f(1,P);
+addStruct.mP61 = f(2,P);
+addStruct.mP62 = f(3,P);
+addStruct.mP63 = f(4,P);
 
 % Seventh degree.
 P = legendre_fixed(7, x_mag);
@@ -134,7 +142,7 @@ end
 function output = f(i,P)
 
 if isempty(P)
-    output = [];
+    output = zeros(0,1);
 else
     output = P(i,:)';
 end

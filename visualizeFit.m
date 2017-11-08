@@ -61,10 +61,10 @@ z = 400;
 lat = -90:5:90;
 lst = 0:0.5:24;
 lon = 0;
-doy = 180;
+doy = 50;
 F = 70;
 FA = 70;
-aeInt = 20*ones(1,7);
+aeInt = 400*ones(1,24);
 Ap = 3;
 lstMean = false;
 lonMean = false;
@@ -72,8 +72,10 @@ latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
 onlyIL = true;
-%plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-%    sameColorBars, 'yx', 'rho', onlyIL, coeffStruct, numBiasesStruct);
+outputNetCdf = true;
+deviationFromQuiet = true;
+plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
+    sameColorBars, 'yx', 'rho', onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
 
 
 z = 125:5:600;
@@ -131,9 +133,9 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 % % % % 
 computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 % % % % % 
-%      plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%      plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-%      plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+ %     plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
@@ -141,7 +143,7 @@ computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 %plotStormFig(originalRhoStruct, modelStruct, '2014-11-07', '2014-11-13', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 
 
-analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
+%analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
 
 end
 
@@ -193,7 +195,7 @@ plot([T0_130,T0_130],[ylims(1),z0+200], 'k--', 'linewidth', linesize)
 end
 
 function [] = plotSurfs(altitude, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, ...
-    devFromXmean, sameColorBars, paramOrder, paramName, onlyIL, coeffStruct, numBiasesStruct)
+    devFromXmean, sameColorBars, paramOrder, paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet)
 
 [X, Y, xname, yname] = findSurfXY(altitude, lat, lst, lon, doy, paramOrder);
 
@@ -251,56 +253,11 @@ S.ap9h = Ap*ones(N,1); S.ap12To33h = Ap*ones(N,1); S.ap36To57h = Ap*ones(N,1);
 S = computeVariablesForFit(S, false);
 S = computeGeopotentialHeight(S);
 
-TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
-T0Coeffs = coeffStruct.T0Coeff;
-
-if ~strcmpi(paramName, 'Tex') && ~strcmpi(paramName, 'T0') && ~strcmpi(paramName, 'dT')
-    [Tex, dT0, T0] = findTempsForFit_this(S, TexCoeffs, dTCoeffs, T0Coeffs);
-    OlbDens = evalMajorSpecies(S, coeffStruct.OCoeff, numBiasesStruct.O);
-    N2lbDens = evalMajorSpecies(S, coeffStruct.N2Coeff, numBiasesStruct.N2);
-    HelbDens = evalMajorSpecies(S, coeffStruct.HeCoeff, numBiasesStruct.He);
-    ArlbDens = evalMajorSpecies(S, coeffStruct.ArCoeff, numBiasesStruct.Ar);
-    O2lbDens = exp(coeffStruct.O2Coeff);
-end
-
-if strcmpi(paramName, 'Tex')
-    param = evalTex(S, TexCoeffs);
-    msisParam = computeMsis(S);
-    dtmParam = computeDtm(S);
-elseif strcmpi(paramName, 'T0')
-    param = evalT0(S, T0Coeffs);
-    [msisParam, ~, dtmParam, ~] = computeMsisDtmLb(S);
-    msisParam = (msisParam-mean(msisParam))*2 + mean(msisParam);
-    dtmParam = (dtmParam-mean(dtmParam))*2 + mean(dtmParam);
-elseif strcmpi(paramName, 'dT')
-    param = evalDT(S, dTCoeffs);
-    [~, msisParam, ~, dtmParam] = computeMsisDtmLb(S);
-elseif strcmpi(paramName, 'rho')
-    param = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
-    [~,msisParam] = computeMsis(S);
-    [~,dtmParam] = computeDtm(S);
-elseif strcmpi(paramName, 'O')
-    [~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
-    [~,~,msisParam] = computeMsis(S);
-    [~,~,dtmParam] = computeDtm(S);
-elseif strcmpi(paramName, 'N2')
-    [~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
-    [~,~,~,msisParam] = computeMsis(S);
-    [~,~,~,dtmParam] = computeDtm(S);
-elseif strcmpi(paramName, 'He')
-    [~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
-    [~,~,~,~,msisParam] = computeMsis(S);
-    [~,~,~,~,dtmParam] = computeDtm(S);
-elseif strcmpi(paramName, 'Ar')
-    [~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
-    [~,~,~,~,~,msisParam] = computeMsis(S);
-    dtmParam = zeros(size(msisParam));
-elseif strcmpi(paramName, 'O2')
-    [~,~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
-    [~,~,~,~,~,~,msisParam] = computeMsis(S);
-    dtmParam = zeros(size(msisParam));
-else
-    error(['Unknown variable: ', paramName])
+[param, msisParam, dtmParam] = computeParams(S, coeffStruct, paramName, numBiasesStruct);
+if deviationFromQuiet
+    S.aeInt(:) = 20;
+    [quiet_param, quiet_msisParam, quiet_dtmParam] = computeParams(S, coeffStruct, paramName, numBiasesStruct);
+    param = param ./ quiet_param; msisParam = msisParam ./ quiet_msisParam; dtmParam = dtmParam ./ quiet_dtmParam;
 end
 
 if lstMean
@@ -343,6 +300,34 @@ if devFromXmean
     dtmParam = bsxfun(@rdivide, dtmParam, mean(dtmParam, 2));
 end
 
+if outputNetCdf
+    
+    filename = [saveFolder,'/surf_out.',paramName,'.nc'];
+    delete(filename);
+    nccreate(filename,paramName,...
+          'Dimensions',{'lat',size(param,1),'lon',size(param,2)},...
+          'Format','classic')
+    nccreate(filename,[paramName,'_msis'],...
+          'Dimensions',{'lat',size(param,1),'lon',size(param,2)},...
+          'Format','classic')
+    nccreate(filename,[paramName,'_dtm'],...
+          'Dimensions',{'lat',size(param,1),'lon',size(param,2)},...
+          'Format','classic')
+    nccreate(filename,'lat',...
+          'Dimensions',{'lat',size(param,1)},...
+          'Format','classic')
+    nccreate(filename,'lon',...
+          'Dimensions',{'lon',size(param,2)},...
+          'Format','classic')
+    ncwrite(filename,paramName,param)
+    ncwrite(filename,[paramName,'_msis'],msisParam)
+    ncwrite(filename,[paramName,'_dtm'],dtmParam)
+    ncwrite(filename,'lat',Y)
+    scX = X - min(X);
+    scX = scX / max(scX) * 360 - 180;
+    ncwrite(filename,'lon',scX)
+end
+
 figure('renderer', 'zbuffer');
 
 if onlyIL
@@ -382,6 +367,60 @@ end
 
 end
 
+function [param, msisParam, dtmParam] = computeParams(S, coeffStruct, paramName, numBiasesStruct)
+
+TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
+T0Coeffs = coeffStruct.T0Coeff;
+
+if ~strcmpi(paramName, 'Tex') && ~strcmpi(paramName, 'T0') && ~strcmpi(paramName, 'dT')
+    [Tex, dT0, T0] = findTempsForFit_this(S, TexCoeffs, dTCoeffs, T0Coeffs);
+    OlbDens = evalMajorSpecies(S, coeffStruct.OCoeff, numBiasesStruct.O);
+    N2lbDens = evalMajorSpecies(S, coeffStruct.N2Coeff, numBiasesStruct.N2);
+    HelbDens = evalMajorSpecies(S, coeffStruct.HeCoeff, numBiasesStruct.He);
+    ArlbDens = evalMajorSpecies(S, coeffStruct.ArCoeff, numBiasesStruct.Ar);
+    O2lbDens = exp(coeffStruct.O2Coeff);
+end
+
+if strcmpi(paramName, 'Tex')
+    param = evalTex(S, TexCoeffs);
+    msisParam = computeMsis(S);
+    dtmParam = computeDtm(S);
+elseif strcmpi(paramName, 'T0')
+    param = evalT0(S, T0Coeffs);
+    [msisParam, ~, dtmParam, ~] = computeMsisDtmLb(S);
+elseif strcmpi(paramName, 'dT')
+    param = evalDT(S, dTCoeffs);
+    [~, msisParam, ~, dtmParam] = computeMsisDtmLb(S);
+elseif strcmpi(paramName, 'rho')
+    param = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+    [~,msisParam] = computeMsis(S);
+    [~,dtmParam] = computeDtm(S);
+elseif strcmpi(paramName, 'O')
+    [~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+    [~,~,msisParam] = computeMsis(S);
+    [~,~,dtmParam] = computeDtm(S);
+elseif strcmpi(paramName, 'N2')
+    [~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+    [~,~,~,msisParam] = computeMsis(S);
+    [~,~,~,dtmParam] = computeDtm(S);
+elseif strcmpi(paramName, 'He')
+    [~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+    [~,~,~,~,msisParam] = computeMsis(S);
+    [~,~,~,~,dtmParam] = computeDtm(S);
+elseif strcmpi(paramName, 'Ar')
+    [~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+    [~,~,~,~,~,msisParam] = computeMsis(S);
+    dtmParam = zeros(size(msisParam));
+elseif strcmpi(paramName, 'O2')
+    [~,~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+    [~,~,~,~,~,~,msisParam] = computeMsis(S);
+    dtmParam = zeros(size(msisParam));
+else
+    error(['Unknown variable: ', paramName])
+end
+
+end
+
 function [Tex, dT0, T0] = findTempsForFit_this(varStruct, TexCoeffs, dTCoeffs, T0Coeffs, coeff)
 
 Tex_est = evalTex(varStruct, TexCoeffs);
@@ -411,25 +450,42 @@ for i = 1:length(stormBeginInd)
     ind = stormBeginInd(i):stormEndInd(i);
     
     lat = rhoStruct.latitude(ind);
+    aeInt = rhoStruct.aeInt(ind,:);
     timestamps = rhoStruct.timestamps(ind);
     firstDay = timestamps < timestamps(1) + 1;
+    
+    firstDayAE = aeInt(firstDay,5);
+    %if any(firstDayAE > 400)
+    %    continue;
+    %end
+    %figure;plot(1:sum(firstDay), firstDayAE);
     
     measuredRho = rhoStruct.data(ind);
     ilRho = modelStruct.il(ind); 
     msisRho = modelStruct.msis(ind);
     dtmRho = modelStruct.dtm(ind);
+
     
-    ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
-    msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
-    dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
+    %ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
+    %msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
+    %dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
     
-    measuredOrbAver = computeOrbitAverage(measuredRho, lat, timestamps);
+    lat(firstDay) = [];
+    timestamps(firstDay) = [];
+    measuredRho(firstDay) = [];
+    ilRho(firstDay) = [];
+    msisRho(firstDay) = [];
+    dtmRho(firstDay) = [];
+    
+    [measuredOrbAver,t] = computeOrbitAverage(measuredRho, lat, timestamps);
     ilOrbAver = computeOrbitAverage(ilRho, lat, timestamps);
     msisOrbAver = computeOrbitAverage(msisRho, lat, timestamps);
     dtmOrbAver = computeOrbitAverage(dtmRho, lat, timestamps);
+    %figure; plot(t,measuredOrbAver, t,ilOrbAver, t, msisOrbAver);
     
-    t1{i} = datestr(rhoStruct.timestamps(ind(1)));
-    t2{i} = datestr(rhoStruct.timestamps(ind(end)));
+    
+    t1{i} = datestr(t(1));
+    t2{i} = datestr(t(end));
     
     rawCorr(i,1) = corr(ilRho, measuredRho);
     rawCorr(i,2) = corr(msisRho, measuredRho);
@@ -459,7 +515,19 @@ for i = 1:length(stormBeginInd)
     averF81A(i) = mean(rhoStruct.FA(ind));
 end
 
-outputCell = cell(length(stormBeginInd)+1, 14);
+conserve = find(averF81A > 0);
+t1 = t1(conserve);
+t2 = t2(conserve);
+averF81A = averF81A(conserve);
+minDst = minDst(conserve);
+satInfo = satInfo(conserve);
+rawCorr = rawCorr(conserve,:);
+rawOM = rawOM(conserve,:);
+rawRMS = rawRMS(conserve,:);
+OACorr = OACorr(conserve,:);
+OAOM = OAOM(conserve,:);
+OARMS = OARMS(conserve,:);
+outputCell = cell(length(conserve)+1, 14);
 outputCell(2:end, 1) = t1;
 outputCell(2:end, 2) = t2;
 outputCell(2:end, 3) = num2cell(averF81A);
@@ -488,13 +556,13 @@ else
     figure;
 end
 X = repmat(-minDst, 1, 2);
-h = plot(X, OACorr(:,1:2), 's');
+h = plot(X, OACorr(:,[1,3]), 's');
 set(h(1), 'markerFaceColor', 'b');
 set(h(2), 'markerFaceColor', 'g');
 xlabel('-1 * min Dst', 'fontsize', fontsize);
 ylabel('Orb. aver. Correlation', 'fontsize', fontsize);
 set(gca, 'fontsize', fontsize);
-legend('AE', 'MSIS', 'location', 'southeast')
+legend('AE', 'DTM', 'location', 'southeast')
 filename = [saveFolder, '/OACorr'];
 saveas(gcf, filename, 'png');
 
@@ -504,13 +572,13 @@ else
     figure;
 end
 X = repmat(-minDst, 1, 2);
-h = plot(X, OARMS(:,1:2), 's');
+h = plot(X, OARMS(:,[1,3]), 's');
 set(h(1), 'markerFaceColor', 'b');
 set(h(2), 'markerFaceColor', 'g');
 xlabel('-1 * min Dst', 'fontsize', fontsize);
 ylabel('Orb. aver. RMS', 'fontsize', fontsize);
 set(gca, 'fontsize', fontsize);
-legend('AE', 'MSIS', 'location', 'southeast')
+legend('AE', 'DTM', 'location', 'southeast')
 filename = [saveFolder, '/OARMS'];
 saveas(gcf, filename, 'png');
 
@@ -520,13 +588,13 @@ else
     figure;
 end
 X = repmat(-minDst, 1, 2);
-h = plot(X, OAOM(:,1:2), 's');
+h = plot(X, OAOM(:,[1,3]), 's');
 set(h(1), 'markerFaceColor', 'b');
 set(h(2), 'markerFaceColor', 'g');
 xlabel('-1 * min Dst', 'fontsize', fontsize);
 ylabel('Orb. aver. O/M', 'fontsize', fontsize);
 set(gca, 'fontsize', fontsize);
-legend('AE', 'MSIS', 'location', 'southeast')
+legend('AE', 'DTM', 'location', 'southeast')
 filename = [saveFolder, '/OAOM'];
 saveas(gcf, filename, 'png');
 
@@ -908,49 +976,6 @@ interpolateAndPlotByLatitude(t1, aeIntegral(i), timestamps(i), timestamps(i), la
 
 filename = [saveFolder,'/','3D',satellite,date1];
 saveas(gcf, filename, 'png');
-
-end
-
-function [T0_msis, dT_msis, T0_dtm, dT_dtm] = computeMsisDtmLb(S)
-
-z0 = S.altitude(1);
-dz = 0.1;
-
-N = length(S.latitude);
-T0_msis = zeros(N, 1);
-dT_msis = zeros(N, 1);
-T0_dtm = zeros(N, 1);
-dT_dtm = zeros(N, 1);
-
-targetCount = round(N / 10000);
-barWidth = 50;
-p = TimedProgressBar( targetCount, barWidth, ...
-                    'Running MSIS, ETA ', ...
-                    '. Now at ', ...
-                    'Completed in ' );
-dtm2013_mex();
-
-for i = 1:N
-    [~, ~, ~,~,~,~,~,~,~,~,T1] = nrlmsise_mex(S.doy(i),43200,z0-dz,S.latitude(i),S.longitude(i),S.solarTime(i),...
-        S.FA(i),S.F(i),S.Ap(i),S.apNow(i),S.ap3h(i),S.ap6h(i),S.ap9h(i),S.ap12To33h(i),S.ap36To57h(i));
-    [~, ~, ~,~,~,~,~,~,~,~,T2] = nrlmsise_mex(S.doy(i),43200,z0,S.latitude(i),S.longitude(i),S.solarTime(i),...
-        S.FA(i),S.F(i),S.Ap(i),S.apNow(i),S.ap3h(i),S.ap6h(i),S.ap9h(i),S.ap12To33h(i),S.ap36To57h(i));
-    [~, ~, ~,~,~,~,~,~,~,~,T3] = nrlmsise_mex(S.doy(i),43200,z0+dz,S.latitude(i),S.longitude(i),S.solarTime(i),...
-        S.FA(i),S.F(i),S.Ap(i),S.apNow(i),S.ap3h(i),S.ap6h(i),S.ap9h(i),S.ap12To33h(i),S.ap36To57h(i));
-    dT_msis(i) = (T3-T1) / (2*dz);
-    T0_msis(i) = T2;
-    
-    [~,T0,~,~,~,~,dT0] = dtm2013_mex(S.doy(i), z0, S.latitude(i), S.longitude(i), ...
-    S.solarTime(i), S.F(i), S.FA(i), S.ap3h(i), S.Ap(i));
-
-    dT_dtm(i) = dT0;
-    T0_dtm(i) = T0;
-    
-    if mod(i, 10000) == 0
-        p.progress;
-    end
-end
-p.stop;
 
 end
 

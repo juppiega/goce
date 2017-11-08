@@ -1,7 +1,5 @@
 function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeQuietModel, recomputeStormModel, recomputeAlsoInsign, fitSimultaneous, optimizedMex, subsampPercent )
 
-quietData = true;
-
 if optimizedMex
     mex -O FCFLAGS="\$FCFLAGS -std=f2008" -output levenbergMarquardt_mex lmSolver.F90 levenbergMarquardt_mex.F90 -llapack
     mex -O FCFLAGS="\$FCFLAGS -std=f2008" -output lbFit_mex lmSolver.F90 lbFit_mex.F90 -llapack
@@ -18,14 +16,14 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 133;
+numCoeffs = 148;
 
 clear mex;
 % 
-% poolobj = gcp('nocreate'); % If no pool, do not create new one.
-% if isempty(poolobj)
-%     parpool(24);
-% end
+poolobj = gcp('nocreate'); % If no pool, do not create new one.
+if isempty(poolobj)
+    parpool();
+end
 
 % Check the existence of the data file.
 if exist('ilData.mat', 'file')
@@ -34,9 +32,10 @@ else
     error('File ilData.mat not found!')
 end
 
-
-[rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
+quietData = true;
+[~, ~, ~, ~, ~, ~, ~, lbDTStruct, lbT0Struct] = ...
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);
+
 
 if ~exist('T0Coeffs', 'var') || recomputeLbTemp
     [T0Coeffs, JTWJ_T0] = fitLbTemerature(lbT0Struct, subsampPercent); 
@@ -51,13 +50,16 @@ if ~exist('dTCoeffs', 'var') || recomputeDT
 end
 
 if ~exist('TexStruct', 'var') || recomputeTex
+    [~, TempStruct] = ...
+    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
+
     TexStruct = computeExosphericTemperatures(TempStruct, dTCoeffs, T0Coeffs);
     save('ilData.mat', 'TexStruct', '-append')
 end
 
 
-opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-reflective', 'TolFun', 1E-3, ...
-                 'TolX', 1E-7, 'Display', 'iter');
+opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'levenberg-marquardt', 'TolFun', 1E-5, ...
+                 'TolX', 1E-6, 'Display', 'iter-detailed');
 %opt = psoptimset('Display', 'iter', 'CompletePoll', 'on', 'InitialMeshSize', 1E-1, 'TolX', 1E-11, 'TolMesh', 1E-11, 'TolFun', 1E-5, 'UseParallel', true, 'Cache', 'on', 'CacheTol', 1E-12, 'MaxMeshSize', 1.0);
 
 
@@ -87,6 +89,11 @@ numStartPoints = 1;
 % % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 if fitSimultaneous || recomputeQuietModel
+    load ilData.mat
+    quietData = true;
+    [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
+    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);
+    
     [rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
     subsampleStructs(rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, subsampPercent);
     
@@ -98,8 +105,8 @@ end
 if recomputeStormModel && ~fitSimultaneous
     load ilData.mat
     quietData = false;
-    [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
-    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);
+    [rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
+    removeAndFixData(rhoStruct, aeThreshold, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData);
 
     [rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
     subsampleStructs(rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, subsampPercent);
@@ -398,7 +405,7 @@ semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
 longitudinal = ones(1,13); longitudinal([2,5,6,9,12,13]) = 1E-4;
-geomagnetic = ones(1,21); geomagnetic([1,13,15]) = 0.001; %geomagnetic([1,13,15,22,25,28]) = 0.001;
+geomagnetic = ones(1,36); geomagnetic([2,6,10,13,16,22,25,30,32]) = 1E-4;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, longitudinal, geomagnetic];
 lb = -ub;
@@ -460,9 +467,9 @@ varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
 Gvec = G_majorTex(coeff, varStruct, varStruct.numBiases);
 
 if varStruct.numBiases == 0
-    residual = (exp(varStruct.rhs) ./ exp(max(coeff(1) + Gvec, 1))) - 1;
+    residual = ((varStruct.rhs) ./ (max(coeff(1) + Gvec, 1))) - 1;
 elseif varStruct.numBiases > 0
-    residual = (exp(varStruct.rhs) ./ exp(max(coeff(1) + sum(bsxfun(@times, coeff(2:varStruct.numBiases+1), varStruct.biases), 2) + Gvec, 1))) - 1;
+    residual = ((varStruct.rhs) ./ (max(coeff(1) + sum(bsxfun(@times, coeff(2:varStruct.numBiases+1), varStruct.biases), 2) + Gvec, 1))) - 1;
 else
     error('Incorrect number of biases!')
 end
@@ -489,7 +496,7 @@ function [residual] = computeSpeciesResidual_O2(varStruct, Tex, dT0, T0, coeff)
 varStruct = computeDensityRHS(varStruct, Tex, dT0, T0);
 averVal = coeff(1);
 
-residual = (exp(varStruct.rhs) ./ exp(max(averVal, 1))) - 1;
+residual = ((varStruct.rhs) ./ (max(averVal, 1))) - 1;
 
 end
 
@@ -544,6 +551,154 @@ if nargout == 2
     fun = @(X)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, X, paramsToFit);
     Jacobian = computeJAC(fun, coeff, dataLen, tolX, paramsToFit);
 end
+
+end
+
+function [residual, Jacobian] = modelMinimizationFunction_log(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, allCoeff, paramsToFit, stormCoeff)
+
+allCoeff(paramsToFit) = stormCoeff;
+
+dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) + length(HeStruct.data) + length(rhoStruct.data) ...
+    + length(ArStruct.data) + length(O2Struct.data);
+residual = zeros(dataLen, 1);
+
+T0 = evalT0(TexStruct, T0Coeffs);
+TexMesuredEstimate = clamp(T0+1, evalTex(TexStruct, allCoeff(TexStruct.coeffInd)), 5000);
+residInd = 1:length(TexStruct.data);
+residual(residInd) = TexStruct.data./TexMesuredEstimate - 1;
+
+[Tex, dT0, T0] = findTempsForFit(OStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(OStruct.data));
+residual(residInd) = computeSpeciesResidual_major(OStruct, Tex, dT0, T0, allCoeff(OStruct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(N2Struct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(N2Struct.data));
+residual(residInd) = computeSpeciesResidual_major(N2Struct, Tex, dT0, T0, allCoeff(N2Struct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(HeStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(HeStruct.data));
+residual(residInd) = computeSpeciesResidual_major(HeStruct, Tex, dT0, T0, allCoeff(HeStruct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(ArStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(ArStruct.data));
+residual(residInd) = computeSpeciesResidual_major(ArStruct, Tex, dT0, T0, allCoeff(ArStruct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(O2Struct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(O2Struct.data));
+residual(residInd) = computeSpeciesResidual_O2(O2Struct, Tex, dT0, T0, allCoeff(O2Struct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(rhoStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(rhoStruct.data));
+OlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(OStruct.coeffInd), OStruct.numBiases), 1E20);
+N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(N2Struct.coeffInd), N2Struct.numBiases), 1E20);
+HelbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(HeStruct.coeffInd), HeStruct.numBiases), 1E20);
+ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
+O2lbDens = clamp(10, exp(allCoeff(O2Struct.coeffInd)), 1E20);
+modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
+residual(residInd) = (log(rhoStruct.data)./log(modelRho)) - 1;%(log(rhoStruct.data)./log(modelRho)) - 1;
+
+if any(abs(residual) > 100)
+    a=1;
+end
+
+residual = weights .* residual;
+
+if nargout == 2
+    fun = @(X)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, X, paramsToFit);
+    Jacobian = computeJAC(fun, allCoeff, dataLen, tolX, paramsToFit);
+end
+
+end
+
+function [residual, Jacobian] = modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, allCoeff, paramsToFit, stormCoeff)
+
+allCoeff(paramsToFit) = stormCoeff;
+if allCoeff(1) < 100
+    allCoeff(1) = allCoeff(1)*100;
+end
+
+dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) + length(HeStruct.data) + length(rhoStruct.data) ...
+    + length(ArStruct.data) + length(O2Struct.data);
+residual = zeros(dataLen, 1);
+
+T0 = evalT0(TexStruct, T0Coeffs);
+TexMesuredEstimate = clamp(T0+1, evalTex(TexStruct, allCoeff(TexStruct.coeffInd)), 5000);
+residInd = 1:length(TexStruct.data);
+residual(residInd) = TexStruct.data./TexMesuredEstimate - 1;
+
+[Tex, dT0, T0] = findTempsForFit(OStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(OStruct.data));
+residual(residInd) = computeSpeciesResidual_major(OStruct, Tex, dT0, T0, allCoeff(OStruct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(N2Struct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(N2Struct.data));
+residual(residInd) = computeSpeciesResidual_major(N2Struct, Tex, dT0, T0, allCoeff(N2Struct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(HeStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(HeStruct.data));
+residual(residInd) = computeSpeciesResidual_major(HeStruct, Tex, dT0, T0, allCoeff(HeStruct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(ArStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(ArStruct.data));
+residual(residInd) = computeSpeciesResidual_major(ArStruct, Tex, dT0, T0, allCoeff(ArStruct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(O2Struct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(O2Struct.data));
+residual(residInd) = computeSpeciesResidual_O2(O2Struct, Tex, dT0, T0, allCoeff(O2Struct.coeffInd));
+
+[Tex, dT0, T0] = findTempsForFit(rhoStruct, TexStruct, dTCoeffs, T0Coeffs, allCoeff);
+residInd = residInd(end) + (1:length(rhoStruct.data));
+OlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(OStruct.coeffInd), OStruct.numBiases), 1E20);
+N2lbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(N2Struct.coeffInd), N2Struct.numBiases), 1E20);
+HelbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(HeStruct.coeffInd), HeStruct.numBiases), 1E20);
+ArlbDens = clamp(10, evalMajorSpecies(rhoStruct, allCoeff(ArStruct.coeffInd), ArStruct.numBiases), 1E20);
+O2lbDens = clamp(10, exp(allCoeff(O2Struct.coeffInd)), 1E20);
+modelRho = clamp(1E-20, computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens), 0.1);
+residual(residInd) = ((rhoStruct.data)./(modelRho)) - 1;%(log(rhoStruct.data)./log(modelRho)) - 1;
+
+if any(abs(residual) > 100)
+    a=1;
+end
+
+residual = weights .* residual;
+
+residual = residual / 1;
+
+if nargout == 2
+    fun = @(X)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, allCoeff, paramsToFit, X);
+    Jacobian = computeJAC(fun, stormCoeff, dataLen, tolX, 1:length(stormCoeff));
+end
+
+end
+
+
+
+function residual = fun_efold(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, allCoeff, stormParams, numStorm, opt, efolds)
+
+paramsToFit = stormParams;
+paramsToFit(1:numStorm:end) = [];
+allCoeff(stormParams(1:numStorm:end)) = efolds;
+fun = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, allCoeff, paramsToFit, coeff);
+
+lb = repmat([zeros(numStorm-1,1)-1E3],4,1); ub = repmat([zeros(numStorm-1,1)+1E3],4,1);
+[optCoeff,~,funVec,~,output,~,JAC] = lsqnonlin(fun,allCoeff(paramsToFit),lb,ub,opt);
+
+residual = sum(funVec.^2);
+
+end
+
+function residual = fun_bias(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, allCoeff, allInd, biasInd, opt, biases)
+
+meanInd = setdiff(1:length(allInd), biasInd);
+paramsToFit = allInd(meanInd);
+paramsToFit((biasInd)) = [];
+allCoeff(allInd(biasInd)) = biases;
+fun = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, allCoeff, paramsToFit, coeff);
+
+%lb = repmat([zeros(meanInd-1,1)-1E3],4,1); ub = repmat([zeros(meanInd-1,1)+1E3],4,1);
+[optCoeff,~,funVec,~,output,~,JAC] = lsqnonlin(fun,allCoeff(paramsToFit),[],[],opt);
+
+residual = sum(funVec.^2);
 
 end
 
@@ -693,6 +848,14 @@ numStormPrevious = numCoeffs - numQuietCoeffs;
 
 removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
+if ~quietData
+    removeInd = true(size(ArStruct.data)); removeInd(1) = false;
+    ArStruct = removeDataPoints(ArStruct, removeInd, true, true, true, true);
+end
+
+% DEBUG
+%removeInd = true(size(rhoStruct.data)); removeInd(1) = false;
+%rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 
 fprintf('%s\n', 'Computing final fit')
 
@@ -709,9 +872,9 @@ O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
 if quietData
-    tempSpecRelWeight = 0.05;
+    tempSpecRelWeight = 0.25;
 else
-    tempSpecRelWeight = 0.01;
+    tempSpecRelWeight = 0.05;
 end
 
 weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, tempSpecRelWeight); % 
@@ -722,46 +885,46 @@ weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Str
 if length(G_lb) + 1 ~= numCoeffs;
     error('length(G_lb) + 1 ~= numCoeffs');
 end
-G_lb = 4 * G_lb; G_ub = 4 * G_ub;
+%G_lb = 4 * G_lb; G_ub = 4 * G_ub;
 
 TexStruct.coeffInd = 1:numCoeffs;
 lb = [500, G_lb]; ub = [1500, G_ub];
 
 OStruct.coeffInd = TexStruct.coeffInd(end) + (1:numCoeffs+OStruct.numBiases);
-lb = [lb, log(0.5E10), zeros(1, OStruct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E11), zeros(1, OStruct.numBiases)-0.1, G_ub];
+lb = [lb, log(0.5E10), zeros(1, OStruct.numBiases)-0, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E11), zeros(1, OStruct.numBiases)-0, G_ub];
 
 N2Struct.coeffInd = OStruct.coeffInd(end) + (1:numCoeffs+N2Struct.numBiases);
-lb = [lb, log(0.5E11), zeros(1, N2Struct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E12), zeros(1, N2Struct.numBiases)-0.1, G_ub];
+lb = [lb, log(0.5E11), zeros(1, N2Struct.numBiases)-0, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E12), zeros(1, N2Struct.numBiases)-0, G_ub];
 
 HeStruct.coeffInd = N2Struct.coeffInd(end) + (1:numCoeffs+HeStruct.numBiases);
-lb = [lb, log(0.5E7), zeros(1, HeStruct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(1E8), zeros(1, HeStruct.numBiases)-0.1, G_ub];
+lb = [lb, log(0.5E7), zeros(1, HeStruct.numBiases)-0, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(1E8), zeros(1, HeStruct.numBiases)-0, G_ub];
 
 ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numCoeffs+ArStruct.numBiases);
-lb = [lb, log(0.5E9), zeros(1, ArStruct.numBiases)-0.1, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ub = [ub, log(2E9), zeros(1, ArStruct.numBiases)-0.1, G_ub];
+lb = [lb, log(0.5E9), zeros(1, ArStruct.numBiases)-0, G_lb]; % MUISTA LISATA BIASET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ub = [ub, log(2E9), zeros(1, ArStruct.numBiases)-0, G_ub];
 
 %ArStruct.coeffInd = HeStruct.coeffInd(end) + (1:numCoeffs+ArStruct.numBiases);
 O2Struct.coeffInd = ArStruct.coeffInd(end) + 1;
 
 %startPoints = createRandomStartPoints(lb, ub, numStartPoints);
 %initGuess = list(startPoints);
-ind = ub < 0.5;
+ind = ub < 0.5 | ub > 2;
 %ind(1:numCoeffs) = ub(1:numCoeffs) < 100;
 initGuess = mean([lb;ub]);% - 0.001;
-initGuess(ind) = -ub(ind);
+initGuess(ind) = ub(ind);
 %ArCoeffs = zeros(numCoeffs+ArStruct.numBiases, 1);
 %ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
 %initGuess(ArStruct.coeffInd) = ArCoeffs;
 
-initGuess(TexStruct.coeffInd(1)) = mean(TexStruct.data);
-initGuess(OStruct.coeffInd(1)) = log(8E10);
-initGuess(N2Struct.coeffInd(1)) = log(3E11);
-initGuess(HeStruct.coeffInd(1)) = log(2.5E7);
-initGuess(ArStruct.coeffInd(1)) = log(1.2E9);
-initGuess(O2Struct.coeffInd) = log(3E10);
+initGuess(TexStruct.coeffInd(1)) = 950;
+initGuess(OStruct.coeffInd(1)) = log(4E10);
+initGuess(N2Struct.coeffInd(1)) = log(1.4E11);
+initGuess(HeStruct.coeffInd(1)) = log(2.2E7);
+initGuess(ArStruct.coeffInd(1)) = log(0.4E9);
+initGuess(O2Struct.coeffInd) = log(1.4E10);
 
 quietInd = [TexStruct.coeffInd(TexParams(TexStruct, numQuietCoeffs)),...
             OStruct.coeffInd(OParams(OStruct, numQuietCoeffs)),...
@@ -774,11 +937,21 @@ stormInd = [TexStruct.coeffInd(geomParams(TexStruct, numQuietCoeffs)),...
             N2Struct.coeffInd(geomParams(N2Struct, numQuietCoeffs)),...
             HeStruct.coeffInd(geomParams(HeStruct, numQuietCoeffs)),...
             ArStruct.coeffInd(geomParams(ArStruct, numQuietCoeffs))]; 
+stormInd = [TexStruct.coeffInd(geomParams(TexStruct, numQuietCoeffs)),...
+            OStruct.coeffInd(geomParams(OStruct, numQuietCoeffs)),...
+            N2Struct.coeffInd(geomParams(N2Struct, numQuietCoeffs)),...
+            HeStruct.coeffInd(geomParams(HeStruct, numQuietCoeffs))]; 
+initGuess(ArStruct.coeffInd(geomParams(ArStruct, numQuietCoeffs))) = 0;
 
 tolX = 1E-8;
 tolFun = 1E-6;
 tolOpt = 1E-4;
-lambda0 = 1E-2;
+lambda0 = 1E0;
+if quietData
+    minLambda = 1E-10;
+else
+    minLambda = 1E3;
+end
 % if quietData && ~fitSimultaneously
 %     paramsToFit = [TexStruct.coeffInd(1),...
 %             OStruct.coeffInd(1:1+OStruct.numBiases),...
@@ -802,6 +975,14 @@ if ~fitSimultaneously
         paramsToFit = quietInd;
         otherInd = setdiff(1:length(initGuess), quietInd);
         initGuess(otherInd) = 0;
+%         load quietCoeffsAll.F30.mat
+%         numStormPrevious = TexInd(length(TexInd)) - numQuietCoeffs;
+%         initGuess(quietParams(TexStruct,numQuietCoeffs,true)) = optCoeff(quietParams(TexInd,numStormPrevious,true));
+%         initGuess(quietParams(OStruct,numQuietCoeffs,true)) = optCoeff(quietParams(OInd,numStormPrevious,true));
+%         initGuess(quietParams(N2Struct,numQuietCoeffs,true)) = optCoeff(quietParams(N2Ind,numStormPrevious,true));
+%         initGuess(quietParams(HeStruct,numQuietCoeffs,true)) = optCoeff(quietParams(HeInd,numStormPrevious,true));
+%         initGuess(quietParams(ArStruct,numQuietCoeffs,true)) = optCoeff(quietParams(ArInd,numStormPrevious,true));
+%         initGuess(O2Struct.coeffInd(1)) = optCoeff(O2Ind);
     else
         paramsToFit = stormInd;
         load quietCoeffs.mat
@@ -820,6 +1001,13 @@ end
 
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
 [comp] = fun(initGuess);
+if ~quietData
+    fun_log = @(coeff)modelMinimizationFunction_log(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff);
+    %[comp_log,JAC] = fun_log(initGuess(paramsToFit));
+    
+    fun_lin = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff);
+    %[comp_lin,JAC] = fun_lin(initGuess(paramsToFit));
+end
 %error('Not complete');
 %[comp,JAC] = fun(initGuess);
 %[derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
@@ -847,7 +1035,98 @@ if fitSimultaneously || fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
-    tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0);toc;
+    if quietData
+        
+          Obiases = OStruct.coeffInd(2:1+OStruct.numBiases);
+          N2biases = N2Struct.coeffInd(2:1+N2Struct.numBiases);
+          HeBiases = HeStruct.coeffInd(2:1+HeStruct.numBiases);
+          ArBiases =  ArStruct.coeffInd(2:1+ArStruct.numBiases);
+          initGuess(Obiases) = [0.0680	0.2379	0.0665	0.1053	-0.1162];
+          initGuess(N2biases) = [-0.1043	0.1267	0.0401	-0.0289	0.1312	-0.1166];
+          initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
+          initGuess(ArBiases) = [-0.0043	0.0880];
+          paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases, ArBiases]);
+%         
+%         rmInd = setdiff(1:length(initGuess), paramsToFit);
+%         initGuess(rmInd) = 0;
+%         biasInd = find(initGuess(paramsToFit) == 0); 
+%         meanInd = setdiff(1:length(paramsToFit), biasInd);
+%         
+%         opt = optimoptions('lsqnonlin', 'Jacobian', 'off', 'Algorithm', 'levenberg-marquardt', 'TolFun', 1E-5, ...
+%                   'TolX', 1E-4, 'Display', 'off');
+%         
+%         %fun = @(X) fun_bias(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, allCoeff, paramsToFit, biasInd, opt, biases);
+%         fun = @(coeff)sum(modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff).^2);
+%         
+%         initGuess(paramsToFit(1)) = 9.5;
+%         lb = initGuess(paramsToFit); ub = lb;
+%         lb(biasInd) = log(0.3); ub(biasInd) = log(1.5);
+%         lb(meanInd) = [8.0, initGuess(paramsToFit(meanInd(2:end)))-3];
+%         ub(meanInd) = [11.0, initGuess(paramsToFit(meanInd(2:end)))+3];
+%         options = psoptimset('Display','iter','tolfun',1E-4,'tolmesh',1E-2,'useparallel',false,'CompletePoll','off','Vectorized','off',...
+%             'maxiter',1000,'MaxMeshSize',1.0,'cache','on','cacheTol',1E-4);
+%         p = gcp('nocreate');
+%         numStartPoints = p.NumWorkers;
+%         initPoints = repmat(initGuess(paramsToFit), numStartPoints, 1);
+%         final_points = zeros(numStartPoints, length(paramsToFit));
+%         final_fvals = zeros(numStartPoints, 1);
+%         for i = 1:numStartPoints
+%             initPoints(i,biasInd) = (lb(biasInd)) + rand(size(lb(biasInd))).*(ub(biasInd)-lb(biasInd));
+%         end
+%         
+%         parfor i = 1:numStartPoints
+%             [final_points(i,:),final_fvals(i)] = patternsearch(fun,initPoints(i,:),[],[],[],[],lb,ub,[],options);
+%         end
+%         save('biases.mat','final_points','final_fvals','initPoints');
+
+        tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
+    else
+         numStorm = numCoeffs - numQuietCoeffs;
+%         efolds_init = [7, 11.4, 13.0, 7.3];
+%         opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-reflective', 'TolFun', 1E-5, ...
+%                  'TolX', 1E-4, 'Display', 'off');
+%         fun = @(X) fun_efold(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, numStorm, opt, X);
+%         %comp = fun(efolds_init);
+%         %lb = efolds_init - 6; ub = efolds_init + 6; lb(3) = 4;
+%         lb = 2*ones(size(efolds_init)); ub = 18*ones(size(efolds_init));
+%         options = psoptimset('Display','iter','tolfun',1E-4,'tolmesh',1E-2,'useparallel',false,'CompletePoll','off','Vectorized','off','maxiter',1000);
+%         %prevThreads = maxNumCompThreads(1);
+%         
+%         p = gcp('nocreate');
+%         numStartPoints = p.NumWorkers;
+%         initPoints = zeros(numStartPoints, length(efolds_init));
+%         final_efolds = zeros(numStartPoints, length(efolds_init));
+%         final_fvals = zeros(numStartPoints, 1);
+%         for i = 1:numStartPoints
+%             initPoints(i,:) = (lb+1) + rand(size(lb)).*(ub-lb-2);
+%         end
+%         parfor i = 1:numStartPoints
+%             [final_efolds(i,:),final_fvals(i)] = patternsearch(fun,initPoints(i,:),[],[],[],[],lb,ub,[],options);
+%         end
+%         save('efolds.mat','final_efolds','final_fvals','initPoints');
+        
+        %maxNumCompThreads(prevThreads);
+
+        initGuess(paramsToFit(1:numStorm:end)) = [6.0546   17.9177    5.2326    3.9629];
+        paramsToFit(1:numStorm:end) = [];
+        %lb = repmat([2; zeros(1,1)-1E3],4,1); ub = repmat([22; zeros(1,1)+1E3],4,1);
+        fun_lin = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff);
+        %[comp,JAC] = fun_lin(initGuess(paramsToFit));
+        tic;[optCoeff,~,funVec,~,output,~,JAC] = lsqnonlin(fun_lin,initGuess(paramsToFit),[],[],options);toc;
+               
+%         weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, 0.1);
+%         fun_lin = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff);
+%         [optCoeff,~,funVec,~,output,~,JAC] = lsqnonlin(fun_lin,optCoeff,lb,ub,options);
+        
+        initGuess(paramsToFit) = optCoeff;
+        optCoeff = initGuess;
+        
+        stdFit = funVec' * funVec / (length(funVec) - length(paramsToFit) + 1);
+        JTWJ = JAC' * JAC / stdFit;
+    end
+    if quietData && all(optCoeff == initGuess')
+        error('Cholesky failed?');
+    end
     %[comp] = fun(initGuess); %disp([comp(1), optCoeff]);
     %JTJ_diag_matlab = diag(J'*J);
 
@@ -860,9 +1139,9 @@ else
 end
 
 if quietData
-    ind = quietInd;
+    ind = paramsToFit;
 else
-    ind = stormInd;
+    ind = paramsToFit;
 end
 i=find(ismember(ind,TexStruct.coeffInd)); paramErrors_Tex = sqrt(abs(diag(inv(JTWJ(i,i)))));
 i=find(ismember(ind,OStruct.coeffInd)); paramErrors_O = sqrt(abs(diag(inv(JTWJ(i,i)))));
@@ -881,9 +1160,9 @@ end
 allInd = 1:length(optCoeff);
 pe = ones(size(allInd)); 
 if quietData
-    pe(quietInd) = paramErrors;
+    pe(paramsToFit) = paramErrors;
 else
-    pe(stormInd) = paramErrors;
+    pe(paramsToFit) = paramErrors;
 end
 significance = 2.0/3.0;
 if ~fitSimultaneously
@@ -910,14 +1189,15 @@ else
     paramsToFit = sort([paramsToFit, stormInd]); % Testaus
 end
 
-tolFun = 1E-6;
+tolFun = 1E-5;
 tolOpt = 1E0;
+lambda0 = 1E-2;
 
 if fitSimultaneously || quietData % TESTAUS. Kunnes Myrsky-yhtalo saavuttanut loppulisen muotonsa ja zeroOutInsignificantStorm on koodattu
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
-    tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, optCoeff, paramsToFit, tolX, tolFun, tolOpt, lambda0);toc;
+    tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, optCoeff, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
     fprintf('Significant parameters refitted.\n');
 end
 

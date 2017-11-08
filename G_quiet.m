@@ -10,7 +10,7 @@ S.latitudeTerm = a(k+1)*S.P10 + a(k+2)*S.P20 + a(k+3)*S.P30 + a(k+4)*S.P40 + a(k
 k = k + 14; % last param = 15
 
 % % Solar activity terms.
-S.solarTerm = a(k+1)*S.F + a(k+2)*S.F.^2 + a(k+3)*S.FA + a(k+4)*S.FA.^2 + a(k+5)*S.F.*S.FA;
+S.solarTerm = a(k+1)*(S.F-S.FA) + a(k+2)*(S.F-S.FA).^2 + a(k+3)*(S.FA-80) + a(k+4)*(S.FA-80).^2 + a(k+5)*(S.F-S.FA).*(S.FA-80);
 %a(k+1:k+5) = a(k+1:k+5) - 1;
 k = k + 5; % 20
 
@@ -29,13 +29,13 @@ S.annual = S.annual + (a(k+1)*S.P10 + a(k+2)*S.P30 + a(k+3)*S.P50).*cos(S.yv-pi*
 k = k + 14; % 52
 
 dPy = k + 11;
-S.diurnal = ((a(k+1)*S.P11 + a(k+2)*S.P31 + a(k+3)*S.P51 + a(k+4)*S.P71 + a(k+5)*S.FA + a(k+6)*S.FA.^2 + a(k+7)*(S.F - S.FA)) + (a(k+8)*S.P11 + a(k+9)*S.P21 + a(k+10)*S.P31).*(cos(S.yv-pi*a(dPy)))).*cos(S.dv) + ...
-            ((a(k+12)*S.P11 + a(k+13)*S.P31 + a(k+14)*S.P51 + a(k+15)*S.P71 + a(k+16)*S.FA + a(k+17)*S.FA.^2 + a(k+18)*(S.F - S.FA)) + (a(k+19)*S.P11 + a(k+20)*S.P21 + a(k+21)*S.P31).*(cos(S.yv-pi*a(dPy)))).*sin(S.dv);
+S.diurnal = ((a(k+1)*S.P11 + a(k+2)*S.P31 + a(k+3)*S.P51 + a(k+4)*S.P71 + a(k+5)*(S.FA-80) + a(k+6)*(S.FA-80).^2 + a(k+7)*(S.F - S.FA)) + (a(k+8)*S.P11 + a(k+9)*S.P21 + a(k+10)*S.P31).*(cos(S.yv-pi*a(dPy)))).*cos(S.dv) + ...
+            ((a(k+12)*S.P11 + a(k+13)*S.P31 + a(k+14)*S.P51 + a(k+15)*S.P71 + a(k+16)*(S.FA-80) + a(k+17)*(S.FA-80).^2 + a(k+18)*(S.F - S.FA)) + (a(k+19)*S.P11 + a(k+20)*S.P21 + a(k+21)*S.P31).*(cos(S.yv-pi*a(dPy)))).*sin(S.dv);
 %a(k+1:k+21) = a(k+1:k+21) - 1;
 k = k + 21; % 73
 
-S.semidiurnal = (a(k+1)*S.P22 + a(k+2)*S.P32 + a(k+3)*S.P52 + a(k+4)*S.FA + a(k+5)*S.FA.^2 + a(k+6)*(S.F-S.FA) + (a(k+7)*S.P32 + a(k+8)*S.P52).*cos(S.yv-pi*a(dPy))).*cos(2*S.dv) + ...
-                (a(k+9)*S.P22 + a(k+10)*S.P32 + a(k+11)*S.P52 + a(k+12)*S.FA + a(k+13)*S.FA.^2 + a(k+14)*(S.F-S.FA) + (a(k+15)*S.P32 + a(k+16)*S.P52).*cos(S.yv-pi*a(dPy))).*sin(2*S.dv);
+S.semidiurnal = (a(k+1)*S.P22 + a(k+2)*S.P32 + a(k+3)*S.P52 + a(k+4)*(S.FA-80) + a(k+5)*(S.FA-80).^2 + a(k+6)*(S.F-S.FA) + (a(k+7)*S.P32 + a(k+8)*S.P52).*cos(S.yv-pi*a(dPy))).*cos(2*S.dv) + ...
+                (a(k+9)*S.P22 + a(k+10)*S.P32 + a(k+11)*S.P52 + a(k+12)*(S.FA-80) + a(k+13)*(S.FA-80).^2 + a(k+14)*(S.F-S.FA) + (a(k+15)*S.P32 + a(k+16)*S.P52).*cos(S.yv-pi*a(dPy))).*sin(2*S.dv);
 %a(k+1:k+16) = a(k+1:k+16) - 1;
 k = k + 16; % 89
 

@@ -89,6 +89,10 @@ if ~exist('ilData.mat', 'file')
     save('ilData.mat', 'originalRhoStruct', '-append')
     save('ilData.mat', 'lbDTStruct', '-append')
     save('ilData.mat', 'lbT0Struct', '-append')
+    load('dTCoeffs.final.mat')
+    load('T0Coeffs.final.mat')
+    save('ilData.mat', 'dTCoeffs', '-append')
+    save('ilData.mat', 'T0Coeffs', '-append')
 end
 
 if ~exist('goceVariables.mat', 'file')
@@ -168,7 +172,7 @@ TempStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [
 [tempTime, order] = unique(aeCData.temp.TTimes); data = aeCData.temp.T(order); aeC = 1:length(data); TempStruct = fillPosAndInd(TempStruct, aeCData, tempTime(aeC));
 [t, order] = unique(aeEData.temp.TTimes); tempTime = [tempTime; t]; data = [data; aeEData.temp.T(order)]; aeE = aeC(end)+1 : length(data); TempStruct = fillPosAndInd(TempStruct, aeEData, tempTime(aeE));
 [t, order] = unique(de2Data.temp.TTimes); tempTime = [tempTime; t]; data = [data; de2Data.temp.T(order)]; de2 = aeE(end)+1 : length(data); TempStruct = fillPosAndInd(TempStruct, de2Data, tempTime(de2));
-TempStruct.data = data; TempStruct.timestamps = tempTime; TempStruct.aeC = aeC; TempStruct.aeE = aeE; TempStruct.de2 = de2;
+TempStruct.data = data; TempStruct.timestamps = tempTime; TempStruct.aeC = aeC; TempStruct.aeE = aeE; TempStruct.de2 = de2; TempStruct.name = 'T';
 
 OStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
@@ -178,7 +182,7 @@ OStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 
 [t, order] = unique(aeEData.oss.OTimes); Otime = [Otime; t]; data = [data; aeEData.oss.O(order)]; aeEOss = aeENace(end)+1 : length(data); OStruct = fillPosAndInd(OStruct, aeEData, Otime(aeEOss));
 [t, order] = unique(de2Data.dens.OTimes); Otime = [Otime; t]; data = [data; de2Data.dens.O(order)]; de2 = aeEOss(end)+1 : length(data); OStruct = fillPosAndInd(OStruct, de2Data, Otime(de2));
 [t, order] = unique(guviData.timestamps); Otime = [Otime; t]; data = [data; guviData.dens.O(order)]; guvi = de2(end)+1 : length(data); OStruct = fillPosAndInd(OStruct, guviData, Otime(guvi));
-OStruct.data = data; OStruct.timestamps = Otime; OStruct.aeC = aeC; OStruct.aeENace = aeENace; OStruct.aeEOss = aeEOss; OStruct.de2 = de2; OStruct.guvi = guvi;
+OStruct.data = data; OStruct.timestamps = Otime; OStruct.aeC = aeC; OStruct.aeENace = aeENace; OStruct.aeEOss = aeEOss; OStruct.de2 = de2; OStruct.guvi = guvi; OStruct.name = 'O';
 
 N2Struct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
@@ -189,7 +193,7 @@ N2Struct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [],
 [t, order] = unique(de2Data.dens.N2Times); N2time = [N2time; t]; data = [data; de2Data.dens.N2(order)]; de2 = aeEOss(end)+1 : length(data); N2Struct = fillPosAndInd(N2Struct, de2Data, N2time(de2));
 [t, order] = unique(aerosData.dens.N2Times); N2time = [N2time; t]; data = [data; aerosData.dens.N2(order)]; aeros = de2(end)+1 : length(data); N2Struct = fillPosAndInd(N2Struct, aerosData, N2time(aeros));
 [t, order] = unique(guviData.timestamps); N2time = [N2time; t]; data = [data; guviData.dens.N2(order)]; guvi = aeros(end)+1 : length(data); N2Struct = fillPosAndInd(N2Struct, guviData, N2time(guvi));
-N2Struct.data = data; N2Struct.timestamps = N2time; N2Struct.aeC = aeC; N2Struct.aeENace = aeENace; N2Struct.aeEOss = aeEOss; N2Struct.de2 = de2; N2Struct.aeros = aeros; N2Struct.guvi = guvi;
+N2Struct.data = data; N2Struct.timestamps = N2time; N2Struct.aeC = aeC; N2Struct.aeENace = aeENace; N2Struct.aeEOss = aeEOss; N2Struct.de2 = de2; N2Struct.aeros = aeros; N2Struct.guvi = guvi; N2Struct.name = 'N2';
 
 HeStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
@@ -199,21 +203,21 @@ HeStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [],
 [t, order] = unique(aeEData.oss.HeTimes); Hetime = [Hetime; t]; data = [data; aeEData.oss.He(order)]; aeEOss = aeENace(end)+1 : length(data); HeStruct = fillPosAndInd(HeStruct, aeEData, Hetime(aeEOss));
 [t, order] = unique(de2Data.dens.HeTimes); Hetime = [Hetime; t]; data = [data; de2Data.dens.He(order)]; de2 = aeEOss(end)+1 : length(data); HeStruct = fillPosAndInd(HeStruct, de2Data, Hetime(de2));
 [t, order] = unique(aerosData.dens.HeTimes); Hetime = [Hetime; t]; data = [data; aerosData.dens.He(order)]; aeros = de2(end)+1 : length(data); HeStruct = fillPosAndInd(HeStruct, aerosData, Hetime(aeros));
-HeStruct.data = data; HeStruct.timestamps = Hetime; HeStruct.aeC = aeC; HeStruct.aeENace = aeENace; HeStruct.aeEOss = aeEOss; HeStruct.de2 = de2; HeStruct.aeros = aeros;
+HeStruct.data = data; HeStruct.timestamps = Hetime; HeStruct.aeC = aeC; HeStruct.aeENace = aeENace; HeStruct.aeEOss = aeEOss; HeStruct.de2 = de2; HeStruct.aeros = aeros; HeStruct.name = 'He';
 
 ArStruct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
 
 [Artime, order] = unique(de2Data.dens.ArTimes); data = de2Data.dens.Ar(order); de2 = 1:length(data); ArStruct = fillPosAndInd(ArStruct, de2Data, Artime(de2));
 [t, order] = unique(aerosData.dens.ArTimes); Artime = [Artime; t]; data = [data; aerosData.dens.Ar(order)]; aeros = de2(end)+1 : length(data); ArStruct = fillPosAndInd(ArStruct, aerosData, Artime(aeros));
-ArStruct.data = data; ArStruct.timestamps = Artime; ArStruct.de2 = de2; ArStruct.aeros = aeros;
+ArStruct.data = data; ArStruct.timestamps = Artime; ArStruct.de2 = de2; ArStruct.aeros = aeros; ArStruct.name = 'Ar';
 
 O2Struct = struct('data', [], 'timestamps', [], 'longitude', [], 'latitude', [], 'altitude', [], 'solarTime', [], 'aeInt', zeros(0,9),...
                     'F', [], 'FA', [], 'apNow', [], 'ap3h', [], 'ap6h', [],'ap9h', [], 'ap12To33h', [], 'ap36To57h', [], 'Ap', []);
 
 [O2time, order] = unique(aeCData.oss.O2Times); data = aeCData.oss.O2(order); aeCOss = 1:length(data); O2Struct = fillPosAndInd(O2Struct, aeCData, O2time(aeCOss));
 [t, order] = unique(aeEData.oss.O2Times); O2time = [O2time; t]; data = [data; aeEData.oss.O2(order)]; aeEOss = aeCOss(end)+1 : length(data); O2Struct = fillPosAndInd(O2Struct, aeEData, O2time(aeEOss));
-O2Struct.data = data; O2Struct.timestamps = O2time; O2Struct.aeCOss = aeCOss; O2Struct.aeEOss = aeEOss; O2Struct.de2 = de2; O2Struct.aeros = aeros;
+O2Struct.data = data; O2Struct.timestamps = O2time; O2Struct.aeCOss = aeCOss; O2Struct.aeEOss = aeEOss; O2Struct.de2 = de2; O2Struct.aeros = aeros; O2Struct.name = 'O2';
 
 lbDTStruct = saberDT;
 lbT0Struct = T0;
@@ -244,14 +248,25 @@ rhoStruct.champ = k+1 : k + length(champData.timestamps); k = k + length(champDa
 rhoStruct.grace = k+1 : k + length(graceData.timestamps); k = k + length(graceData.timestamps);
 rhoStruct.swarm = k+1 : k + length(swarmData.timestamps);
 
-rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 1.25;
-rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 1.20;
+rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 1.25; 
+
+removeInd = isnan(rhoStruct.data);
+rhoStruct = removeDataPoints(rhoStruct, removeInd, true, true, true, true);
 
 removeInd = rhoStruct.data <= 0;
-longSmooth = smooth(rhoStruct.data, 541);
+k = 541;
+longRhoSum = cumsum([repmat(rhoStruct.data(1),floor(k/2)+1,1); rhoStruct.data; repmat(rhoStruct.data(end),floor(k/2),1)]);
+longSmooth = (longRhoSum(2*(floor(k/2)+1) : end) - longRhoSum(1 : end-2*floor(k/2)-1)) / k;
 relDiffFromSmooth = rhoStruct.data ./ longSmooth;
 removeInd(relDiffFromSmooth > 4.0 | relDiffFromSmooth < 1/4.0) = true;
-rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
+rhoStruct = removeDataPoints(rhoStruct, removeInd, true, true, true, true);
+
+OStruct = removeObviousOutliers(OStruct);
+N2Struct = removeObviousOutliers(N2Struct);
+HeStruct = removeObviousOutliers(HeStruct);
+ArStruct = removeObviousOutliers(ArStruct);
+O2Struct = removeObviousOutliers(O2Struct);
+TempStruct = removeObviousOutliers(TempStruct);
 
 [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
     removeAndFixData(rhoStruct, 0, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
@@ -259,68 +274,26 @@ rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
 originalRhoStruct = rhoStruct;
 
 rhoStruct = averageRho(rhoStruct, true);
+rhoStruct = computeDst(rhoStruct);
 
 [TempStruct, removeInd] = averageRho(TempStruct, false);
-satInd = zeros(1, length(removeInd));
-satInd(TempStruct.de2) = 1;
-satInd(TempStruct.aeC) = 2;
-satInd(TempStruct.aeE) = 3;
-satInd(removeInd) = [];
-TempStruct.de2 = find(satInd == 1);
-TempStruct.aeC = find(satInd == 2);
-TempStruct.aeE = find(satInd == 3);
+TempStruct = computeDst(TempStruct);
 
 [OStruct, removeInd] = averageRho(OStruct, false);
-satInd = zeros(1, length(removeInd));
-satInd(OStruct.de2) = 1;
-satInd(OStruct.aeC) = 2;
-satInd(OStruct.aeENace) = 3;
-satInd(OStruct.aeEOss) = 4;
-satInd(OStruct.guvi) = 5;
-satInd(removeInd) = [];
-OStruct.de2 = find(satInd == 1);
-OStruct.aeC = find(satInd == 2);
-OStruct.aeENace = find(satInd == 3);
-OStruct.aeEOss = find(satInd == 4);
-OStruct.guvi = find(satInd == 5);
+OStruct = computeDst(OStruct);
 
 [N2Struct, removeInd] = averageRho(N2Struct, false);
-satInd = zeros(1, length(removeInd));
-satInd(N2Struct.de2) = 1;
-satInd(N2Struct.aeC) = 2;
-satInd(N2Struct.aeENace) = 3;
-satInd(N2Struct.aeEOss) = 4;
-satInd(N2Struct.aeros) = 5;
-satInd(N2Struct.guvi) = 6;
-satInd(removeInd) = [];
-N2Struct.de2 = find(satInd == 1);
-N2Struct.aeC = find(satInd == 2);
-N2Struct.aeENace = find(satInd == 3);
-N2Struct.aeEOss = find(satInd == 4);
-N2Struct.aeros = find(satInd == 5);
-N2Struct.guvi = find(satInd == 6);
+N2Struct = computeDst(N2Struct);
 
 [HeStruct, removeInd] = averageRho(HeStruct, false);
-satInd = zeros(1, length(removeInd));
-satInd(HeStruct.de2) = 1;
-satInd(HeStruct.aeC) = 2;
-satInd(HeStruct.aeENace) = 3;
-satInd(HeStruct.aeEOss) = 4;
-satInd(HeStruct.aeros) = 5;
-satInd(removeInd) = [];
-HeStruct.de2 = find(satInd == 1);
-HeStruct.aeC = find(satInd == 2);
-HeStruct.aeENace = find(satInd == 3);
-HeStruct.aeEOss = find(satInd == 4);
-HeStruct.aeros = find(satInd == 5);
+HeStruct = computeDst(HeStruct);
 
 [ArStruct, removeInd] = averageRho(ArStruct, false);
-satInd = zeros(1, length(removeInd));
-satInd(ArStruct.de2) = 1;
-satInd(ArStruct.aeros) = 2;
-satInd(removeInd) = [];
-ArStruct.de2 = find(satInd == 1);
-ArStruct.aeros = find(satInd == 2);
+ArStruct = computeDst(ArStruct);
+
+removeInd = true(size(originalRhoStruct.data));
+removeInd(1:3:end) = false;
+originalRhoStruct = removeDataPoints(originalRhoStruct, removeInd, true, true, true, true);
 
 end
 
@@ -750,8 +723,7 @@ function [champData, graceData, de2Data, aeCData, aeEData, aerosData] = computeO
 
 fprintf('%s\n', 'Began reading CHAMP files')
 
-champFiles1 = dir('champ/Density_3deg_0*');
-champFiles2 = dir('champ/Density_10_*');
+champFiles1 = dir('champ/CHAMP_Density_*');
 
 champDensity = [];
 champError = [];
@@ -761,30 +733,27 @@ champLongitude = [];
 champLst = [];
 champAltitude = [];
 for i = 1:length(champFiles1)
-    load(['champ/', champFiles1(i).name])
-    yearVec = repmat([Year.data+2000,1,1,0,0,0], length(Sec.data), 1);
-    thisFileTimestamps = datenum(yearVec) + Doy.data + Sec.data/86400 - 1;
+    fname = champFiles1(i).name;
+    champFile = fopen(['champ/',fname]);
+    
+    data = textscan(champFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f','MultipleDelimsAsOne',1,'headerlines',1);
+    yearVec = (2000+str2double(fname(15:16)))+zeros(size(data{1}));
+    doy = str2double(fname(18:20));
+    N = length(data{1});
+    thisFileTimestamps = datenum([yearVec,repmat([1,1,0,0,0],N,1)]) + doy + data{1}/86400 - 1;
+    
     champTimestamps = [champTimestamps; thisFileTimestamps];
-    champDensity = [champDensity; Density.data];
-    champError = [champError; U_rho.data];
-    champLatitude = [champLatitude; Lat.data];
-    champLongitude = [champLongitude; Lon.data];
-    champAltitude = [champAltitude; Height.data];
-    champLst = [champLst; LocTim.data];
+    champDensity = [champDensity; data{end}];
+    champError = [champError; data{end}*0.05];
+    champLatitude = [champLatitude; data{3}];
+    champLongitude = [champLongitude; data{4}];
+    champAltitude = [champAltitude; data{2}];
+    champLst = [champLst; data{5}];
+    if any(thisFileTimestamps < 1E5); error('nan timestamps'); end
+    
+    fclose(champFile);
 end
-for i = 1:length(champFiles2)
-    load(['champ/',champFiles2(i).name])
-    yearVec = [loop.GPSyy'+2000, repmat([1,1,0,0,0], length(loop.GPSsec), 1)];
-    thisFileTimestamps = datenum(yearVec) + loop.GPSdoy' + loop.GPSsec'/86400 - 1;
-    champTimestamps = [champTimestamps; thisFileTimestamps];
-    champDensity = [champDensity; loop.Dstar'];
-    champLatitude = [champLatitude; loop.lat'];
-    champLongitude = [champLongitude; loop.lon'];
-    champAltitude = [champAltitude; loop.height'];
-    champLst = [champLst; loop.slt'];
-end
-champ2010Error = ones(length(champTimestamps)-length(champError),1) * mean(champError);
-champError = [champError; champ2010Error]; % !!!!!!!!!!!!!!!!!!!!!
+
 [champTimestamps, order] = unique(champTimestamps);
 champDensity = champDensity(order);
 champError = champError(order);
@@ -796,8 +765,8 @@ champData = struct('density', champDensity, 'densityError', champError, 'timesta
                   'altitude', champAltitude, 'solarTime', champLst);
 
 fprintf('%s\n', 'Began reading GRACE files')
-graceFiles1 = dir('grace/Density_graceA_3deg_0*');
-graceFiles2 = dir('grace/Density_graceA_10_*');
+graceFiles1 = dir('grace/graceA_Density_*');
+
 
 graceDensity = [];
 graceError = [];
@@ -807,32 +776,25 @@ graceLongitude = [];
 graceLst = [];
 graceAltitude = [];
 for i = 1:length(graceFiles1)
-    load(['grace/',graceFiles1(i).name])
-    yearVec = repmat([Year.data+2000,1,1,0,0,0], length(Sec.data), 1);
-    thisFileTimestamps = datenum(yearVec) + Doy.data + Sec.data/86400 - 1;
+    fname = graceFiles1(i).name;
+    graceFile = fopen(['grace/',fname]);
+    
+    data = textscan(graceFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f','MultipleDelimsAsOne',1,'headerlines',1);
+    yearVec = (2000+str2double(fname(16:17)))+zeros(size(data{1}));
+    doy = str2double(fname(19:21));
+    N = length(data{1});
+    thisFileTimestamps = datenum([yearVec,repmat([1,1,0,0,0],N,1)]) + doy + data{1}/86400 - 1;
+    
     graceTimestamps = [graceTimestamps; thisFileTimestamps];
-    graceDensity = [graceDensity; Density.data];
-    graceError = [graceError; U_rho.data];
-    graceLatitude = [graceLatitude; Lat.data];
-    graceLongitude = [graceLongitude; Lon.data];
-    graceAltitude = [graceAltitude; Height.data];
-    graceLst = [graceLst; LocTim.data];
-end
-for i = 1:length(graceFiles2)
-    try
-        load(['grace/',graceFiles2(i).name])
-    catch
-        continue
-    end
-    yearVec = [loop.GPSyy'+2000, repmat([1,1,0,0,0], length(loop.GPSsec'), 1)];
-    thisFileTimestamps = datenum(yearVec) + loop.GPSdoy' + loop.GPSsec'/86400 - 1;
-    graceTimestamps = [graceTimestamps; thisFileTimestamps];
-    graceDensity = [graceDensity; loop.Dstar'];
-    graceError = [graceError; Derror.U_rho'];
-    graceLatitude = [graceLatitude; loop.lat'];
-    graceLongitude = [graceLongitude; loop.lon'];
-    graceAltitude = [graceAltitude; loop.height'];
-    graceLst = [graceLst; loop.slt'];
+    graceDensity = [graceDensity; data{end}];
+    graceError = [graceError; data{end}*0.05];
+    graceLatitude = [graceLatitude; data{3}];
+    graceLongitude = [graceLongitude; data{4}];
+    graceAltitude = [graceAltitude; data{2}];
+    graceLst = [graceLst; data{5}];
+    if any(thisFileTimestamps < 1E5); error('nan timestamps'); end
+    
+    fclose(graceFile);
 end
 [graceTimestamps, order] = unique(graceTimestamps);
 graceDensity = graceDensity(order);
@@ -1160,27 +1122,28 @@ function [aeIntGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, 
     computeAeIntegrals(ae, timestampsAe, timestampsGoce, goceData, champData, graceData, de2Data, aeCData, aeEData, aerosData, saberData, T0, guviData, swarmData)
 %
 %lags = [2 4 8 16 21 30 40 50 60];
-lags = [2, 4, 6, 12, 24, 48, 72];
-aeIntGoce = zeros(length(timestampsGoce), length(lags));
-aeIntChamp = zeros(length(champData.timestamps), length(lags));
-aeIntGrace = zeros(length(graceData.timestamps), length(lags));
-aeIntDe2 = zeros(length(de2Data.timestamps), length(lags));
-aeIntAEC = zeros(length(aeCData.timestamps), length(lags));
-aeIntAEE = zeros(length(aeEData.timestamps), length(lags));
-aeIntAeros = zeros(length(aerosData.timestamps), length(lags));
-aeIntSaber = zeros(length(saberData.timestamps), length(lags));
-aeIntT0 = zeros(length(T0.timestamps), length(lags));
-aeIntGuvi = zeros(length(guviData.timestamps), length(lags));
-aeIntSwarm = zeros(length(swarmData.timestamps), length(lags));
+%tau = [2, 4, 6, 12, 24, 48, 72];
+tau = 1:1:24;
+aeIntGoce = zeros(length(timestampsGoce), length(tau));
+aeIntChamp = zeros(length(champData.timestamps), length(tau));
+aeIntGrace = zeros(length(graceData.timestamps), length(tau));
+aeIntDe2 = zeros(length(de2Data.timestamps), length(tau));
+aeIntAEC = zeros(length(aeCData.timestamps), length(tau));
+aeIntAEE = zeros(length(aeEData.timestamps), length(tau));
+aeIntAeros = zeros(length(aerosData.timestamps), length(tau));
+aeIntSaber = zeros(length(saberData.timestamps), length(tau));
+aeIntT0 = zeros(length(T0.timestamps), length(tau));
+aeIntGuvi = zeros(length(guviData.timestamps), length(tau));
+aeIntSwarm = zeros(length(swarmData.timestamps), length(tau));
 t = (timestampsAe - timestampsAe(1))*24*60; tInterp = t(1):t(end);
 aeInterp = interp1(t, ae, tInterp, 'linear', 0); tInterp = tInterp/1440 + timestampsAe(1);
 cumulativeAe = cumsum(aeInterp);
 save('aeData.mat','aeInterp','tInterp')
 
 oneHour = 60;
-for i = 1:length(lags)
-    lag = lags(i) * oneHour;
-    aeInt = computeAEintegralExp(aeInterp,tInterp,lags(i));
+for i = 1:length(tau)
+    lag = tau(i) * oneHour;
+    aeInt = computeAEintegralExp(aeInterp,tInterp,tau(i));
     aeTime = tInterp;
     %aeInt = (cumulativeAe(lag + 1 : end) - cumulativeAe(1 : end - lag)) / (lag);
     %aeTime = tInterp(lag + 1 : end);

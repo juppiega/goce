@@ -27,24 +27,25 @@ for i = 2:length(disconts)
         interval = interval - 1; 
     end
     
-    S.latitude(ind) = smooth(S.latitude(ind), interval);
-    S.longitude(ind) = smooth(S.longitude(ind), interval);
-    S.solarTime(ind) = smooth(S.solarTime(ind), interval);
-    S.altitude(ind) = smooth(S.altitude(ind), interval);
-    S.F(ind) = smooth(S.F(ind), interval);
-    S.FA(ind) = smooth(S.FA(ind), interval);
-    S.apNow(ind) = smooth(S.apNow(ind), interval);
-    S.ap3h(ind) = smooth(S.ap3h(ind), interval);
-    S.ap6h(ind) = smooth(S.ap6h(ind), interval);
-    S.ap9h(ind) = smooth(S.ap9h(ind), interval);
-    S.ap12To33h(ind) = smooth(S.ap12To33h(ind), interval);
-    S.ap36To57h(ind) = smooth(S.ap36To57h(ind), interval);
-    S.Ap(ind) = smooth(S.Ap(ind), interval);
-    S.data(ind) = smooth(S.data(ind), interval);
-    S.timestamps(ind) = smooth(S.timestamps(ind), interval);
+%     S.latitude(ind) = smooth(S.latitude(ind), interval);
+%     S.longitude(ind) = smooth(S.longitude(ind), interval);
+%     S.solarTime(ind) = smooth(S.solarTime(ind), interval);
+     S.altitude(ind) = smooth(S.altitude(ind), interval);
+%     S.F(ind) = smooth(S.F(ind), interval);
+%     S.FA(ind) = smooth(S.FA(ind), interval);
+%     S.apNow(ind) = smooth(S.apNow(ind), interval);
+%     S.ap3h(ind) = smooth(S.ap3h(ind), interval);
+%     S.ap6h(ind) = smooth(S.ap6h(ind), interval);
+%     S.ap9h(ind) = smooth(S.ap9h(ind), interval);
+%     S.ap12To33h(ind) = smooth(S.ap12To33h(ind), interval);
+%     S.ap36To57h(ind) = smooth(S.ap36To57h(ind), interval);
+%     S.Ap(ind) = smooth(S.Ap(ind), interval);
+     S.data(ind) = exp(smooth(log(S.data(ind)), interval));
+%     S.timestamps(ind) = smooth(S.timestamps(ind), interval);
     
     conserve = min((interval+1)/2, length(ind)) : interval : length(ind);
     conserve = conserve + ind(1) - 1;
+    
     removeInd(conserve) = false;
     
     if mod(i, 100) == 0
@@ -56,7 +57,7 @@ p.stop;
 if isRho
     S = removeDataPoints(S, removeInd, false, true, false, false);
 else
-    S = removeDataPoints(S, removeInd);
+    S = removeDataPoints(S, removeInd, true, true, true, true);
 end
 
 end

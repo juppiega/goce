@@ -184,10 +184,10 @@ subroutine lmSolve(FUN, X0, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambd
         numFuncEvals = numFuncEvals + 1
         containsInfs = any(.not. isfinite(costFuncVec)) ! Check, whether trial point contains Infs.
 
-        !write (line,*) gradient(1:(numVars/5))
+        write (line,*) gradient(1:(numVars/5))
         !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
 
-        !write (line,*) step(1:(numVars/5))
+        write (line,*) step(1:(numVars/5))
         !mexStat = mexCallMATLAB(0, 0, 1, mxCreateString(line), 'disp')
 
         ! Check whether trial point decreased the sum of squares.

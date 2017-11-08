@@ -508,16 +508,16 @@ function G_quiet(a, S)
 
     dPh = k + 11;
     !i = mexPrintf('G:diurnal'//achar(13))
-    diurnal = ((a(k+1)*S%P11 + a(k+2)*S%P31 + a(k+3)*S%P51 + a(k+4)*S%P71 + a(k+5)*(S%FA-80) + a(k+6)*(S%FA-80)**2 + &
+    diurnal = ((a(k+1)*S%P11 + a(k+2)*S%P31 + a(k+3)*S%P51 + a(k+4)*S%P71 + a(k+5)*S%FA + a(k+6)*S%FA**2 + &
                  a(k+7)*(S%F - S%FA)) + (a(k+8)*S%P11 + a(k+9)*S%P21 + a(k+10)*S%P31)*(cos(S%yv-pi*a(dPh))))*cos(S%dv) + &
-                ((a(k+12)*S%P11 + a(k+13)*S%P31 + a(k+14)*S%P51 + a(k+15)*S%P71 + a(k+16)*(S%FA-80) + a(k+17)*(S%FA-80)**2 + &
+                ((a(k+12)*S%P11 + a(k+13)*S%P31 + a(k+14)*S%P51 + a(k+15)*S%P71 + a(k+16)*S%FA + a(k+17)*S%FA**2 + &
                 a(k+18)*(S%F - S%FA)) + (a(k+19)*S%P11 + a(k+20)*S%P21 + a(k+21)*S%P31)*(cos(S%yv-pi*a(dPh))))*sin(S%dv);
     k = k + 21;
     
     !i = mexPrintf('G:semidiurnal'//achar(13))
-    semidiurnal = (a(k+1)*S%P22 + a(k+2)*S%P32 + a(k+3)*S%P52 + a(k+4)*(S%FA-80) + a(k+5)*(S%FA-80)**2 + a(k+6)*(S%F-S%FA) + &
+    semidiurnal = (a(k+1)*S%P22 + a(k+2)*S%P32 + a(k+3)*S%P52 + a(k+4)*S%FA + a(k+5)*S%FA**2 + a(k+6)*(S%F-S%FA) + &
                 (a(k+7)*S%P32 + a(k+8)*S%P52)*cos(S%yv-pi*a(dPh)))*cos(2*S%dv) + &
-                (a(k+9)*S%P22 + a(k+10)*S%P32 + a(k+11)*S%P52 + a(k+12)*(S%FA-80) + a(k+13)*(S%FA-80)**2 + a(k+14)*(S%F-S%FA) + &
+                (a(k+9)*S%P22 + a(k+10)*S%P32 + a(k+11)*S%P52 + a(k+12)*S%FA + a(k+13)*S%FA**2 + a(k+14)*(S%F-S%FA) + &
                 (a(k+15)*S%P32 + a(k+16)*S%P52)*cos(S%yv-pi*a(dPh)))*sin(2*S%dv);
     k = k + 16;
 

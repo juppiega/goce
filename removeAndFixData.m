@@ -1,7 +1,8 @@
 function [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
-    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData)
-
-aeQuietLimit = 500;
+    removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData, aeQuietLimit)
+if nargin <= 11
+    aeQuietLimit = 800;
+end
 
 rhoStruct.numBiases = 0;
 if aeThreshold <= 0
@@ -9,13 +10,20 @@ if aeThreshold <= 0
 else
     removeInd = rhoStruct.aeInt(:,4) < aeThreshold;
 end
-if nargin == 11
-    quietInd = all(rhoStruct.aeInt < aeQuietLimit, 2);
+if nargin >= 11
+    [~,~,stormInd] = findStormsForSat(rhoStruct,'ae',aeQuietLimit,0,2,true);
     if quietData
-        removeInd(~quietInd) = true;
+        removeInd(stormInd) = true;
     else
-        removeInd(quietInd) = true;
+        removeInd(~stormInd) = true;
     end
+
+%     quietInd = all(rhoStruct.aeInt(:,4:18) < aeQuietLimit, 2);
+%     if quietData
+%         removeInd(~quietInd) = true;
+%     else
+%         removeInd(quietInd) = true;
+%     end
 end
 % removeChamp = removeInd(rhoStruct.champ);
 % removeChamp(rhoStruct.data(rhoStruct.champ) > 1E-10) = true;
@@ -57,13 +65,19 @@ removeInd = TempStruct.data <= 300 | TempStruct.data > 10000;
 removeInd(TempStruct.solarTime > 24 | TempStruct.solarTime < 0) = true(1);
 % Remove observations with altitude > 900 km or < 250 or temperature > 3000 K.
 removeInd(TempStruct.data > 3000 | TempStruct.altitude > 900 | TempStruct.altitude < 250) = true(1);
-if nargin == 11
-    quietInd = all(TempStruct.aeInt < aeQuietLimit, 2);
+if nargin >= 11
+    [~,~,stormInd] = findStormsForSat(TempStruct,'ae',aeQuietLimit,0,2,true);
     if quietData
-        removeInd(~quietInd) = true;
+        removeInd(stormInd) = true;
     else
-        removeInd(quietInd) = true;
+        removeInd(~stormInd) = true;
     end
+%     quietInd = all(TempStruct.aeInt < aeQuietLimit, 2);
+%     if quietData
+%         removeInd(~quietInd) = true;
+%     else
+%         removeInd(quietInd) = true;
+%     end
 end
 TempStruct = removeDataPoints(TempStruct, removeInd);
 satInd = zeros(1, length(removeInd));
@@ -91,12 +105,12 @@ removeInd(85 < lbDTStruct.zenithAngle & lbDTStruct.zenithAngle < 95) = true;
 removeInd(lbDTStruct.apNow > 15) = true;
 %removeInd(lbDTStruct.nightObservation == 2) = true; % Remove twilight observations.
 %removeInd(lbDTStruct.nightObservation == 1 & abs(lbDTStruct.latitude) > 52) = true;
-if nargin == 11
-    quietInd = all(lbDTStruct.aeInt < aeQuietLimit, 2);
+if nargin >= 11
+    [~,~,stormInd] = findStormsForSat(lbDTStruct,'ae',aeQuietLimit,0,2,true);
     if quietData
-        removeInd(~quietInd) = true;
+        removeInd(stormInd) = true;
     else
-        removeInd(quietInd) = true;
+        removeInd(~stormInd) = true;
     end
 end
 lbDTStruct = removeDataPoints(lbDTStruct, removeInd);
@@ -119,12 +133,12 @@ removeInd(spuriousLocationChanges) = true;
 removeInd(lbT0Struct.data <= 250 | lbT0Struct.data >= 850) = true;
 removeInd(lbT0Struct.Ti_err > 50) = true(1);
 removeInd(lbT0Struct.fundPulseLen > 100*1E-6) = true; % Remove > 100 us (>~15 km) pulses.
-if nargin == 11
-    quietInd = all(lbT0Struct.aeInt < aeQuietLimit, 2);
+if nargin >= 11
+    [~,~,stormInd] = findStormsForSat(lbT0Struct,'ae',aeQuietLimit,0,2,true);
     if quietData
-        removeInd(~quietInd) = true;
+        removeInd(stormInd) = true;
     else
-        removeInd(quietInd) = true;
+        removeInd(~stormInd) = true;
     end
 end
 lbT0Struct = removeDataPoints(lbT0Struct, removeInd);
@@ -139,12 +153,12 @@ lbT0Struct.numBiases = 0;
 
 % Remove bad oxygen observations
 removeInd = OStruct.data <= 1E6 | OStruct.data > 0.8E10;
-if nargin == 11
-    quietInd = all(OStruct.aeInt < aeQuietLimit, 2);
+if nargin >= 11
+    [~,~,stormInd] = findStormsForSat(OStruct,'ae',aeQuietLimit,0,2,true);
     if quietData
-        removeInd(~quietInd) = true;
+        removeInd(stormInd) = true;
     else
-        removeInd(quietInd) = true;
+        removeInd(~stormInd) = true;
     end
 end
 OStruct = removeDataPoints(OStruct, removeInd);
@@ -172,12 +186,12 @@ OStruct.name = 'O';
 
 % Remove N2 observations.
 removeInd = N2Struct.data <= 1E2 | N2Struct.data > 0.5E12 | N2Struct.altitude > 600 | N2Struct.altitude < 140;
-if nargin == 11
-    quietInd = all(N2Struct.aeInt < aeQuietLimit, 2);
+if nargin >= 11
+    [~,~,stormInd] = findStormsForSat(N2Struct,'ae',aeQuietLimit,0,2,true);
     if quietData
-        removeInd(~quietInd) = true;
+        removeInd(stormInd) = true;
     else
-        removeInd(quietInd) = true;
+        removeInd(~stormInd) = true;
     end
 end
 N2Struct = removeDataPoints(N2Struct, removeInd);
@@ -208,12 +222,12 @@ N2Struct.name = 'N2';
 
 % Remove He observations
 removeInd = HeStruct.data <= 1E5 | HeStruct.data > 1E10;
-if nargin == 11
-    quietInd = all(HeStruct.aeInt < aeQuietLimit, 2);
+if nargin >= 11
+    [~,~,stormInd] = findStormsForSat(HeStruct,'ae',aeQuietLimit,0,2,true);
     if quietData
-        removeInd(~quietInd) = true;
+        removeInd(stormInd) = true;
     else
-        removeInd(quietInd) = true;
+        removeInd(~stormInd) = true;
     end
 end
 HeStruct = removeDataPoints(HeStruct, removeInd);
@@ -241,12 +255,12 @@ HeStruct.name = 'He';
 
 % Remove Ar observations
 removeInd = ArStruct.data <= 100 | ArStruct.data > 1E16; % KORJAA!!!!
-if nargin == 11
-    quietInd = all(ArStruct.aeInt < aeQuietLimit, 2);
+if nargin >= 11
+    [~,~,stormInd] = findStormsForSat(ArStruct,'ae',aeQuietLimit,0,2,true);
     if quietData
-        removeInd(~quietInd) = true;
+        removeInd(stormInd) = true;
     else
-        removeInd(quietInd) = true;
+        removeInd(~stormInd) = true;
     end
 end
 ArStruct = removeDataPoints(ArStruct, removeInd);
@@ -265,7 +279,7 @@ ArStruct.name = 'Ar';
 
 % Remove O2 observations
 removeInd = O2Struct.data <= 0 | O2Struct.data > 1E17; % KORJAA!!!!
-if nargin == 11
+if nargin >= 11
     quietInd = all(O2Struct.aeInt < aeQuietLimit, 2);
     if quietData
         removeInd(~quietInd) = true;

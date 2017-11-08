@@ -10,6 +10,10 @@ for i = 2:length(eqCrossings)
     orbAver(i-1) = mean(x(ind));
 end
 
+if isempty(orbAver)
+    timestampsDatenum = [];
+    return;
+end
 rmInd = [1; find(diff(timestamps1min(eqCrossings)) > 150)];
 orbAver(rmInd) = [];
 timestampsDatenum = timestampsDatenum(eqCrossings(2:end));

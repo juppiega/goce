@@ -45,6 +45,13 @@ rhoStruct.aeInt = zeros(size(rhoStruct.aeInt))+20;
 modelRho = modelRho * scaleFac;
 
 if globalMean
+    rhoStruct.satInfo = zeros(size(rhoStruct.data));
+    rhoStruct.satInfo(rhoStruct.goce) = 0;
+    rhoStruct.satInfo(rhoStruct.champ) = 1;
+    rhoStruct.satInfo(rhoStruct.grace) = 2;
+    rhoStruct.satInfo(rhoStruct.swarm) = 3;
+    [satInfo] = computeOrbitAverage(rhoStruct.satInfo, rhoStruct.latitude, rhoStruct.timestamps);
+    
     [modelRho, times] = computeOrbitAverage(modelRho, rhoStruct.latitude, rhoStruct.timestamps);%orbAver
 
     obsRho = computeOrbitAverage(rhoStruct.data, rhoStruct.latitude, rhoStruct.timestamps); % orbAver
@@ -55,8 +62,10 @@ if globalMean
     dstAver = computeOrbitAverage(rhoStruct.dst, rhoStruct.latitude, rhoStruct.timestamps);
     
     maxLag = 6; 
-    eTime = (1:1:49);
+    eTime = (1:1:25);
     crossCorrs = zeros(length(eTime), maxLag+1);
+    linearCorr = zeros(size(eTime));
+    spearmanCorr = zeros(size(eTime));
     
     aeInt = zeros(length(times),length(eTime));
     for i = 1:length(eTime)
@@ -65,21 +74,31 @@ if globalMean
         aeInt(:,i) = computeOrbitAverage(aeInt_this, rhoStruct.latitude, rhoStruct.timestamps);
     end
     
-    [stormBeginInd, stormEndInd] = findStorms(rhoStruct, 'dst', -75);
+    [stormBeginInd, stormEndInd,~,satInfoStorms] = findStorms(rhoStruct, 'dst', -75);
 
     numStorms = 0;
     for i = 1:length(stormBeginInd)
-        ind = rhoStruct.timestamps(stormBeginInd(i)) <= times & times <= rhoStruct.timestamps(stormEndInd(i));
-        if sum(ind) < 2*maxLag + 1 || any(diff(times(ind))) > 125/1440
+        ind = find(rhoStruct.timestamps(stormBeginInd(i)) <= times & times <= rhoStruct.timestamps(stormEndInd(i))...
+              & satInfo == satInfoStorms(i));
+        if sum(ind) < 2*maxLag + 1 || any(diff(times(ind)) > 125/1440)
             continue;
         end
         for k = 1:length(eTime)
-            crossCorr_this = xcorr(obsRho(ind), aeInt(ind,k), maxLag, 'coeff');
-            crossCorrs(k,:) = crossCorrs(k,:) + crossCorr_this(maxLag+1:end);
+            %crossCorr_this = xcorr(obsRho(ind), aeInt(ind,k), maxLag, 'coeff');
+            crossCorr_this = zeros(1,maxLag);
+            for j = 0:maxLag
+                crossCorr_this(j+1) = corr(obsRho(ind(j+1:end)),aeInt(ind(1:end-j),k));
+            end
+            
+            crossCorrs(k,:) = crossCorrs(k,:) + crossCorr_this;
+            linearCorr(k) = linearCorr(k) + corr(obsRho(ind), aeInt(ind,k));
+            spearmanCorr(k) = spearmanCorr(k) + corr(obsRho(ind), aeInt(ind,k),'type','spearman');
         end
         numStorms = numStorms + 1;
     end
     crossCorrs = crossCorrs / numStorms;
+    linearCorr = linearCorr / numStorms;
+    spearmanCorr = spearmanCorr / numStorms;
     disp(numStorms)
     
 %     % orbAver
@@ -128,6 +147,15 @@ if globalMean
     set(gca,'fontsize',15);
     ylabel('e-fold time [h]','fontsize',15);
     xlabel('Lag [# orbits]','fontsize',15);
+    
+    figure;
+    subplot(1,2,1);
+    plot(eTime, linearCorr);
+    title('linear')
+    
+    subplot(1,2,2);
+    plot(eTime, spearmanCorr);
+    title('spearman')
 
 else
     zones = 0:15:90;
