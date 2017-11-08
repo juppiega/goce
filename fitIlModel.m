@@ -1233,7 +1233,7 @@ wO2 = ones(size(O2Struct.data));
 
 %wAr = wAr / 4; 
 wTex = wTex * 2; wN2 = wN2 / 2;
-tempSpecWeight = [wTex; wO; wN2; wHe; wAr; wO2];
+tempSpecWeight = [wTex; wO; wN2; wHe; wO2];
 
 dataLen = length(TexStruct.data) + length(OStruct.data) + length(N2Struct.data) + length(HeStruct.data) + length(rhoStruct.data)...
     + length(ArStruct.data) + length(O2Struct.data);
