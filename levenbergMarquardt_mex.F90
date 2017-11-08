@@ -919,11 +919,12 @@ function modelMinimizationFunction(coeff) result(residual)
                      dble(1E20));
     !ArlbDens = clamp(dble(10), evalMajorSpecies(rhoStruct, coeff(ArStruct%coeffInd), ArStruct%numBiases), &
                      !dble(1E20));
+    ArlbDens = 0.0
     allocate(O2lbDens(size(Tex)))
     O2lbDens_scalar = clamp(dble(10.0), exp(coeff(O2Struct%coeffInd)), dble(1E20))
     O2lbDens = O2lbDens_scalar(1)
     modelRho = clamp(dble(1E-20), computeRho(T0, dT0, Tex, rhoStruct%Z, OlbDens, N2lbDens, HelbDens, &
-                                             0.0D0, O2lbDens), &
+                                             ArlbDens, O2lbDens), &
                      dble(0.1));
 
     !write(ochar,'(ES15.8)') modelRho
