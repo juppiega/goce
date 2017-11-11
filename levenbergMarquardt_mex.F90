@@ -861,7 +861,7 @@ function modelMinimizationFunction(coeff) result(residual)
 
     
     dataLen = size(TexStruct%data) + size(OStruct%data) + size(N2Struct%data) + size(HeStruct%data) + &
-              size(rhoStruct%data) + size(ArStruct%data) + size(O2Struct%data)
+              size(rhoStruct%data) + size(O2Struct%data)
     allocate(residual(dataLen))
 
     
@@ -907,7 +907,7 @@ function modelMinimizationFunction(coeff) result(residual)
     !k = mexPrintf('Before rho'//achar(13))
     call findTempsForFit(rhoStruct, TexStruct, coeff, dTCoeffs, T0Coeffs, Tex, dT0, T0);
 
-    !write(ochar,'(ES15.8,ES15.8,ES15.8)') Tex, dT0, T0
+    !write(ochar,'(I15)') 
     !k = mexCallMATLAB(0, 0, 1, mxCreateString(ochar), 'disp')
 
     residInd = residIndEnd + (/(i, i = 1, size(rhoStruct%data))/); residIndEnd = residInd(size(residInd))
