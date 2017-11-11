@@ -1040,8 +1040,8 @@ if fitSimultaneously || fitBaseAgain
           initGuess(Obiases) = [0.0680	0.2379	0.0665	0.1053	-0.1162];
           initGuess(N2biases) = [-0.1043	0.1267	0.0401	-0.0289	0.1312	-0.1166];
           initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
-          initGuess(ArBiases) = [-0.0043	0.0880];
-          paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases, ArBiases]);
+          %initGuess(ArBiases) = [-0.0043	0.0880];
+          paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
 %         
 %         rmInd = setdiff(1:length(initGuess), paramsToFit);
 %         initGuess(rmInd) = 0;
