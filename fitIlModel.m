@@ -849,7 +849,7 @@ numStormPrevious = numCoeffs - numQuietCoeffs;
 removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 %if ~quietData
-    removeInd = true(size(ArStruct.data)); removeInd(1) = false;
+    removeInd = true(size(ArStruct.data)); %removeInd(1) = false;
     ArStruct = removeDataPoints(ArStruct, removeInd, true, true, true, true);
 %end
 
