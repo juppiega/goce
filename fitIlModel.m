@@ -1147,10 +1147,9 @@ i=find(ismember(ind,HeStruct.coeffInd)); paramErrors_He = sqrt(abs(diag(inv(JTWJ
 if quietData
     paramErrors_O2 = sqrt(1/abs(JTWJ(end,end)));
     paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; ...
-               paramErrors_Ar; paramErrors_O2];
+                paramErrors_O2];
 else
-    paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; ...
-               paramErrors_Ar];
+    paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He;];
 end
 
 allInd = 1:length(optCoeff);
