@@ -42,7 +42,7 @@ end
 originalRhoStruct = removeDataPoints(originalRhoStruct, removeInd, false, true, false, false);
 
  numBiasesStruct = struct('O', 5, 'N2', 6,...
-     'He', 5, 'Ar', 2, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
+     'He', 5, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
 
 %numBiasesStruct = struct('O', 0, 'N2', 0,...
 %    'He', 0, 'Ar', 0, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
@@ -53,7 +53,6 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'N2Coeff' , optCoeff(N2Ind),...
 'HeCoeff' , optCoeff(HeInd),...
 'O2Coeff' , optCoeff(O2Ind),...
-'ArCoeff' , optCoeff(ArInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
@@ -377,7 +376,7 @@ if ~strcmpi(paramName, 'Tex') && ~strcmpi(paramName, 'T0') && ~strcmpi(paramName
     OlbDens = evalMajorSpecies(S, coeffStruct.OCoeff, numBiasesStruct.O);
     N2lbDens = evalMajorSpecies(S, coeffStruct.N2Coeff, numBiasesStruct.N2);
     HelbDens = evalMajorSpecies(S, coeffStruct.HeCoeff, numBiasesStruct.He);
-    ArlbDens = evalMajorSpecies(S, coeffStruct.ArCoeff, numBiasesStruct.Ar);
+    %ArlbDens = evalMajorSpecies(S, coeffStruct.ArCoeff, numBiasesStruct.Ar);
     O2lbDens = exp(coeffStruct.O2Coeff);
 end
 
@@ -392,27 +391,27 @@ elseif strcmpi(paramName, 'dT')
     param = evalDT(S, dTCoeffs);
     [~, msisParam, ~, dtmParam] = computeMsisDtmLb(S);
 elseif strcmpi(paramName, 'rho')
-    param = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+    param = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);
     [~,msisParam] = computeMsis(S);
     [~,dtmParam] = computeDtm(S);
 elseif strcmpi(paramName, 'O')
-    [~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+    [~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);
     [~,~,msisParam] = computeMsis(S);
     [~,~,dtmParam] = computeDtm(S);
 elseif strcmpi(paramName, 'N2')
-    [~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);
+    [~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);
     [~,~,~,msisParam] = computeMsis(S);
     [~,~,~,dtmParam] = computeDtm(S);
 elseif strcmpi(paramName, 'He')
-    [~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+    [~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);   
     [~,~,~,~,msisParam] = computeMsis(S);
     [~,~,~,~,dtmParam] = computeDtm(S);
 elseif strcmpi(paramName, 'Ar')
-    [~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+    [~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);   
     [~,~,~,~,~,msisParam] = computeMsis(S);
     dtmParam = zeros(size(msisParam));
 elseif strcmpi(paramName, 'O2')
-    [~,~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, ArlbDens, O2lbDens);   
+    [~,~,~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);   
     [~,~,~,~,~,~,msisParam] = computeMsis(S);
     dtmParam = zeros(size(msisParam));
 else
