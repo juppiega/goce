@@ -874,7 +874,7 @@ rhoStruct = computeVariablesForFit(rhoStruct);
 if quietData
     tempSpecRelWeight = 0.25;
 else
-    tempSpecRelWeight = 0.05;
+    tempSpecRelWeight = 0.25;
 end
 
 weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, tempSpecRelWeight); % 
