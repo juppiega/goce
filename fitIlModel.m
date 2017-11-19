@@ -1127,7 +1127,7 @@ if fitSimultaneously || fitBaseAgain
         i = 2*N+1:3*N; paramErrorsN2 = sqrt(abs(diag(inv(JTWJ(i,i)))));
         i = 3*N+1:4*N; paramErrorsHe = sqrt(abs(diag(inv(JTWJ(i,i)))));
         paramErrorsStorm = [paramErrorsTex; paramErrorsO; paramErrorsN2; paramErrorsHe];
-        relError = abs(optCoeff ./ paramErrorsStorm');
+        relError = abs(paramErrorsStorm' ./ optCoeff);
         
         paramsToFitShort = [];
         signif = 2/3;
