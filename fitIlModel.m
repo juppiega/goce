@@ -1102,8 +1102,9 @@ if fitSimultaneously || fitBaseAgain
 %         save('efolds.mat','final_efolds','final_fvals','initPoints');
         
         %maxNumCompThreads(prevThreads);
+        expTimes = [6.0546   17.9177    5.2326    3.9629];
 
-        initGuess(paramsToFit(1:numStorm:end)) = [6.0546   17.9177    5.2326    3.9629];
+        initGuess(paramsToFit(1:numStorm:end)) = expTimes;
         paramsToFit(1:numStorm:end) = [];
         %lb = repmat([2; zeros(1,1)-1E3],4,1); ub = repmat([22; zeros(1,1)+1E3],4,1);
         fun_lin = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff);
@@ -1114,11 +1115,22 @@ if fitSimultaneously || fitBaseAgain
 %         fun_lin = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff);
 %         [optCoeff,~,funVec,~,output,~,JAC] = lsqnonlin(fun_lin,optCoeff,lb,ub,options);
         
-        initGuess(paramsToFit) = optCoeff;
-        optCoeff = initGuess;
-        
         stdFit = funVec' * funVec / (length(funVec) - length(paramsToFit) + 1);
         JTWJ = JAC' * JAC / stdFit;
+        
+        paramErrorsStorm = sqrt(abs(diag(inv(JTWJ))));
+        relError = abs(optCoeff ./ paramErrorsStorm);
+        
+        paramsToFitShort = [];
+        signif = 2/3;
+        [paramsToFitShort] = zeroOutInsignificantStorm(optCoeff, relError, paramsToFitShort, 0, signif);
+        [paramsToFitShort] = zeroOutInsignificantStorm(optCoeff, relError, paramsToFitShort, 1, signif);
+        [paramsToFitShort] = zeroOutInsignificantStorm(optCoeff, relError, paramsToFitShort, 2, signif);
+        [paramsToFitShort] = zeroOutInsignificantStorm(optCoeff, relError, paramsToFitShort, 3, signif);
+        
+        paramsToFit_modif = paramsToFit(paramsToFitShort);
+        initGuess(paramsToFit_modif) = optCoeff(paramsToFitShort);
+        optCoeff = initGuess;
     end
     if quietData && all(optCoeff == initGuess')
         error('Cholesky failed?');
