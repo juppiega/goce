@@ -1119,9 +1119,14 @@ if fitSimultaneously || fitBaseAgain
         %!stdFit = funVec' * funVec / (length(funVec) - length(paramsToFit) + 1);
         %!JTWJ = JAC' * JAC / stdFit;
         load('stormCoeffsAll.mat')
-        optCoeff = optCoeff(paramsToFit);
+        optCoeff = optCoeff(paramsToFit); % Kommentoi, jos ajat kaiken uudelleen
         
-        paramErrorsStorm = sqrt(abs(diag(inv(JTWJ))));
+        N = length(optCoeff) / 4;
+        i = 1:N; paramErrorsTex = sqrt(abs(diag(inv(JTWJ(i,i)))));
+        i = N+1:2*N; paramErrorsO = sqrt(abs(diag(inv(JTWJ(i,i)))));
+        i = 2*N+1:3*N; paramErrorsN2 = sqrt(abs(diag(inv(JTWJ(i,i)))));
+        i = 3*N+1:4*N; paramErrorsHe = sqrt(abs(diag(inv(JTWJ(i,i)))));
+        paramErrorsStorm = [paramErrorsTex; paramErrorsO; paramErrorsN2; paramErrorsHe];
         relError = abs(optCoeff ./ paramErrorsStorm');
         
         paramsToFitShort = [];
