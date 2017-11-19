@@ -120,11 +120,10 @@ if(~anyIsSignificant([symm,asymm]))
     ptf = removeFromPtf([solar,dv_amp]);
 end
 
-% For an or san all zero
 asymm = [5:7, (4:6)+11, (4:5)+20];
 san_amp = [9, 7+11, 6+20];
-if(~anyIsSignificant(asymm))
-    ptf = removeFromPtf([an,san]);
+if(anyIsSignificant(asymm))
+    ptf = [ptf, an, san];
 end
 if(~anyIsSignificant(san_amp))
     ptf = removeFromPtf(san);
