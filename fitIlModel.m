@@ -1122,7 +1122,7 @@ if fitSimultaneously || fitBaseAgain
         optCoeff = optCoeff(paramsToFit);
         
         paramErrorsStorm = sqrt(abs(diag(inv(JTWJ))));
-        relError = abs(optCoeff ./ paramErrorsStorm);
+        relError = abs(optCoeff ./ paramErrorsStorm');
         
         paramsToFitShort = [];
         signif = 2/3;
