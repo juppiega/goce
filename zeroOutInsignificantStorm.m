@@ -29,9 +29,7 @@ errTol = 1 - significanceTol;
         s(s == 0) = [];
     end
     
-    function ptf = removeFromPtf(ind)
-        ptf(ismember(ptf,ind)) = [];
-    end
+
 
 an = 8;
 san = 10;
@@ -131,6 +129,12 @@ end
 if(~anyIsSignificant(san_amp))
     ptf = removeFromPtf(san);
 end
+
+
+    function ptf_fixed = removeFromPtf(ind)
+        ptf_fixed = ptf;
+        ptf_fixed(ismember(ptf,ind)) = [];
+    end
 
 paramsToFitShort = [paramsToFitShort, ptf + offset*numStorm];
 
