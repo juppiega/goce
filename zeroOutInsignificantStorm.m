@@ -79,9 +79,7 @@ end
 if(anyIsSignificant(solar))
     ptf = [ptf,solar];
 end
-if(anyIsSignificant(dv_amp))
-    ptf = [ptf,dv_amp];
-end
+ptf = [ptf,dv_amp];
 
 if(~anyIsSignificant(asymm))
     ptf = removeFromPtf(san_amp);
@@ -109,9 +107,7 @@ end
 if(anyIsSignificant(solar))
     ptf = [ptf,solar];
 end
-if(anyIsSignificant(dv_amp))
-    ptf = [ptf,dv_amp];
-end
+ptf = [ptf,dv_amp];
 
 if(~anyIsSignificant(asymm))
     ptf = removeFromPtf(san_amp);
@@ -119,6 +115,8 @@ end
 if(~anyIsSignificant([symm,asymm]))
     ptf = removeFromPtf([solar,dv_amp]);
 end
+
+% REST
 
 asymm = [5:7, (4:6)+11, (4:5)+20];
 san_amp = [9, 7+11, 6+20];
