@@ -1136,10 +1136,17 @@ if fitSimultaneously || fitBaseAgain
         [paramsToFitShort] = zeroOutInsignificantStorm(optCoeff, relError, paramsToFitShort, 2, signif);
         [paramsToFitShort] = zeroOutInsignificantStorm(optCoeff, relError, paramsToFitShort, 3, signif);
         
-        paramsToFitShort
+        %paramsToFitShort
         paramsToFit_modif = paramsToFit(paramsToFitShort);
         initGuess(paramsToFit_modif) = optCoeff(paramsToFitShort);
         optCoeff = initGuess;
+        
+        fun_lin = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit_modif, coeff);
+        tic;[optCoeff,~,funVec,~,output,~,JAC] = lsqnonlin(fun_lin,initGuess(paramsToFit_modif),[],[],options);toc;
+        
+        initGuess(paramsToFit_modif) = optCoeff;
+        optCoeff = initGuess;
+        paramsToFit = paramsToFit_modif;
     end
     if quietData && all(optCoeff == initGuess')
         error('Cholesky failed?');
