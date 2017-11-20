@@ -1136,6 +1136,7 @@ if fitSimultaneously || fitBaseAgain
         [paramsToFitShort] = zeroOutInsignificantStorm(optCoeff, relError, paramsToFitShort, 2, signif);
         [paramsToFitShort] = zeroOutInsignificantStorm(optCoeff, relError, paramsToFitShort, 3, signif);
         
+        paramsToFitShort
         paramsToFit_modif = paramsToFit(paramsToFitShort);
         initGuess(paramsToFit_modif) = optCoeff(paramsToFitShort);
         optCoeff = initGuess;
