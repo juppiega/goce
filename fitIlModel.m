@@ -1118,7 +1118,7 @@ if fitSimultaneously || fitBaseAgain
         
         %!stdFit = funVec' * funVec / (length(funVec) - length(paramsToFit) + 1);
         %!JTWJ = JAC' * JAC / stdFit;
-        load('stormCoeffsAll.noAr.mat')
+        load('stormCoeffsAll.mat')
         optCoeff = optCoeff(paramsToFit); % Kommentoi, jos ajat kaiken uudelleen
         
         N = length(optCoeff) / 4;
