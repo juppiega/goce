@@ -872,7 +872,7 @@ O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
 if quietData
-    tempSpecRelWeight = 0.25;
+    tempSpecRelWeight = 0.05;
 else
     tempSpecRelWeight = 0.125;
 end
@@ -1042,7 +1042,7 @@ if fitSimultaneously || fitBaseAgain
           initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
           %initGuess(ArBiases) = [-0.0043	0.0880];
           paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
-          paramsToFit = [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)];         
+          %paramsToFit = [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)];         
 %         rmInd = setdiff(1:length(initGuess), paramsToFit);
 %         initGuess(rmInd) = 0;
 %         biasInd = find(initGuess(paramsToFit) == 0); 
@@ -1156,7 +1156,7 @@ if fitSimultaneously || fitBaseAgain
 
     saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
     fprintf('All parameters refitted.\n');
-    error('Copy quiet to optCoeff')
+    %error('Copy quiet to optCoeff')
 else
     load(filename)
 %     load onePercent_err % TESTAUS
