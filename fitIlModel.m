@@ -1110,16 +1110,16 @@ if fitSimultaneously || fitBaseAgain
         fun_lin = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff);
         %[comp,JAC] = fun_lin(initGuess(paramsToFit));
         
-        %!tic;[optCoeff,~,funVec,~,output,~,JAC] = lsqnonlin(fun_lin,initGuess(paramsToFit),[],[],options);toc;
+        tic;[optCoeff,~,funVec,~,output,~,JAC] = lsqnonlin(fun_lin,initGuess(paramsToFit),[],[],options);toc;
                
 %         weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, 0.1);
 %         fun_lin = @(coeff)modelMinimizationFunction_lin(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff);
 %         [optCoeff,~,funVec,~,output,~,JAC] = lsqnonlin(fun_lin,optCoeff,lb,ub,options);
         
-        %!stdFit = funVec' * funVec / (length(funVec) - length(paramsToFit) + 1);
-        %!JTWJ = JAC' * JAC / stdFit;
-        load('stormCoeffsAll.mat')
-        optCoeff = optCoeff(paramsToFit); % Kommentoi, jos ajat kaiken uudelleen
+        stdFit = funVec' * funVec / (length(funVec) - length(paramsToFit) + 1);
+        JTWJ = JAC' * JAC / stdFit;
+        %load('stormCoeffsAll.mat')
+        %optCoeff = optCoeff(paramsToFit); % Kommentoi, jos ajat kaiken uudelleen
         
         N = length(optCoeff) / 4;
         i = 1:N; paramErrorsTex = sqrt(abs(diag(inv(JTWJ(i,i)))));
