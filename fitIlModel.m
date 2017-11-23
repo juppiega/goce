@@ -1281,11 +1281,11 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 % w = sum(weights(~ind)) / sum(weights(ind));
 % weights(ind) = w * weights(ind);
 
-% goceInd = TempAndSpectrometerLen + rhoStruct.goce;
-% graceInd = TempAndSpectrometerLen + rhoStruct.grace;
-% swarmInd = TempAndSpectrometerLen + rhoStruct.swarm;
-% wGoce = 0.125 * sum(weights(graceInd)) / sum(weights(goceInd));
-% weights(goceInd) = wGoce * weights(goceInd);
+ goceInd = TempAndSpectrometerLen + rhoStruct.goce;
+ graceInd = TempAndSpectrometerLen + rhoStruct.grace;
+ swarmInd = TempAndSpectrometerLen + rhoStruct.swarm;
+ wGoce = 0.125 * sum(weights(graceInd)) / sum(weights(goceInd));
+ weights(goceInd) = wGoce * weights(goceInd);
 % wSwarm = 0.5 * sum(weights(goceInd)) / length(swarmInd);
 % weights(swarmInd) = wSwarm;
 
