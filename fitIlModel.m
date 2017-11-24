@@ -850,7 +850,7 @@ removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 
 %TESTAUS %%%%%%%%%%%%%%
-removeInd = rhoStruct.goce; removeInd(1) = [];
+removeInd = rhoStruct.goce; removeInd(1:100) = [];
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, true, true);
 %%%%%%%%%%%%%%%%%%%%%%%
 %if ~quietData
