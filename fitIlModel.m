@@ -848,6 +848,11 @@ numStormPrevious = numCoeffs - numQuietCoeffs;
 
 removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
+
+%TESTAUS %%%%%%%%%%%%%%
+removeInd = rhoStruct.goce; removeInd(1) = [];
+rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, true, true);
+%%%%%%%%%%%%%%%%%%%%%%%
 %if ~quietData
     removeInd = true(size(ArStruct.data)); %removeInd(1) = false;
     ArStruct = removeDataPoints(ArStruct, removeInd, true, true, true, true);
@@ -1281,11 +1286,11 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 % w = sum(weights(~ind)) / sum(weights(ind));
 % weights(ind) = w * weights(ind);
 
- goceInd = TempAndSpectrometerLen + rhoStruct.goce;
- graceInd = TempAndSpectrometerLen + rhoStruct.grace;
- swarmInd = TempAndSpectrometerLen + rhoStruct.swarm;
- wGoce = 0.01 * sum(weights(graceInd)) / sum(weights(goceInd));
- weights(goceInd) = wGoce * weights(goceInd);
+% goceInd = TempAndSpectrometerLen + rhoStruct.goce;
+% graceInd = TempAndSpectrometerLen + rhoStruct.grace;
+% swarmInd = TempAndSpectrometerLen + rhoStruct.swarm;
+% wGoce = 0.01 * sum(weights(graceInd)) / sum(weights(goceInd));
+% weights(goceInd) = wGoce * weights(goceInd);
 % wSwarm = 0.5 * sum(weights(goceInd)) / length(swarmInd);
 % weights(swarmInd) = wSwarm;
 
