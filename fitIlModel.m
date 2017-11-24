@@ -1047,6 +1047,8 @@ if fitSimultaneously || fitBaseAgain
           initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
           %initGuess(ArBiases) = [-0.0043	0.0880];
           paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
+          ptfOrig = paramsToFit;
+          paramsToFit(end) = []; %TESTAUS
           %paramsToFit = [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)];         
 %         rmInd = setdiff(1:length(initGuess), paramsToFit);
 %         initGuess(rmInd) = 0;
@@ -1081,6 +1083,7 @@ if fitSimultaneously || fitBaseAgain
 %         save('biases.mat','final_points','final_fvals','initPoints');
         [comp] = fun(initGuess);
         tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
+        paramsToFit = ptfOrig; % Testaus
     else
          numStorm = numCoeffs - numQuietCoeffs;
 %         efolds_init = [7, 11.4, 13.0, 7.3];
@@ -1153,15 +1156,15 @@ if fitSimultaneously || fitBaseAgain
         optCoeff = initGuess;
         paramsToFit = paramsToFit_modif;
     end
-    if quietData && all(optCoeff == initGuess')
-        error('Cholesky failed?');
-    end
+    %if quietData && all(optCoeff == initGuess')
+    %    error('Cholesky failed?');
+    %end
     %[comp] = fun(initGuess); %disp([comp(1), optCoeff]);
     %JTJ_diag_matlab = diag(J'*J);
 
     saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
     fprintf('All parameters refitted.\n');
-    %error('Copy quiet to optCoeff')
+    error('Copy quiet to optCoeff')
 else
     load(filename)
 %     load onePercent_err % TESTAUS
@@ -1226,6 +1229,7 @@ if fitSimultaneously || quietData % TESTAUS. Kunnes Myrsky-yhtalo saavuttanut lo
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
+    paramsToFit(end) = []; %TESTAUS
     tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, optCoeff, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
     fprintf('Significant parameters refitted.\n');
 end
