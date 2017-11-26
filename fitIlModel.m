@@ -1300,8 +1300,8 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 % wSwarm = 0.5 * sum(weights(goceInd)) / length(swarmInd);
 % weights(swarmInd) = wSwarm;
 
- aeNormalized = 1 + (2 * ae16h / max(ae16h));
- weights = weights .* aeNormalized;
+% aeNormalized = 1 + (2 * ae16h / max(ae16h));
+% weights = weights .* aeNormalized;
 
 wTempSpec = wInd;
 save('weights.mat','weights')
