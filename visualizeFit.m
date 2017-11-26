@@ -24,7 +24,8 @@ else
 end
 %originalRhoStruct = rhoStruct;
 %quietData = true;
-[originalRhoStruct,~,~,~,~,~,~,~,~,removeIndGeom] = removeAndFixData(originalRhoStruct, aeThreshold,[],[],[],[],[],[],[],[],quietData);
+[originalRhoStruct] = removeAndFixData(originalRhoStruct, aeThreshold);
+[~,~,~,~,~,~,~,~,~,removeIndGeom] = removeAndFixData(originalRhoStruct, aeThreshold,[],[],[],[],[],[],[],[],quietData);
 
 N = length(originalRhoStruct.data);
 if strcmpi(satellite,'goce')
