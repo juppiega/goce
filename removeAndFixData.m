@@ -10,7 +10,7 @@ if aeThreshold <= 0
 else
     removeInd = rhoStruct.aeInt(:,4) < aeThreshold;
 end
-if nargin >= 11
+if exist('quietData','var')
     [~,~,stormInd] = findStormsForSat(rhoStruct,'ae',aeQuietLimit,0,2,true);
     if quietData
         removeInd(stormInd) = true;
