@@ -850,8 +850,8 @@ removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 
 %TESTAUS %%%%%%%%%%%%%%
-removeInd = rhoStruct.goce; removeInd(1:100) = [];
-rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, true, true);
+%removeInd = rhoStruct.goce; removeInd(1:100) = [];
+%rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, true, true);
 %%%%%%%%%%%%%%%%%%%%%%%
 %if ~quietData
     removeInd = true(size(ArStruct.data)); %removeInd(1) = false;
@@ -1048,7 +1048,7 @@ if fitSimultaneously || fitBaseAgain
           %initGuess(ArBiases) = [-0.0043	0.0880];
           paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
           ptfOrig = paramsToFit;
-          paramsToFit(end) = []; %TESTAUS
+          %paramsToFit(end) = []; %TESTAUS
           %paramsToFit = [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)];         
 %         rmInd = setdiff(1:length(initGuess), paramsToFit);
 %         initGuess(rmInd) = 0;
@@ -1081,9 +1081,11 @@ if fitSimultaneously || fitBaseAgain
 %             [final_points(i,:),final_fvals(i)] = patternsearch(fun,initPoints(i,:),[],[],[],[],lb,ub,[],options);
 %         end
 %         save('biases.mat','final_points','final_fvals','initPoints');
+        rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.93;
+        rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.93;
         [comp] = fun(initGuess);
         tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
-        paramsToFit = ptfOrig; % Testaus
+        %paramsToFit = ptfOrig; % Testaus
     else
          numStorm = numCoeffs - numQuietCoeffs;
 %         efolds_init = [7, 11.4, 13.0, 7.3];
@@ -1164,7 +1166,7 @@ if fitSimultaneously || fitBaseAgain
 
     saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
     fprintf('All parameters refitted.\n');
-    %error('Copy quiet to optCoeff')
+    error('Copy quietAll to optCoeff')
 else
     load(filename)
 %     load onePercent_err % TESTAUS
@@ -1298,8 +1300,8 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 % wSwarm = 0.5 * sum(weights(goceInd)) / length(swarmInd);
 % weights(swarmInd) = wSwarm;
 
-% aeNormalized = 1 + (2 * ae16h / max(ae16h));
-% weights = weights .* aeNormalized;
+ aeNormalized = 1 + (2 * ae16h / max(ae16h));
+ weights = weights .* aeNormalized;
 
 wTempSpec = wInd;
 save('weights.mat','weights')
