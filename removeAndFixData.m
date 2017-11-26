@@ -1,4 +1,4 @@
-function [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
+function [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, removeIndRho] = ...
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct, quietData, aeQuietLimit)
 if nargin <= 11
     aeQuietLimit = 800;
@@ -34,7 +34,8 @@ end
 
 relErr = rhoStruct.sigma ./ rhoStruct.data;
 removeInd(relErr > 0.15) = true;
-rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, false);
+removeIndRho = removeInd;
+rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, true, true);
 % % GOCE has bad lst, F10.7 coverage.
 % goceWeight = 0.5*0.5*(1 - length(rhoStruct.goce) / length(rhoStruct.data));
 % champWeight = 1 - length(rhoStruct.champ)  / length(rhoStruct.data);
@@ -54,7 +55,7 @@ rhoStruct.doy = rhoStruct.timestamps - datenum(yearVec) + 1;
 rhoStruct = computeGeopotentialHeight(rhoStruct);
 
 %if nargin == 2 && nargout == 1
-if nargout == 1;
+if nargout == 1 || nargout == 10;
     return
 end
 

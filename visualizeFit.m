@@ -1,4 +1,4 @@
-function [] = visualizeFit(saveFolder, fullscreenFigs, satellite)
+function [] = visualizeFit(saveFolder, fullscreenFigs, satellite, quietData)
 aeThreshold = 0;
 
 if nargin == 2
@@ -23,7 +23,8 @@ else
     error('File ilData.mat not found!')
 end
 originalRhoStruct = rhoStruct;
-[originalRhoStruct] = removeAndFixData(originalRhoStruct, aeThreshold);
+%quietData = true;
+[originalRhoStruct,~,~,~,~,~,~,~,~,removeIndGeom] = removeAndFixData(originalRhoStruct, aeThreshold,[],[],[],[],[],[],[],quietData);
 
 N = length(originalRhoStruct.data);
 if strcmpi(satellite,'goce')
@@ -38,6 +39,9 @@ elseif strcmpi(satellite,'all')
     removeInd = false(N,1);
 elseif strcmpi(satellite,'allNoSwarm')
     removeInd = ismember(1:N, originalRhoStruct.swarm);
+end
+if quietData
+    removeInd(removeIndGeom) = true;
 end
 originalRhoStruct = removeDataPoints(originalRhoStruct, removeInd, false, true, false, false);
 
@@ -90,7 +94,7 @@ aeInt = 20*ones(1,7);
 if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat
 else
-    if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
+    if ~strcmpi(satellite,'all') || ~quietData; error('Must have satellite=all and quietData = false to compute comparisons!');end
     [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
 
     save('msisDtmComparison.mat', 'msisRho')
@@ -100,7 +104,7 @@ end
 if exist('ilComparison.mat', 'file')
     load ilComparison.mat
 else
-    if ~strcmpi(satellite,'all'); error('Must have satellite=all to compute comparisons!');end
+    if ~strcmpi(satellite,'all') || ~quietData; error('Must have satellite=all and quietData = false to compute comparisons!');end
     [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
 
     save('ilComparison.mat', 'ilRho')
