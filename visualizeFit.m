@@ -17,12 +17,12 @@ end
 
 % Check the existence of the data file.
 if exist('ilData.mat', 'file')
-    load('ilData.mat', 'rhoStruct')
+    load('ilData.mat', 'originalRhoStruct')
     %load('ilData.mat', 'rhoStruct', 'dTCoeffs', 'T0Coeffs') % TESTAUS
 else
     error('File ilData.mat not found!')
 end
-originalRhoStruct = rhoStruct;
+%originalRhoStruct = rhoStruct;
 %quietData = true;
 [originalRhoStruct,~,~,~,~,~,~,~,~,removeIndGeom] = removeAndFixData(originalRhoStruct, aeThreshold,[],[],[],[],[],[],[],quietData);
 
