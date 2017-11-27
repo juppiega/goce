@@ -1081,8 +1081,8 @@ if fitSimultaneously || fitBaseAgain
 %             [final_points(i,:),final_fvals(i)] = patternsearch(fun,initPoints(i,:),[],[],[],[],lb,ub,[],options);
 %         end
 %         save('biases.mat','final_points','final_fvals','initPoints');
-        rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.93;
-        rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.93;
+        rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.91;
+        rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.95;
         [comp] = fun(initGuess);
         tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
         %paramsToFit = ptfOrig; % Testaus
