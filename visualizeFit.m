@@ -95,7 +95,7 @@ aeInt = 20*ones(1,7);
 if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat
 else
-    if ~strcmpi(satellite,'all') || ~quietData; error('Must have satellite=all and quietData = false to compute comparisons!');end
+    if ~strcmpi(satellite,'all') || quietData; error('Must have satellite=all and quietData = false to compute comparisons!');end
     [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
 
     save('msisDtmComparison.mat', 'msisRho')
@@ -105,7 +105,7 @@ end
 if exist('ilComparison.mat', 'file')
     load ilComparison.mat
 else
-    if ~strcmpi(satellite,'all') || ~quietData; error('Must have satellite=all and quietData = false to compute comparisons!');end
+    if ~strcmpi(satellite,'all') || quietData; error('Must have satellite=all and quietData = false to compute comparisons!');end
     [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
 
     save('ilComparison.mat', 'ilRho')
