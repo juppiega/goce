@@ -813,18 +813,20 @@ end
 
 function [ind] = HeParams(varStruct, numQuietCoeffs)
 
-ind = ArParams(varStruct, numQuietCoeffs);
+ind = quietParams(varStruct, numQuietCoeffs);
 
 end
 
 function [ind] = N2Params(varStruct, numQuietCoeffs)
 
-lat = 10:15;
-symmAnn = [32:38];
-assAnn = [50:52];
-rest = 90:numQuietCoeffs;
-removeInd = [lat, symmAnn, assAnn, rest] + varStruct.numBiases;
-ind = setdiff(1 : numQuietCoeffs+varStruct.numBiases, removeInd);
+%lat = 10:15;
+%symmAnn = [32:38];
+%assAnn = [50:52];
+%rest = 90:numQuietCoeffs;
+%removeInd = [lat, symmAnn, assAnn, rest] + varStruct.numBiases;
+%ind = setdiff(1 : numQuietCoeffs+varStruct.numBiases, removeInd);
+
+ind = quietParams(varStruct, numQuietCoeffs);
 
 end
 
