@@ -879,7 +879,7 @@ O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
 if quietData
-    tempSpecRelWeight = 0.05;
+    tempSpecRelWeight = 0.25;
 else
     tempSpecRelWeight = 0.125;
 end
