@@ -861,6 +861,7 @@ global numCoeffs;
 numMinorCoeffs = 50;
 numQuietCoeffs = 112;
 numStormPrevious = numCoeffs - numQuietCoeffs;
+fitSimultaneous = fitSimultaneously;
 
 removeInd = rhoStruct.swarm;
 rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
