@@ -1055,6 +1055,7 @@ if fitSimultaneously || fitBaseAgain
     clear mex;
     rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.91;
     rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.95;
+    numStorm = numCoeffs - numQuietCoeffs;
     if fitSimultaneous || quietData
         
           Obiases = OStruct.coeffInd(2:1+OStruct.numBiases);
@@ -1114,7 +1115,7 @@ if fitSimultaneously || fitBaseAgain
         tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
         %paramsToFit = ptfOrig; % Testaus
     else
-         numStorm = numCoeffs - numQuietCoeffs;
+         
 %         efolds_init = [7, 11.4, 13.0, 7.3];
 %         opt = optimoptions('lsqnonlin', 'Jacobian', 'on', 'Algorithm', 'trust-region-reflective', 'TolFun', 1E-5, ...
 %                  'TolX', 1E-4, 'Display', 'off');
