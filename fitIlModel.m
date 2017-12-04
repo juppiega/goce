@@ -1068,6 +1068,13 @@ if fitSimultaneously || fitBaseAgain
           paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
           quietInd = setdiff(quietInd,[Obiases, N2biases, HeBiases]);
           ptfOrig = paramsToFit;
+          
+          expTimes = [6.0546   17.9177    5.2326    3.9629];
+
+          initGuess(stormInd(1:numStorm:end)) = expTimes;
+          paramsToFit = setdiff(paramsToFit, stormInd(1:numStorm:end));
+          stormInd(1:numStorm:end) = [];
+          
           %paramsToFit(end) = []; %TESTAUS
           %paramsToFit = [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)];         
 %         rmInd = setdiff(1:length(initGuess), paramsToFit);
