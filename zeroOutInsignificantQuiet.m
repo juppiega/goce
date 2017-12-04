@@ -121,8 +121,10 @@ k = k + 13;
 
 ptf = unique(ptf);
 
+numQuietCoeffs = 112;
 zeroOutInd = setdiff(S.coeffInd, ptf);
 zeroOutInd = setdiff(zeroOutInd, S.coeffInd(2:S.numBiases+1));
+zeroOutInd = setdiff(zeroOutInd, S.coeffInd(numQuietCoeffs+S.numBiases+1 : end));
 optCoeff(zeroOutInd) = 0;
 
 end

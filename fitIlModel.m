@@ -1251,16 +1251,18 @@ if ~fitSimultaneously
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
     end
 else
-        pe = paramErrors(quietInd);
+        quietInd_noBias = [1:numQuietCoeffs, numCoeffs+(1:numQuietCoeffs), 2*numCoeffs+(1:numQuietCoeffs),...
+                            3*numCoeffs+(1:numQuietCoeffs),length(paramErrors)];
+        pe(paramsToFit) = paramErrors;
         paramsToFitQuiet = [];
-        [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, quietInd, pe, significance, TexStruct);
-        [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, quietInd, pe, significance, OStruct);
-        [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, quietInd, pe, significance, N2Struct);
-        [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, quietInd, pe, significance, HeStruct);
+        [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, allInd, pe, significance, TexStruct);
+        [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, allInd, pe, significance, OStruct);
+        [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, allInd, pe, significance, N2Struct);
+        [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, allInd, pe, significance, HeStruct);
         %[optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, ArStruct);
         paramsToFitQuiet = [paramsToFitQuiet, O2Struct.coeffInd]; %optCoeff(O2Struct.coeffInd) = 20.0;
         
-        relError = abs(paramErrors' ./ optCoeff);
+        relError = abs(pe' ./ optCoeff);
         relError = relError(stormInd);
         
         paramsToFitStorm = [];
