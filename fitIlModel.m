@@ -1303,7 +1303,7 @@ if fitSimultaneously || quietData % TESTAUS. Kunnes Myrsky-yhtalo saavuttanut lo
 end
 
 if iscolumn(optCoeff) optCoeff = optCoeff'; end
-if quietData
+if ~fitSimultaneous && quietData
     filename = 'quietCoeffs.mat';
 else
     filename = 'optCoeff.mat';
