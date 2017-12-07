@@ -154,7 +154,7 @@ function P = legendre_fixed(i,x)
 if isempty(x)
     P = [];
 else
-    P = legendre(i,x,'norm');
+    P = legendre(i,x);
 end
 
 end
