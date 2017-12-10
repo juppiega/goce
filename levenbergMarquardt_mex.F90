@@ -582,18 +582,18 @@ function G_storm(a, S)
     k = k + 1
     
     an = a(k+8);
-    san = a(k+10);
+    !san = a(k+10);
     order_0 = (a(k+1)+a(k+2)*S%mP20+a(k+3)*S%mP40+a(k+4)*S%mP60 + (a(k+5)*S%mP10+a(k+6)*S%mP30+a(k+7)*S%mP50)*&
-    (cos(S%yv-an)+a(k+9)*cos(2*(S%yv-san))))*(1+a(k+11)*S%F)*aeInt;
-    k = k + 11;!12
+              cos(S%yv-an))*(1+a(k+9)*S%F)*aeInt;
+    k = k + 9;!10
 
     order_1 = (a(k+1)*S%mP11+a(k+2)*S%mP31+a(k+3)*S%mP51 + (a(k+4)*S%mP21+a(k+5)*S%mP41+a(k+6)*S%mP61)*&
-    (cos(S%yv-an)+a(k+7)*cos(2*(S%yv-san))))*(1+a(k+8)*S%F)*aeInt*cos(S%dv_mag-a(k+9));
-    k = k + 9;!21
+                cos(S%yv-an))*(1+a(k+7)*S%F)*aeInt*cos(S%dv_mag-a(k+8));
+    k = k + 8;!18
 
     order_2 = (a(k+1)*S%mP22+a(k+2)*S%mP42+a(k+3)*S%mP62 + (a(k+4)*S%mP32+a(k+5)*S%mP52)*&
-    (cos(S%yv-an)+a(k+6)*cos(2*(S%yv-san))))*(1+a(k+7)*S%F)*aeInt*cos(2*(S%dv_mag-a(k+8)));
-    k = k + 8;!29
+              cos(S%yv-an))*(1+a(k+6)*S%F)*aeInt*cos(2*(S%dv_mag-a(k+7)));
+    k = k + 7;!25
 
     G_storm = order_0 + order_1 + order_2;
 

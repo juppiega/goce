@@ -16,7 +16,7 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 141;
+numCoeffs = 137;
 
 clear mex;
 % 
@@ -419,7 +419,7 @@ semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
 longitudinal = ones(1,13); longitudinal([2,5,6,9,12,13]) = 1E-4;
-geomagnetic = ones(1,29); geomagnetic([2,6,10,13,16,22,25]) = 1E-4;
+geomagnetic = ones(1,25); geomagnetic([2,6,11,14,19,22]) = 1E-4;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, longitudinal, geomagnetic];
 lb = -ub;
@@ -1111,7 +1111,7 @@ if fitSimultaneously || fitBaseAgain
 %         save('biases.mat','final_points','final_fvals','initPoints');
         %initGuess(stormInd) = 0; % TESTAUS
         fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
-        [comp] = fun(initGuess);
+        [comp,JAC] = fun(initGuess);
         tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
         %paramsToFit = ptfOrig; % Testaus
     else
