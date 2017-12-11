@@ -32,13 +32,11 @@ errTol = 1 - significanceTol;
 
 
 an = 8;
-san = 10;
     
 % Order 0
 symm = 1:4;
 asymm = 5:7;
-san_amp = 9;
-solar = 11;
+solar = 9;
 
 if(anyIsSignificant(symm))
     ptf = [ptf, signifInd(symm)];
@@ -46,26 +44,20 @@ end
 if(anyIsSignificant(asymm))
     ptf = [ptf, signifInd(asymm)];
 end
-if(anyIsSignificant(san_amp))
-    ptf = [ptf, san_amp];
-end
 if(anyIsSignificant(solar))
     ptf = [ptf,solar];
 end
 
-if(~anyIsSignificant(asymm))
-    ptf = removeFromPtf(san_amp);
-end
 if(~anyIsSignificant([symm,asymm]))
     ptf = removeFromPtf(solar);
 end
 
 % Order 1
-symm = (1:3)+11;
-asymm = (4:6)+11;
-san_amp = 7+11;
-solar = 8+11;
-dv_amp = 9+11;
+offset1 = 9;
+symm = (1:3)+offset1;
+asymm = (4:6)+offset1;
+solar = 7+offset1;
+dv_amp = 8+offset1;
 
 if(anyIsSignificant(symm))
     ptf = [ptf, signifInd(symm)];
@@ -73,27 +65,21 @@ end
 if(anyIsSignificant(asymm))
     ptf = [ptf, signifInd(asymm)];
 end
-if(anyIsSignificant(san_amp))
-    ptf = [ptf, san_amp];
-end
 if(anyIsSignificant(solar))
     ptf = [ptf,solar];
 end
 ptf = [ptf,dv_amp];
 
-if(~anyIsSignificant(asymm))
-    ptf = removeFromPtf(san_amp);
-end
 if(~anyIsSignificant([symm,asymm]))
     ptf = removeFromPtf([solar,dv_amp]);
 end
 
 % Order 2
-symm = (1:3)+20;
-asymm = (4:5)+20;
-san_amp = 6+20;
-solar = 7+20;
-dv_amp = 8+20;
+offset2 = 17;
+symm = (1:3)+offset2;
+asymm = (4:5)+offset2;
+solar = 6+offset2;
+dv_amp = 7+offset2;
 
 if(anyIsSignificant(symm))
     ptf = [ptf, signifInd(symm)];
@@ -101,30 +87,20 @@ end
 if(anyIsSignificant(asymm))
     ptf = [ptf, signifInd(asymm)];
 end
-if(anyIsSignificant(san_amp))
-    ptf = [ptf, san_amp];
-end
 if(anyIsSignificant(solar))
     ptf = [ptf,solar];
 end
 ptf = [ptf,dv_amp];
 
-if(~anyIsSignificant(asymm))
-    ptf = removeFromPtf(san_amp);
-end
 if(~anyIsSignificant([symm,asymm]))
     ptf = removeFromPtf([solar,dv_amp]);
 end
 
 % REST
 
-asymm = [5:7, (4:6)+11, (4:5)+20];
-san_amp = [9, 7+11, 6+20];
+asymm = [5:7, (4:6)+offset1, (4:5)+offset2];
 if(anyIsSignificant(asymm))
-    ptf = [ptf, an, san];
-end
-if(~anyIsSignificant(san_amp))
-    ptf = removeFromPtf(san);
+    ptf = [ptf, an];
 end
 
 

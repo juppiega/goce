@@ -1111,7 +1111,7 @@ if fitSimultaneously || fitBaseAgain
 %         save('biases.mat','final_points','final_fvals','initPoints');
         %initGuess(stormInd) = 0; % TESTAUS
         fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
-        [comp,JAC] = fun(initGuess);
+        [comp] = fun(initGuess);
         tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
         %paramsToFit = ptfOrig; % Testaus
     else
