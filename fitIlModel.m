@@ -1066,6 +1066,7 @@ if fitSimultaneously || fitBaseAgain
           initGuess(N2biases) = [-0.1043	0.1267	0.0401	-0.0289	0.1312	-0.1166];
           initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
           %initGuess(ArBiases) = [-0.0043	0.0880];
+          allBiasInd = [Obiases, N2biases, HeBiases];
           paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
           quietInd = setdiff(quietInd,[Obiases, N2biases, HeBiases]);
           ptfOrig = paramsToFit;
@@ -1074,6 +1075,7 @@ if fitSimultaneously || fitBaseAgain
 
           initGuess(stormInd(1:numStorm:end)) = expTimes;
           paramsToFit = setdiff(paramsToFit, stormInd(1:numStorm:end));
+          expTimeInd = stormInd(1:numStorm:end);
           stormInd(1:numStorm:end) = [];
           
           %paramsToFit(end) = []; %TESTAUS
@@ -1283,7 +1285,7 @@ else
         %paramsToFitShort
         paramsToFitStorm = stormInd(paramsToFitStorm);
         paramsToFit = unique([paramsToFitQuiet, paramsToFitStorm]);
-        optCoeff(setdiff(1:length(optCoeff),paramsToFit)) = 0;
+        optCoeff(setdiff(1:length(optCoeff),[paramsToFit, expTimeInd, allBiasInd])) = 0;
         
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
         %paramsToFit = sort([paramsToFit, stormInd]); % Testaus
