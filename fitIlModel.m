@@ -1357,7 +1357,7 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 
 aeInt = [TexStruct.aeInt; OStruct.aeInt; N2Struct.aeInt; HeStruct.aeInt; ...
      O2Struct.aeInt; rhoStruct.aeInt];
- aeThreshold = 500;
+ aeThreshold = 400;
  ind = any(aeInt >= aeThreshold,2);
  w = sum(weights(~ind)) / sum(weights(ind));
  weights(ind) = w * weights(ind);
