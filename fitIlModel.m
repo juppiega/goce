@@ -1053,8 +1053,9 @@ if fitSimultaneously || fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
-    rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.91;
-    rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.95;
+    rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 0.95;
+    rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.94;
+    rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.99;
     numStorm = numCoeffs - numQuietCoeffs;
     if fitSimultaneous || quietData
         
@@ -1354,12 +1355,12 @@ weights(wInd) = tempSpecWeight * w;
 
 weights(wInd(end)+1:end) = rhoStruct.weights;
 
-% ae16h = [TexStruct.aeInt(:,4); OStruct.aeInt(:,4); N2Struct.aeInt(:,4); HeStruct.aeInt(:,4); ...
-%     ArStruct.aeInt(:,4); O2Struct.aeInt(:,4); rhoStruct.aeInt(:,4)];
-% aeThreshold = 250;
-% ind = ae16h >= aeThreshold;
-% w = sum(weights(~ind)) / sum(weights(ind));
-% weights(ind) = w * weights(ind);
+aeInt = [TexStruct.aeInt; OStruct.aeInt; N2Struct.aeInt; HeStruct.aeInt; ...
+     O2Struct.aeInt; rhoStruct.aeInt];
+ aeThreshold = 500;
+ ind = any(aeInt >= aeThreshold,2);
+ w = sum(weights(~ind)) / sum(weights(ind));
+ weights(ind) = w * weights(ind);
 
 % goceInd = TempAndSpectrometerLen + rhoStruct.goce;
 % graceInd = TempAndSpectrometerLen + rhoStruct.grace;
