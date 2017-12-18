@@ -997,10 +997,8 @@ end function
 function interp1_scalar(x, Y, xq)
     implicit none
     real(kind = 8), intent(in) :: x(:), Y(:), xq
-    real(kind = 8), allocatable :: interp1_scalar(:)
+    real(kind = 8) :: interp1_scalar
     integer :: i,n
-
-    allocate(interp1_scalar(size(Y,1)))
 
     n = 1
     do i = 2,size(x)
