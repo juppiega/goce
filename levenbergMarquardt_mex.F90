@@ -578,8 +578,9 @@ function G_storm(a, S)
     !k = k + 4;
 
     !G_storm = mag_lat + mag_lon + mag_lst;
-    aeInt = interp1(tauVec, S%aeInt, max(min(a(k+1),24.0D0),1.0D0))
-    k = k + 1
+    lagHours = a(k+1)*(1 + a(k+2)*abs(S.mP10));
+    aeInt = interp1(tauVec, S%aeInt, max(min(lagHours,24.0D0),1.0D0))
+    k = k + 2
     
     an = a(k+8);
     !san = a(k+10);

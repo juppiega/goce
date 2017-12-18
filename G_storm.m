@@ -37,9 +37,9 @@ k = 0;
 %            a(k+9)*S.FA+a(k+10)*S.FA.^2) .* Activity;
 % k = k + 10;
 tauVec = (1:24)';
-lagHours = a(k+1);
+lagHours = a(k+1)*(1 + a(k+2)*abs(S.mP10));
 aeInt = interp1(tauVec,S.aeInt',clamp(1.0,lagHours,24.0))';  
-k = k + 1;
+k = k + 2;
 
 %mag_lat = 1E-5*(a(k+1) + a(k+2)*S.P20 + a(k+3)*S.P40).*aeInt.*(1 +1E-3*a(k+4)*aeInt); quadratic
 %mag_lat = 1E-5*(a(k+1) + a(k+2)*S.P20 + a(k+3)*S.P40 + (a(k+4)*S.P10 + a(k+5)*S.P30).*cos(S.yv-1E-2*a(k+6)) ).*aeInt;% + 1E-3*a(k+4);

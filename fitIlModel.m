@@ -16,7 +16,7 @@ numThreads = 64;
 aeThreshold = 0;
 
 global numCoeffs;
-numCoeffs = 137;
+numCoeffs = 138;
 
 clear mex;
 % 
@@ -419,7 +419,7 @@ semidiurnal = ones(1,16);
 terdiurnal = ones(1,8);
 quaterdiurnal = ones(1,2);
 longitudinal = ones(1,13); longitudinal([2,5,6,9,12,13]) = 1E-4;
-geomagnetic = ones(1,25); geomagnetic([2,6,11,14,19,22]) = 1E-4;
+geomagnetic = ones(1,26); geomagnetic([2,6,11,14,19,22]+1) = 1E-4;
 
 ub = [latitude, solarActivity, annual, diurnal, semidiurnal, terdiurnal, quaterdiurnal, longitudinal, geomagnetic];
 lb = -ub;
@@ -1072,12 +1072,13 @@ if fitSimultaneously || fitBaseAgain
           quietInd = setdiff(quietInd,[Obiases, N2biases, HeBiases]);
           ptfOrig = paramsToFit;
           
-          expTimes = [6.0546   17.9177    5.2326    3.9629];
+          %expTimes = [6.0546   17.9177    5.2326    3.9629];
+          expTimes = [7,7,7,7];
 
           initGuess(stormInd(1:numStorm:end)) = expTimes;
-          paramsToFit = setdiff(paramsToFit, stormInd(1:numStorm:end));
-          expTimeInd = stormInd(1:numStorm:end);
-          stormInd(1:numStorm:end) = [];
+          %paramsToFit = setdiff(paramsToFit, stormInd(1:numStorm:end));
+          %expTimeInd = stormInd(1:numStorm:end);
+          %stormInd(1:numStorm:end) = [];
           
           %paramsToFit(end) = []; %TESTAUS
           %paramsToFit = [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)];         
@@ -1113,8 +1114,8 @@ if fitSimultaneously || fitBaseAgain
 %         end
 %         save('biases.mat','final_points','final_fvals','initPoints');
         %initGuess(stormInd) = 0; % TESTAUS
-        load('coeffsAll.noSemiAn.mat','optCoeff')
-        initGuess = optCoeff;
+        %load('coeffsAll.noSemiAn.mat','optCoeff')
+        %initGuess = optCoeff;
         fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
         [comp] = fun(initGuess);
         tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
@@ -1277,6 +1278,8 @@ else
         paramsToFitQuiet = [paramsToFitQuiet, O2Struct.coeffInd]; %optCoeff(O2Struct.coeffInd) = 20.0;
         
         relError = abs(pe' ./ optCoeff);
+        stormInd(1:numStorm:end) = [];
+        stormInd(1:numStorm-1:end) = [];
         relError = relError(stormInd);
         
         paramsToFitStorm = [];
