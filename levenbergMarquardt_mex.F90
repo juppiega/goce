@@ -980,11 +980,27 @@ end function
 
 function interp1(x, Y, xq)
     implicit none
-    real(kind = 8), intent(in) :: x(:), Y(:,:), xq
+    real(kind = 8), intent(in) :: x(:), Y(:,:), xq(:)
     real(kind = 8), allocatable :: interp1(:)
+    integer :: i, N
+    
+    N = size(Y,1)
+    
+    allocate(interp1(N))
+    
+    do i = 1, N
+        interp1(i) = interp1_scalar(x, Y(i,:), xq(i))
+    end do
+    
+end function
+
+function interp1_scalar(x, Y, xq)
+    implicit none
+    real(kind = 8), intent(in) :: x(:), Y(:), xq
+    real(kind = 8), allocatable :: interp1_scalar(:)
     integer :: i,n
 
-    allocate(interp1(size(Y,1)))
+    allocate(interp1_scalar(size(Y,1)))
 
     n = 1
     do i = 2,size(x)
@@ -994,7 +1010,7 @@ function interp1(x, Y, xq)
         end if
     end do
 
-    interp1 = (Y(:,n+1) - Y(:,n)) / (x(n+1) - x(n)) * (xq - x(n)) + Y(:,n)
+    interp1_scalar = (Y(n+1) - Y(n)) / (x(n+1) - x(n)) * (xq - x(n)) + Y(n)
 
 end function
 
