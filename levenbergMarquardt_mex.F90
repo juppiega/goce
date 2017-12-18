@@ -552,7 +552,7 @@ function G_storm(a, S)
     real(kind = 8), intent(in) :: a(:)
     real(kind = 8), allocatable :: G_storm(:), Activity(:), aeInt(:), mag_lat(:), mag_lon(:), mag_lst(:)
     real(kind = 8), allocatable, dimension(:) :: order_0, order_1, order_2
-    real(kind = 8) :: an, san
+    real(kind = 8) :: an, san, lagHours
     integer :: i
     real(kind = 8), parameter :: tauVec(24) = (/ (i, i = 1, 24) /)
     integer :: k
