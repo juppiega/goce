@@ -26,13 +26,20 @@ figure; plot(efold, corrs);
 
 end
 
-function corrs = computeBestEfold(S, efold)
+function corrs_mean = computeBestEfold(S, efold)
 
-corrs = zeros(size(efold));
+[sb,se,stormInd] = findStormsForSat(S,'ae',500,0,2,true);
+
+corrs = zeros(length(efold), length(sb));
 tau = (1:size(S.aeInt,2))';
 for i = 1:length(efold)
-    aeInt = interp1(tau, S.aeInt', efold(i));
-    corrs(i) = corr(log(S.data), aeInt');
+    for k = 1:length(sb)
+        ind = sb(i):se(i);
+        aeInt = interp1(tau, S.aeInt(ind,:)', efold(i));
+        corrs(i,k) = corr(log(S.data(ind)), aeInt');
+    end
 end
+
+corrs_mean = mean(corrs,2);
 
 end
