@@ -1,13 +1,21 @@
-function [normalizedData] = computeNormalizedStructs()
+function [normalizedData] = computeNormalizedStructs(name)
 
-load('ilData.mat','OStruct');
+if strcmpi(name,'O')
+    load('ilData.mat','OStruct');
+    S = OStruct;
+elseif strcmpi(name,'N2')
+    load('ilData.mat','N2Struct');
+    S = N2Struct;
+elseif strcmpi(name,'He')
+    load('ilData.mat','HeStruct');
+    S = HeStruct;
+end
+S = computeVariablesForFit(S);
+[T0, dT] = computeMsisDtmLb(S);
+Tex = computeMsis(S);
 
-OStruct = computeVariablesForFit(OStruct);
-[T0, dT] = computeMsisDtmLb(OStruct);
-Tex = computeMsis(OStruct);
+normalizedData = computeNormalizedDensity(S.data, S.Z, name, Tex, dT, T0);
 
-normalizedData = computeNormalizedDensity(OStruct.data, OStruct.Z, 'O', Tex, dT, T0);
-
-save('ONormalized.mat','normalizedData');
+save([name,'Normalized.mat'],'normalizedData');
 
 end
