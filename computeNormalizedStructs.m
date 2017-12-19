@@ -21,12 +21,12 @@ save([name,'Normalized.mat'],'normalizedData');
 %plot(S.timestamps, log(normalizedData),'.', S.timestamps, S.aeInt(:,7)/400 + 23,'.');
 
 efold = 1:0.5:24;
-Spolar = removeDataPoints(S, abs(S.latitude) < 50);
+Spolar = removeDataPoints(S, abs(S.latitude) < 50,true,true,true,true);
 corrs = computeBestEfold(Spolar, efold);
 figure; plot(efold, corrs); title([name,' polar'])
 
 Seq = removeDataPoints(S, abs(S.latitude) > 30);
-corrs = computeBestEfold(Seq, efold);
+corrs = computeBestEfold(Seq, efold,true,true,true,true);
 figure; plot(efold, corrs); title([name,' equatorial'])
 
 end
