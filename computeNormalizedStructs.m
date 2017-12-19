@@ -1,4 +1,4 @@
-function [] = computeNormalizedStructs()
+function [normalizedData] = computeNormalizedStructs()
 
 load('ilData.mat','OStruct');
 
