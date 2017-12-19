@@ -1077,7 +1077,7 @@ if fitSimultaneously || fitBaseAgain
 
           initGuess(stormInd(1:numStorm:end)) = expTimes;
           %paramsToFit = setdiff(paramsToFit, stormInd(1:numStorm:end));
-          %expTimeInd = stormInd(1:numStorm:end);
+          expTimeInd = stormInd(1:numStorm:end);
           %stormInd(1:numStorm:end) = [];
           
           %paramsToFit(end) = []; %TESTAUS
