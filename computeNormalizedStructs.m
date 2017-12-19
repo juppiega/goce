@@ -41,7 +41,7 @@ for i = 1:length(efold)
     for k = 1:length(sb)
         ind = sb(k):se(k);
         aeInt = interp1(tau, S.aeInt(ind,:)', efold(i));
-        corrs(i,k) = corr(log(S.data(ind)), aeInt');
+        corrs(i,k) = corr(log(S.data(ind)), aeInt','type','spearman');
     end
 end
 
