@@ -39,7 +39,7 @@ corrs = zeros(length(efold), length(sb));
 tau = (1:size(S.aeInt,2))';
 for i = 1:length(efold)
     for k = 1:length(sb)
-        ind = sb(i):se(i);
+        ind = sb(k):se(k);
         aeInt = interp1(tau, S.aeInt(ind,:)', efold(i));
         corrs(i,k) = corr(log(S.data(ind)), aeInt');
     end
