@@ -18,6 +18,6 @@ normalizedData = computeNormalizedDensity(S.data, S.Z, name, Tex, dT, T0);
 
 save([name,'Normalized.mat'],'normalizedData');
 
-plot(S.timestamps, log(normalizedData), S.timestamps, S.aeInt(:,7)/400 + 23);
+plot(S.timestamps, log(normalizedData),'.', S.timestamps, S.aeInt(:,7)/400 + 23,'.');
 
 end
