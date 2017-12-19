@@ -18,6 +18,21 @@ normalizedData = computeNormalizedDensity(S.data, S.Z, name, Tex, dT, T0);
 
 save([name,'Normalized.mat'],'normalizedData');
 
-plot(S.timestamps, log(normalizedData),'.', S.timestamps, S.aeInt(:,7)/400 + 23,'.');
+%plot(S.timestamps, log(normalizedData),'.', S.timestamps, S.aeInt(:,7)/400 + 23,'.');
+
+efold = 1:0.5:24;
+corrs = computeBestEfold(S, efold);
+figure; plot(efold, corrs);
+
+end
+
+function corrs = computeBestEfold(S, efold)
+
+corrs = zeros(size(efold));
+tau = (1:size(S.aeInt,2))';
+for i = 1:length(efold)
+    aeInt = interp1(tau, S.aeInt', efold(i));
+    corrs(i) = corr(log(S.data), aeInt');
+end
 
 end
