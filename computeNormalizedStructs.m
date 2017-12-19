@@ -25,8 +25,8 @@ Spolar = removeDataPoints(S, abs(S.latitude) < 50,true,true,true,true);
 corrs = computeBestEfold(Spolar, efold);
 figure; plot(efold, corrs); title([name,' polar'])
 
-Seq = removeDataPoints(S, abs(S.latitude) > 30);
-corrs = computeBestEfold(Seq, efold,true,true,true,true);
+Seq = removeDataPoints(S, abs(S.latitude) > 30,true,true,true,true);
+corrs = computeBestEfold(Seq, efold);
 figure; plot(efold, corrs); title([name,' equatorial'])
 
 end
