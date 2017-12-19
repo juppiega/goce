@@ -153,7 +153,7 @@ lbT0Struct.index(removeInd) = [];
 lbT0Struct.numBiases = 0;
 
 % Remove bad oxygen observations
-removeInd = OStruct.data <= 1E6 | OStruct.data > 0.8E10;
+removeInd = OStruct.data <= 1E6 | OStruct.data > 1E11;
 if nargin >= 11
     [~,~,stormInd] = findStormsForSat(OStruct,'ae',aeQuietLimit,0,2,true);
     if quietData
