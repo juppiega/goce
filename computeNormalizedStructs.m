@@ -9,6 +9,9 @@ elseif strcmpi(name,'N2')
 elseif strcmpi(name,'He')
     load('ilData.mat','HeStruct');
     S = HeStruct;
+elseif strcmpi(name,'Tex')
+    load('ilData.mat','TexStruct');
+    S = TexStruct;
 end
 
 load('coeffsAll.s2.mat')
@@ -16,14 +19,19 @@ load('coeffsAll.s2.mat')
 S = computeVariablesForFit(S);
 %[T0, dT] = computeMsisDtmLb(S);
 %Tex = computeMsis(S);
+if ~strcmpi(name,'Tex')
 T0 = evalT0(S,T0Coeffs);
 dT = evalDT(S,dTCoeffs);
 Tex = evalTex(S,optCoeff(TexInd));
+end
 
+if ~strcmpi(name,'Tex')
 normalizedData = computeNormalizedDensity(S.data, S.Z, name, Tex, dT, T0);
 S.data = normalizedData;
-
 save([name,'Normalized.mat'],'normalizedData');
+end
+
+
 
 %plot(S.timestamps, log(normalizedData),'.', S.timestamps, S.aeInt(:,7)/400 + 23,'.');
 
