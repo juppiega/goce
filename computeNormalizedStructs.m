@@ -38,16 +38,16 @@ end
 efold = 1:0.5:24;
 Spolar = removeDataPoints(S, abs(S.latitude) < 50,true,true,true,true);
 corrs = computeBestEfold(Spolar, efold);
-figure; plot(efold, corrs); title([name,' polar'])
+figure; plot(efold, corrs.^2); title([name,' polar'])
 corrs_polar = corrs';
 
 Seq = removeDataPoints(S, abs(S.latitude) > 30,true,true,true,true);
 corrs = computeBestEfold(Seq, efold);
-figure; plot(efold, corrs); title([name,' equatorial'])
+figure; plot(efold, corrs.^2); title([name,' equatorial'])
 corrs_eq = corrs';
 
 corrs = computeBestEfold(S, efold);
-figure; plot(efold, corrs); title([name,' all'])
+figure; plot(efold, corrs.^2); title([name,' all'])
 
 x_eq = 0; x_polar = 1.1509;
 x = [ones(size(efold))*x_eq, ones(size(efold))*x_polar];
