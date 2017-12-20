@@ -1073,10 +1073,12 @@ if fitSimultaneously || fitBaseAgain
           ptfOrig = paramsToFit;
           
           %expTimes = [6.0546   17.9177    5.2326    3.9629];
-          expTimes = 1./[7,7,7,7];
+          expTimes = [0.14131, 0.10093, 0.1079, 0.10716];
+          expTimesLat = [0.26294, 0.24054, 0, 0.41466];
 
           initGuess(stormInd(1:numStorm:end)) = expTimes;
-          %paramsToFit = setdiff(paramsToFit, stormInd(1:numStorm:end));
+          initGuess(stormInd(2:numStorm:end)) = expTimesLat;
+          paramsToFit = setdiff(paramsToFit, [stormInd(1:numStorm:end), stormInd(2:numStorm:end)]);
           expTimeInd = [stormInd(1:numStorm:end), stormInd(2:numStorm:end)];
           %stormInd(1:numStorm:end) = [];
           
@@ -1201,7 +1203,7 @@ if fitSimultaneously || fitBaseAgain
 
     saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
     fprintf('All parameters refitted.\n');
-    error('Copy quietAll to optCoeff')
+    %error('Copy quietAll to optCoeff')
 else
     load(filename)
 %     load onePercent_err % TESTAUS
