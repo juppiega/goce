@@ -22,7 +22,7 @@ save([name,'Normalized.mat'],'normalizedData');
 %plot(S.timestamps, log(normalizedData),'.', S.timestamps, S.aeInt(:,7)/400 + 23,'.');
 
 efold = 1:0.5:24;
-lat = 5:10:90; dlat = lat(2)-lat(1);
+lat = 5:15:90; dlat = lat(2)-lat(1);
 corrs = zeros(length(lat), length(efold));
 for i = 1:length(lat)
     Slat = removeDataPoints(S, lat(i)-dlat/2 <= abs(S.latitude) & abs(S.latitude) < lat(i)+dlat/2 ,true,true,true,true);
@@ -31,7 +31,7 @@ end
 
 [X,Y] = meshgrid(efold, lat);
 figure;
-surf(X,Y,corrs);
+surf(X,Y,abs(corrs));
 view(2);
 colorbar;
 title(name)
