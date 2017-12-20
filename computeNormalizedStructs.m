@@ -51,8 +51,9 @@ figure; plot(efold, corrs); title([name,' all'])
 
 x_eq = 0; x_polar = 1.1509;
 x = [ones(size(efold))*x_eq, ones(size(efold))*x_polar];
-y = [corrs_eq.^2, corrs_polar.^2];
-p = polyfit(x,y,1)
+w = [corrs_eq.^2, corrs_polar.^2];
+y = [efold, efold];
+p = fitlm(x',y','weights',w')
 
 end
 
