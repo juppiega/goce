@@ -29,6 +29,9 @@ Seq = removeDataPoints(S, abs(S.latitude) > 30,true,true,true,true);
 corrs = computeBestEfold(Seq, efold);
 figure; plot(efold, corrs); title([name,' equatorial'])
 
+corrs = computeBestEfold(S, efold);
+figure; plot(efold, corrs); title([name,' all'])
+
 end
 
 function corrs_mean = computeBestEfold(S, efold)
