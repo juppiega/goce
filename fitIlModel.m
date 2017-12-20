@@ -876,8 +876,8 @@ rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 %end
 
 % DEBUG
-%removeInd = true(size(rhoStruct.data)); removeInd(1) = false;
-%rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
+removeInd = true(size(rhoStruct.data)); removeInd(1:100:end) = false;
+rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 
 fprintf('%s\n', 'Computing final fit')
 
@@ -894,7 +894,7 @@ O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
 if fitSimultaneous || quietData
-    tempSpecRelWeight = 0.5;
+    tempSpecRelWeight = 0.99;
 else
     tempSpecRelWeight = 0.125;
 end
