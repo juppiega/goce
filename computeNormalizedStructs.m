@@ -40,11 +40,13 @@ Spolar = removeDataPoints(S, abs(S.latitude) < 50,true,true,true,true);
 corrs = computeBestEfold(Spolar, efold);
 figure; plot(efold, corrs.^2); title([name,' polar'])
 corrs_polar = corrs';
+polar_mean = sum(corrs.^2 .* efold') / sum(corrs.^2);
 
 Seq = removeDataPoints(S, abs(S.latitude) > 30,true,true,true,true);
 corrs = computeBestEfold(Seq, efold);
 figure; plot(efold, corrs.^2); title([name,' equatorial'])
 corrs_eq = corrs';
+eq_mean = sum(corrs.^2 .* efold') / sum(corrs.^2);
 
 corrs = computeBestEfold(S, efold);
 figure; plot(efold, corrs.^2); title([name,' all'])
