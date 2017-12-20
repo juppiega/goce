@@ -15,6 +15,7 @@ S = computeVariablesForFit(S);
 Tex = computeDtm(S);
 
 normalizedData = computeNormalizedDensity(S.data, S.Z, name, Tex, dT, T0);
+S.data = normalizedData;
 
 save([name,'Normalized.mat'],'normalizedData');
 
