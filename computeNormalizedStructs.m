@@ -12,7 +12,7 @@ elseif strcmpi(name,'He')
 end
 S = computeVariablesForFit(S);
 [~,~,T0, dT] = computeMsisDtmLb(S);
-Tex = computeMsis(S);
+Tex = computeDtm(S);
 
 normalizedData = computeNormalizedDensity(S.data, S.Z, name, Tex, dT, T0);
 
