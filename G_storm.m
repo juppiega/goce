@@ -37,7 +37,7 @@ k = 0;
 %            a(k+9)*S.FA+a(k+10)*S.FA.^2) .* Activity;
 % k = k + 10;
 tauVec = (1:24)';
-lagHours = mod(mod(a(k+1),24)*(1 + a(k+2)*abs(S.mP10)), 23) + 1;
+lagHours = mod(1 ./ (a(k+1) * (1 + a(k+2)*abs(S.mP10))), 23) + 1;
 aeInt = zeros(size(S.mP10));
 for i = 1:length(lagHours)
     aeInt(i) = interp1(tauVec,S.aeInt(i,:),lagHours(i));

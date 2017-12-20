@@ -876,8 +876,8 @@ rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 %end
 
 % DEBUG
-removeInd = true(size(rhoStruct.data)); removeInd(1:100:end) = false;
-rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
+%removeInd = true(size(rhoStruct.data)); removeInd(1:100:end) = false;
+%rhoStruct = removeDataPoints(rhoStruct, removeInd, false, true, false, true);
 
 fprintf('%s\n', 'Computing final fit')
 
@@ -894,7 +894,7 @@ O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
 if fitSimultaneous || quietData
-    tempSpecRelWeight = 0.99;
+    tempSpecRelWeight = 0.5;
 else
     tempSpecRelWeight = 0.125;
 end
@@ -1073,7 +1073,7 @@ if fitSimultaneously || fitBaseAgain
           ptfOrig = paramsToFit;
           
           %expTimes = [6.0546   17.9177    5.2326    3.9629];
-          expTimes = [7,7,7,7];
+          expTimes = 1./[7,7,7,7];
 
           initGuess(stormInd(1:numStorm:end)) = expTimes;
           %paramsToFit = setdiff(paramsToFit, stormInd(1:numStorm:end));
