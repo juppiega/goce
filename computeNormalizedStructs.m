@@ -11,8 +11,8 @@ elseif strcmpi(name,'He')
     S = HeStruct;
 end
 S = computeVariablesForFit(S);
-[~,~,T0, dT] = computeMsisDtmLb(S);
-Tex = computeDtm(S);
+[T0, dT] = computeMsisDtmLb(S);
+Tex = computeMsis(S);
 
 normalizedData = computeNormalizedDensity(S.data, S.Z, name, Tex, dT, T0);
 S.data = normalizedData;
