@@ -35,14 +35,17 @@ end
 
 %plot(S.timestamps, log(normalizedData),'.', S.timestamps, S.aeInt(:,7)/400 + 23,'.');
 
+magLat = convertToMagneticCoordinates(S.latitude, S.longitude,...
+                                                S.altitude);
+
 efold = 1:0.5:24;
-Spolar = removeDataPoints(S, abs(S.latitude) < 50,true,true,true,true);
+Spolar = removeDataPoints(S, magLat < 50,true,true,true,true);
 corrs = computeBestEfold(Spolar, efold);
 figure; plot(1./efold, corrs.^2); title([name,' polar'])
 corrs_polar = corrs';
 polar_mean = sum(corrs.^2 .* efold') / sum(corrs.^2)
 
-Seq = removeDataPoints(S, abs(S.latitude) > 30,true,true,true,true);
+Seq = removeDataPoints(S, magLat > 30,true,true,true,true);
 corrs = computeBestEfold(Seq, efold);
 figure; plot(1./efold, corrs.^2); title([name,' equatorial'])
 corrs_eq = corrs';
