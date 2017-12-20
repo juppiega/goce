@@ -10,9 +10,15 @@ elseif strcmpi(name,'He')
     load('ilData.mat','HeStruct');
     S = HeStruct;
 end
+
+load('coeffsAll.s2.mat')
+
 S = computeVariablesForFit(S);
-[T0, dT] = computeMsisDtmLb(S);
-Tex = computeMsis(S);
+%[T0, dT] = computeMsisDtmLb(S);
+%Tex = computeMsis(S);
+T0 = evalT0(S,T0Coeffs);
+dT = evalDT(S,dTCoeffs);
+Tex = evalTex(S,optCoeff(TexInd));
 
 normalizedData = computeNormalizedDensity(S.data, S.Z, name, Tex, dT, T0);
 S.data = normalizedData;
@@ -22,19 +28,16 @@ save([name,'Normalized.mat'],'normalizedData');
 %plot(S.timestamps, log(normalizedData),'.', S.timestamps, S.aeInt(:,7)/400 + 23,'.');
 
 efold = 1:0.5:24;
-lat = 5:15:90; dlat = lat(2)-lat(1);
-corrs = zeros(length(lat), length(efold));
-for i = 1:length(lat)
-    Slat = removeDataPoints(S, lat(i)-dlat/2 <= abs(S.latitude) & abs(S.latitude) < lat(i)+dlat/2 ,true,true,true,true);
-    corrs(i,:) = computeBestEfold(Slat, efold);
-end
+Spolar = removeDataPoints(S, abs(S.latitude) < 50,true,true,true,true);
+corrs = computeBestEfold(Spolar, efold);
+figure; plot(efold, corrs); title([name,' polar'])
 
-[X,Y] = meshgrid(efold, lat);
-figure;
-surf(X,Y,abs(corrs));
-view(2);
-colorbar;
-title(name)
+Seq = removeDataPoints(S, abs(S.latitude) > 30,true,true,true,true);
+corrs = computeBestEfold(Seq, efold);
+figure; plot(efold, corrs); title([name,' equatorial'])
+
+corrs = computeBestEfold(S, efold);
+figure; plot(efold, corrs); title([name,' all'])
 
 end
 
