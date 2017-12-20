@@ -22,16 +22,19 @@ save([name,'Normalized.mat'],'normalizedData');
 %plot(S.timestamps, log(normalizedData),'.', S.timestamps, S.aeInt(:,7)/400 + 23,'.');
 
 efold = 1:0.5:24;
-Spolar = removeDataPoints(S, abs(S.latitude) < 50,true,true,true,true);
-corrs = computeBestEfold(Spolar, efold);
-figure; plot(efold, corrs); title([name,' polar'])
+lat = 5:10:90; dlat = lat(2)-lat(1);
+corrs = zeros(length(lat), length(efold));
+for i = 1:length(lat)
+    Slat = removeDataPoints(S, lat(i)-dlat/2 <= abs(S.latitude) & abs(S.latitude) < lat(i)+dlat/2 ,true,true,true,true);
+    corrs(i,:) = computeBestEfold(Slat, efold);
+end
 
-Seq = removeDataPoints(S, abs(S.latitude) > 30,true,true,true,true);
-corrs = computeBestEfold(Seq, efold);
-figure; plot(efold, corrs); title([name,' equatorial'])
-
-corrs = computeBestEfold(S, efold);
-figure; plot(efold, corrs); title([name,' all'])
+[X,Y] = meshgrid(efold, lat);
+figure;
+surf(X,Y,corrs);
+view(2);
+colorbar;
+title(name)
 
 end
 
