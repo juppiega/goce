@@ -1059,7 +1059,7 @@ if fitSimultaneously || fitBaseAgain
     numStorm = numCoeffs - numQuietCoeffs;
     if fitSimultaneous || quietData
     
-         load optCoeff.50.mat
+         load coeffsAll.50.mat
          numStormPrevious = TexInd(length(TexInd)) - numQuietCoeffs;
          initGuess(quietParams(TexStruct,numQuietCoeffs,true)) = optCoeff(quietParams(TexInd,numStormPrevious,true));
          initGuess(quietParams(OStruct,numQuietCoeffs,true)) = optCoeff(quietParams(OInd,numStormPrevious,true));
