@@ -1053,9 +1053,9 @@ if fitSimultaneously || fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
-    rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 0.95;
-    rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.94;
-    rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.99;
+    %rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 0.95;
+    %rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.94;
+    %rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.99;
     numStorm = numCoeffs - numQuietCoeffs;
     if fitSimultaneous || quietData
         
@@ -1068,8 +1068,8 @@ if fitSimultaneously || fitBaseAgain
           initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
           %initGuess(ArBiases) = [-0.0043	0.0880];
           allBiasInd = [Obiases, N2biases, HeBiases];
-          paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
-          quietInd = setdiff(quietInd,[Obiases, N2biases, HeBiases]);
+          %paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
+          %quietInd = setdiff(quietInd,[Obiases, N2biases, HeBiases]);
           ptfOrig = paramsToFit;
           
           %expTimes = [6.0546   17.9177    5.2326    3.9629];
@@ -1203,7 +1203,7 @@ if fitSimultaneously || fitBaseAgain
 
     saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
     fprintf('All parameters refitted.\n');
-    %error('Copy quietAll to optCoeff')
+    error('Copy quietAll to optCoeff')
 else
     load(filename)
 %     load onePercent_err % TESTAUS
@@ -1268,8 +1268,8 @@ if ~fitSimultaneously
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
     end
 else
-        quietInd_noBias = [1:numQuietCoeffs, numCoeffs+(1:numQuietCoeffs), 2*numCoeffs+(1:numQuietCoeffs),...
-                            3*numCoeffs+(1:numQuietCoeffs),length(paramErrors)];
+        %quietInd_noBias = [1:numQuietCoeffs, numCoeffs+(1:numQuietCoeffs), 2*numCoeffs+(1:numQuietCoeffs),...
+        %                    3*numCoeffs+(1:numQuietCoeffs),length(paramErrors)];
         pe(paramsToFit) = paramErrors;
         paramsToFitQuiet = [];
         [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, allInd, pe, significance, TexStruct);
