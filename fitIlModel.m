@@ -1058,6 +1058,14 @@ if fitSimultaneously || fitBaseAgain
     %rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.99;
     numStorm = numCoeffs - numQuietCoeffs;
     if fitSimultaneous || quietData
+    
+         load quietCoeffsAll.F30.mat
+         numStormPrevious = TexInd(length(TexInd)) - numQuietCoeffs;
+         initGuess(quietParams(TexStruct,numQuietCoeffs,true)) = optCoeff(quietParams(TexInd,numStormPrevious,true));
+         initGuess(quietParams(OStruct,numQuietCoeffs,true)) = optCoeff(quietParams(OInd,numStormPrevious,true));
+         initGuess(quietParams(N2Struct,numQuietCoeffs,true)) = optCoeff(quietParams(N2Ind,numStormPrevious,true));
+         initGuess(quietParams(HeStruct,numQuietCoeffs,true)) = optCoeff(quietParams(HeInd,numStormPrevious,true));
+         initGuess(O2Struct.coeffInd(1)) = optCoeff(O2Ind);
         
           Obiases = OStruct.coeffInd(2:1+OStruct.numBiases);
           N2biases = N2Struct.coeffInd(2:1+N2Struct.numBiases);
