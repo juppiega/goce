@@ -1155,11 +1155,11 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     maxFuncEvals = 5000 * size(initGuess)
     maxIter = 200 !!!!!!!!!!!!!!!!!!!!!!
 
-    funVec = modelMinimizationFunction(initGuess)
+    !funVec = modelMinimizationFunction(initGuess)
     
-    !call lmSolve(modelMinimizationFunction, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda, maxFuncEvals,& 
-    !             maxIter, JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
-    !             firstOrderOptAtSolution = firstOrderOpt, JTWJ = JTWJ)
+    call lmSolve(modelMinimizationFunction, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda, maxFuncEvals,& 
+                 maxIter, JacobianAtSolution = Jacobian, solution = solution, funVec = funVec, exitFlag = exitFlag,&
+                 firstOrderOptAtSolution = firstOrderOpt, JTWJ = JTWJ)
 
 
 
@@ -1167,8 +1167,8 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     
 
     !k = mexPrintf('Before output'//achar(13))
-    !y_output = solution ! !!!!!!!!   
-    y_output = funVec
+    y_output = solution ! !!!!!!!!   
+    !y_output = funVec
     !     Create matrix for the return argument.
     plhs(1) = mxCreateDoubleMatrix(size(y_output),1,0)
     plhs(2) = mxCreateDoubleMatrix(size(JTWJ,1),size(JTWJ,2),0)
