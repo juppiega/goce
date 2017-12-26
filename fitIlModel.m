@@ -894,7 +894,7 @@ O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
 if fitSimultaneous || quietData
-    tempSpecRelWeight = 0.5;
+    tempSpecRelWeight = 0.05;
 else
     tempSpecRelWeight = 0.125;
 end
@@ -1076,8 +1076,8 @@ if fitSimultaneously || fitBaseAgain
           initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
           %initGuess(ArBiases) = [-0.0043	0.0880];
           allBiasInd = [Obiases, N2biases, HeBiases];
-          %paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
-          %quietInd = setdiff(quietInd,[Obiases, N2biases, HeBiases]);
+          paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
+          quietInd = setdiff(quietInd,[Obiases, N2biases, HeBiases]);
           ptfOrig = paramsToFit;
           
           %expTimes = [6.0546   17.9177    5.2326    3.9629];
@@ -1311,6 +1311,14 @@ end
 tolFun = 1E-5;
 tolOpt = 1E0;
 lambda0 = 1E-2;
+
+if fitSimultaneous || quietData
+    tempSpecRelWeight = 0.5;
+else
+    tempSpecRelWeight = 0.125;
+end
+
+weights = computeWeights(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, tempSpecRelWeight); % 
 
 if fitSimultaneously || quietData % TESTAUS. Kunnes Myrsky-yhtalo saavuttanut loppulisen muotonsa ja zeroOutInsignificantStorm on koodattu
     setenv('OMP_NUM_THREADS', num2str(numThreads))
