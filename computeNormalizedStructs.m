@@ -66,7 +66,7 @@ end
 
 function corrs_mean = computeBestEfold(S, efold)
 
-[sb,se,stormInd] = findStormsForSat(S,'ae',400,0,2,true);
+[sb,se,stormInd] = findStormsForSat(S,'ae',800,0,2,true);
 
 corrs = zeros(length(efold), length(sb));
 tau = (1:size(S.aeInt,2))';
