@@ -9,7 +9,7 @@ end
 
 function bestInt = computeBestInt(S,model)
 
-[sb, se, comb] = findStormsForSat(S, 'ae', 500, 0, 2, true);
+[sb, se, comb] = findStormsForSat(S, 'ae', 400, 0, 2, true);
 if strcmpi(model,'msis')
     [Tex] = computeMsis(S);
     [T0, dT0] = computeMsisDtmLb(S);
