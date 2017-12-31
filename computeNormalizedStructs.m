@@ -51,6 +51,8 @@ figure; plot(1./efold, corrs.^2); title([name,' equatorial'])
 corrs_eq = corrs';
 eq_mean = sum(corrs.^2 .* 1./efold') / sum(corrs.^2)
 
+b0 = 0.5 * (eq_mean + polar_mean)
+
 corrs = computeBestEfold(S, efold);
 figure; plot(1./efold, corrs.^2); title([name,' all'])
 
@@ -64,7 +66,7 @@ end
 
 function corrs_mean = computeBestEfold(S, efold)
 
-[sb,se,stormInd] = findStormsForSat(S,'ae',500,0,2,true);
+[sb,se,stormInd] = findStormsForSat(S,'ae',400,0,2,true);
 
 corrs = zeros(length(efold), length(sb));
 tau = (1:size(S.aeInt,2))';
