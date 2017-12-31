@@ -1081,7 +1081,7 @@ if fitSimultaneously || fitBaseAgain
           ptfOrig = paramsToFit;
           
           %expTimes = [6.0546   17.9177    5.2326    3.9629];
-          expTimes = [0.1627, 0.1149, 0.1079, 0.1473];
+          expTimes = [0.1672, 0.1318, 0.1100, 0.1507];
           expTimesLat = [0,0,0,0];
 
           initGuess(stormInd(1:numStorm:end)) = expTimes;
