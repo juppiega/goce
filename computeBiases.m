@@ -16,6 +16,7 @@ end
 
 rmInd = setdiff(1:length(S.data),ind);
 S = removeDataPoints(S, rmInd,true,true,true,true);
+S = computeVariablesForFit(S);
 
 load optCoeff
 
