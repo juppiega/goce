@@ -47,9 +47,9 @@ elseif strcmpi(name,'Tex')
     obs_il = evalTex(S, optCoeff(TexInd));
 end
 
-logOM_dtm = log(mean(S.data./obs_dtm))
-logOM_msis = log(mean(S.data./obs_msis))
-logOM_il = log(mean(S.data./obs_il))
+logOM_dtm = mean(log(S.data./obs_dtm))
+logOM_msis = mean(log(S.data./obs_msis))
+logOM_il = mean(log(S.data./obs_il))
 
 end
 
