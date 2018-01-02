@@ -51,6 +51,7 @@ logOM_dtm = mean(log(S.data./obs_dtm))
 logOM_msis = mean(log(S.data./obs_msis))
 logOM_il = mean(log(S.data./obs_il))
 
+
 end
 
 function [Tex, dT0, T0] = findTempsForFit_this(varStruct, TexCoeffs, dTCoeffs, T0Coeffs)
