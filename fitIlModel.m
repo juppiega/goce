@@ -1211,7 +1211,7 @@ if fitSimultaneously || fitBaseAgain
 
     saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
     fprintf('All parameters refitted.\n');
-    %error('Copy quietAll to optCoeff')
+    error('Copy quietAll to optCoeff')
 else
     load(filename)
 %     load onePercent_err % TESTAUS
