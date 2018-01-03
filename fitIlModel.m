@@ -1209,7 +1209,7 @@ if fitSimultaneously || fitBaseAgain
     %[comp] = fun(initGuess); %disp([comp(1), optCoeff]);
     %JTJ_diag_matlab = diag(J'*J);
 
-    saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
+    saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs, paramsToFit)
     fprintf('All parameters refitted.\n');
     error('Copy quietAll to optCoeff')
 else
@@ -1335,11 +1335,11 @@ if ~fitSimultaneous && quietData
 else
     filename = 'optCoeff.mat';
 end
-saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
+saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs, paramsToFit)
 
 end
 
-function [] = saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs)
+function [] = saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs, paramsToFit)
 
 save(filename, 'optCoeff', '-v7.3');
 TexInd = TexStruct.coeffInd; save(filename, 'TexInd', '-append');
@@ -1351,6 +1351,7 @@ O2Ind = O2Struct.coeffInd; save(filename, 'O2Ind', '-append');
 save(filename, 'JTWJ', '-append')
 save(filename, 'dTCoeffs', '-append');
 save(filename, 'T0Coeffs', '-append');
+save(filename, 'paramsToFit', '-append');
 
 end
 
