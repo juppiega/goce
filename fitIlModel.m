@@ -1071,7 +1071,7 @@ if fitSimultaneously || fitBaseAgain
           N2biases = N2Struct.coeffInd(2:1+N2Struct.numBiases);
           HeBiases = HeStruct.coeffInd(2:1+HeStruct.numBiases);
           %ArBiases =  ArStruct.coeffInd(2:1+ArStruct.numBiases);
-          initGuess(Obiases) = [0.0680	0.2379	0.0665	0.1053	-0.1417];
+          initGuess(Obiases) = [0.0680	0.2379	0.0665	0.1053	-0.1162];
           initGuess(N2biases) = [-0.1043	0.1267	0.0401	-0.0289	0.1312	-0.1166];
           initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
           %initGuess(ArBiases) = [-0.0043	0.0880];
@@ -1211,7 +1211,7 @@ if fitSimultaneously || fitBaseAgain
 
     saveToFile(filename, optCoeff, JTWJ, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, dTCoeffs, T0Coeffs, paramsToFit)
     fprintf('All parameters refitted.\n');
-    error('Copy quietAll to optCoeff')
+    %error('Copy quietAll to optCoeff')
 else
     load(filename)
 %     load onePercent_err % TESTAUS
@@ -1313,7 +1313,7 @@ tolOpt = 1E0;
 lambda0 = 1E-2;
 
 if fitSimultaneous || quietData
-    tempSpecRelWeight = 0.5;
+    tempSpecRelWeight = 0.3;
 else
     tempSpecRelWeight = 0.125;
 end
