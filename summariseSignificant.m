@@ -64,7 +64,13 @@ if all(param(ind) ~= 0)
     sign{k} = 'F';
 elseif any(param(ind) ~= 0)
     sign{k} = 'P';
+else
+    sign{k} = '0';
 end
+
 k = k + 1;
+if k > 12
+    k = 1;
+end
 
 end
