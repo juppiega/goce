@@ -61,9 +61,9 @@ if isempty(k)
 end
 
 if all(param(ind) ~= 0)
-    sign(k) = 'F';
+    sign{k} = 'F';
 elseif any(param(ind) ~= 0)
-    sign(k) = 'P';
+    sign{k} = 'P';
 end
 k = k + 1;
 
