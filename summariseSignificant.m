@@ -12,7 +12,7 @@ signMat(4,:) = computeSignificant(optCoeff(HeInd),5);
 
 outputCell = cell(5,Nclass+1);
 outputCell(2:end,2:end) = signMat;
-outputCell(1,1:end) = {'latitude', 'solar', 'annualSymm', 'annualAsymm', 'diurnal', 'semidiurnal', 'terdiurnal', 'quaterdiurnal',...
+outputCell(1,2:end) = {'latitude', 'solar', 'annualSymm', 'annualAsymm', 'diurnal', 'semidiurnal', 'terdiurnal', 'quaterdiurnal',...
                         'longitudinal','S_0','S_1','S_2'};
 outputCell(2:end,1) = {'Tex','O','N2','He'};
 
