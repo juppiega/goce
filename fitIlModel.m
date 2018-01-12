@@ -1053,7 +1053,7 @@ if fitSimultaneously || fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
-    rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 0.95;
+    rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 0.92;
     rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.94;
     rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.99;
     numStorm = numCoeffs - numQuietCoeffs;
@@ -1071,9 +1071,9 @@ if fitSimultaneously || fitBaseAgain
           N2biases = N2Struct.coeffInd(2:1+N2Struct.numBiases);
           HeBiases = HeStruct.coeffInd(2:1+HeStruct.numBiases);
           %ArBiases =  ArStruct.coeffInd(2:1+ArStruct.numBiases);
-          initGuess(Obiases) = [0.0680	0.2379	0.0665	0.1053	-0.1162];
-          initGuess(N2biases) = [-0.1043	0.1267	0.0401	-0.0289	0.1312	-0.1166];
-          initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
+          initGuess(Obiases) = [0.0680	0	0.0665	0	-0.1162];
+          initGuess(N2biases) = [-0.1043	0.1267	0	0	0.1312	-0.1166];
+          initGuess(HeBiases) = [0	0	0	-0.0968	0.1847];
           %initGuess(ArBiases) = [-0.0043	0.0880];
           allBiasInd = [Obiases, N2biases, HeBiases];
           paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
