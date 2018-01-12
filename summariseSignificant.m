@@ -3,15 +3,15 @@ function [] = summariseSignificant (saveFolder)
 load optCoeff.mat
 
 Nclass = 9 + 3;
-signMat = zeros(4,Nclass);
+signMat = cell(4,Nclass);
 
-signMat(1,:) = computeSignificant(optCoeff(TexInd));
-signMat(1,:) = computeSignificant(optCoeff(OInd));
-signMat(1,:) = computeSignificant(optCoeff(N2Ind));
-signMat(1,:) = computeSignificant(optCoeff(HeInd));
+signMat(1,:) = computeSignificant(optCoeff(TexInd),0);
+signMat(2,:) = computeSignificant(optCoeff(OInd),5);
+signMat(3,:) = computeSignificant(optCoeff(N2Ind),6);
+signMat(4,:) = computeSignificant(optCoeff(HeInd),5);
 
 outputCell = cell(5,Nclass+1);
-outputCell(2:end,2:end) = num2cell(signMat);
+outputCell(2:end,2:end) = signMat;
 outputCell(1,1:end) = {'latitude', 'solar', 'annualSymm', 'annualAsymm', 'diurnal', 'semidiurnal', 'terdiurnal', 'quaterdiurnal',...
                         'longitudinal','S_0','S_1','S_2'};
 outputCell(2:end,1) = {'Tex','O','N2','He'};
@@ -22,7 +22,7 @@ end
 
 function sign = computeSignificant(param, numBiases)
 
-sign = zeros(1,12);
+sign = cell(1,12);
 
 k = numBiases + 1;
 latitude = k+1:k+14; k = k + 14;
@@ -38,41 +38,33 @@ S_0 = k+1:k+9; k = k + 9;
 S_1 = k+1:k+8; k = k + 8;
 S_2 = k+1:k+7; k = k + 7;
 
-if any(param(latitude) ~= 0)
-    sign(1) = 1;
+sign = fillCell(sign, param, latitude);
+sign = fillCell(sign, param, solar);
+sign = fillCell(sign, param, annualSymm);
+sign = fillCell(sign, param, annualAsymm);
+sign = fillCell(sign, param, diurnal);
+sign = fillCell(sign, param, semidiurnal);
+sign = fillCell(sign, param, terdiurnal);
+sign = fillCell(sign, param, quaterdiurnal);
+sign = fillCell(sign, param, longitudinal);
+sign = fillCell(sign, param, S_0);
+sign = fillCell(sign, param, S_1);
+sign = fillCell(sign, param, S_2);
+
 end
-if any(param(solar) ~= 0)
-    sign(2) = 1;
+
+function sign = fillCell(sign, param, ind)
+
+persistent k;
+if isempty(k)
+    k = 1;
 end
-if any(param(annualSymm) ~= 0)
-    sign(3) = 1;
+
+if all(param(ind) ~= 0)
+    sign(k) = 'F';
+elseif any(param(ind) ~= 0)
+    sign(k) = 'P';
 end
-if any(param(annualAsymm) ~= 0)
-    sign(4) = 1;
-end
-if any(param(diurnal) ~= 0)
-    sign(5) = 1;
-end
-if any(param(semidiurnal) ~= 0)
-    sign(6) = 1;
-end
-if any(param(terdiurnal) ~= 0)
-    sign(7) = 1;
-end
-if any(param(quaterdiurnal) ~= 0)
-    sign(8) = 1;
-end
-if any(param(longitudinal) ~= 0)
-    sign(9) = 1;
-end
-if any(param(S_0) ~= 0)
-    sign(10) = 1;
-end
-if any(param(S_1) ~= 0)
-    sign(11) = 1;
-end
-if any(param(S_2) ~= 0)
-    sign(12) = 1;
-end
+k = k + 1;
 
 end
