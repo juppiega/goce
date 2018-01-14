@@ -40,7 +40,7 @@ ilRho = computeRho(T0, dT, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);
 Z = reshape(ilRho, size(X));
 
 figure;
-plot(X,Y,Z,'edgecolor','none');
+surf(X,Y,Z,'edgecolor','none');
 view(2);
 colorbar;
 axis tight;
