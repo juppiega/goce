@@ -162,7 +162,7 @@ S.altitude = z';
 S.F = F * ones(N,1);
 S.FA = FA * ones(N,1);
 S.doy = zeros(N,1) + doy;
-S = computeVariablesForFit(S, false);
+S = computeVariablesForFit(S);
 S = computeGeopotentialHeight(S);
 
 TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
@@ -254,7 +254,7 @@ S.ap9h = Ap*ones(N,1); S.ap12To33h = Ap*ones(N,1); S.ap36To57h = Ap*ones(N,1);
 % [lstGrid, latGrid] = meshgrid(lst, lat);
 % S = computeLatLstGrid(S, lat, lst);
 % S.numBiases = 0;
-S = computeVariablesForFit(S, false);
+S = computeVariablesForFit(S);
 S = computeGeopotentialHeight(S);
 
 [param, msisParam, dtmParam] = computeParams(S, coeffStruct, paramName, numBiasesStruct);
