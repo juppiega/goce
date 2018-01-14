@@ -26,8 +26,12 @@ corrMat_aver = zeros(length(sb),length(efolds));
 rmInd = [];
 numDataPoints = [];
 numDataPoints_aver = [];
+minLat = 0; maxLat = 20;
+magLatAbs = abs(convertToMagneticCoordinates(S.latitude, S.longitude,...
+                                                S.altitude));
 for j = 1:length(sb)
     ind = sb(j):se(j);
+    ind(magLatAbs(ind) < minLat | magLatAbs(ind) > maxLat) = [];
     numDataPoints = [numDataPoints, length(ind)];
     rho = S.rhs(ind);
     rho_aver = computeOrbitAverage(rho, S.latitude(ind),S.timestamps(ind));
