@@ -1,7 +1,7 @@
 function [] = computeEfold()
 
 load('ilData.mat')
-model = 'msis';
+model = 'il';
 
 computeBestInt(HeStruct,model);
 
@@ -10,12 +10,14 @@ end
 function bestInt = computeBestInt(S,model)
 
 [sb, se, comb] = findStormsForSat(S, 'ae', 400, 0, 2, true);
+load coeffsAll
 if strcmpi(model,'msis')
     [Tex] = computeMsis(S);
     [T0, dT0] = computeMsisDtmLb(S);
 else
-    [Tex] = computeDtm(S);
-    [~,~,T0, dT0] = computeMsisDtmLb(S);
+    T0 = evalT0(S,T0Coeffs);
+    dT0 = evalDT(S,dTCoeffs);
+    Tex = evalTex(S,optCoeff(TexInd));
 end
 S = computeDensityRHS(S, Tex, dT0, T0);
 

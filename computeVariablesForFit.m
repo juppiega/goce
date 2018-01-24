@@ -117,7 +117,7 @@ end
 addStruct.dv = 2*pi* (addStruct.solarTime) / 24;
 
 if nargin == 1 || computeMagDiurnal
-        lstMag = computeMagneticTime(magLon, addStruct.doy, addStruct.timestamps);
+    lstMag = computeMagneticTime(magLon, addStruct.doy, addStruct.timestamps);
     addStruct.dv_mag = 2*pi*lstMag / 24;
 else
     addStruct.dv_mag = addStruct.dv;
