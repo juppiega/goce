@@ -63,9 +63,9 @@ logOM_dtm = findBestBias(log(model_dtm), data_dtm)
 logOM_msis = findBestBias(log(model_msis), data_msis)
 logOM_il = findBestBias(log(model_il), data_il)
 
-figure;
-hist(log(model_il./model_dtm),50);
-title('model ratio')
+%figure;
+%hist(log(model_il./model_dtm),50);
+%title('model ratio')
 
 end
 
