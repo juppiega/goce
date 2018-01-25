@@ -18,7 +18,7 @@ rmInd = setdiff(1:length(S.data),ind);
 S = removeDataPoints(S, rmInd,true,true,true,true);
 S = computeVariablesForFit(S);
 
-load optCoeff
+load coeffsAll
 
 if ~strcmpi(name, 'Tex') && ~strcmpi(name, 'T0') && ~strcmpi(name, 'dT')
     [Tex, dT0, T0] = findTempsForFit_this(S, optCoeff(TexInd), dTCoeffs, T0Coeffs);
