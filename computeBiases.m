@@ -18,7 +18,7 @@ rmInd = setdiff(1:length(S.data),ind);
 S = removeDataPoints(S, rmInd,true,true,true,true);
 S = computeVariablesForFit(S);
 
-load optCoeff.newEfold.mat
+load optCoeff
 
 if ~strcmpi(name, 'Tex') && ~strcmpi(name, 'T0') && ~strcmpi(name, 'dT')
     [Tex, dT0, T0] = findTempsForFit_this(S, optCoeff(TexInd), dTCoeffs, T0Coeffs);
@@ -72,6 +72,13 @@ end
 function bias = findBestBias(model, observed)
 
 fun = @(x)mean(observed ./ (x + model)) - 1;
+figure; 
+t = -4:0.01:4;
+for i = 1:length(t)
+    err(i) = fun(t(i));
+end
+plot(t, err);
+
 bias = fzero(fun, 0);
 
 end
