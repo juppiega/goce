@@ -59,9 +59,9 @@ elseif strcmpi(name,'Tex')
     model_il = evalTex(S, optCoeff(TexInd));
 end
 
-logOM_dtm = findBestBias(log(model_dtm), data_dtm)
-logOM_msis = findBestBias(log(model_msis), data_msis)
-logOM_il = findBestBias(log(model_il), data_il)
+logOM_dtm = mean(data_dtm - log(model_dtm))
+logOM_msis = mean(data_msis - log(model_msis))
+logOM_il = mean(data_il - log(model_il))
 
 %figure;
 %hist(log(model_il./model_dtm),50);
@@ -72,13 +72,6 @@ end
 function bias = findBestBias(model, observed)
 
 fun = @(x)mean(observed ./ (x + model)) - 1;
-figure; 
-t = -4:0.01:4;
-for i = 1:length(t)
-    err(i) = fun(t(i));
-end
-plot(t, err);
-
 bias = fzero(fun, 0);
 
 end
