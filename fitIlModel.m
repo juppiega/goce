@@ -1039,7 +1039,7 @@ if ~quietData
     %[comp_lin,JAC] = fun_lin(initGuess(paramsToFit));
 end
 %error('Not complete');
-[comp] = fun(initGuess);
+%[comp] = fun(initGuess);
 %[derivNorms, indSort] = sort(rms(JAC)); indSort = paramsToFit(indSort);
 %[minDiff, indMin] = min(diff(derivNorms));
 %fprintf('Min difference between param effects: %e for indices (%d, %d)\n', minDiff, indSort(indMin), indSort(indMin+1))
