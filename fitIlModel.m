@@ -483,15 +483,15 @@ Gvec = G_majorTex(coeff, varStruct, varStruct.numBiases);
 if varStruct.numBiases == 0
     residual = ((varStruct.rhs) ./ (max(coeff(1) + Gvec, 1))) - 1;
 elseif varStruct.numBiases > 0
-    numObs = sum(biases,1);
+    numObs = sum(varStruct.biases,1);
     k = 0;
     for i = 1:length(numObs)
         if coeff(1+i) ~= 0
             bias = mean(varStruct.rhs - coeff(1) - Gvec);
         else
             bias = 0;
-            residual(k+1:k+numObs(i)) = ((varStruct.rhs(k+1:k+numObs(i))) ./ (max(coeff(1) + bias + Gvec(k+1:k+numObs(i)), 1))) - 1;
         end
+        residual(k+1:k+numObs(i)) = ((varStruct.rhs(k+1:k+numObs(i))) ./ (max(coeff(1) + bias + Gvec(k+1:k+numObs(i)), 1))) - 1;
         k = k + numObs(i);
         bias
     end
