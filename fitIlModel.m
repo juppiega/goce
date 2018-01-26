@@ -493,7 +493,6 @@ elseif varStruct.numBiases > 0
         end
         residual(k+1:k+numObs(i)) = ((varStruct.rhs(k+1:k+numObs(i))) ./ (max(coeff(1) + bias + Gvec(k+1:k+numObs(i)), 1))) - 1;
         k = k + numObs(i);
-        bias
     end
     
 else
