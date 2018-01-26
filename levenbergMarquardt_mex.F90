@@ -835,11 +835,11 @@ function computeMajorSpeciesResidual(varStruct, Tex, dT0, T0, coeff) result(resi
         k = 0;
         do i = 1,size(numObs)
             if (coeff(1+i) /= 0.0) then
-                bias = mean(rhs(k+1:k+numObs(i)) - coeff(1) - Gvec(k+1:k+numObs(i)));
+                bias = sum(rhs(k+1:k+numObs(i)) - coeff(1) - Gvec(k+1:k+numObs(i))) / numObs(i);
             else
                 bias = 0;
             end if
-            residual(k+1:k+numObs(i)) = ((rhs(k+1:k+numObs(i))) / (max(coeff(1) + bias + Gvec(k+1:k+numObs(i)), 1))) - 1;
+            residual(k+1:k+numObs(i)) = ((rhs(k+1:k+numObs(i))) / (max(coeff(1) + bias + Gvec(k+1:k+numObs(i)), 1D0))) - 1;
             k = k + numObs(i);
         end do
     end if
