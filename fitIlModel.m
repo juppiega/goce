@@ -1030,7 +1030,7 @@ else
 end
 
 fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
-[comp] = fun(initGuess);
+%[comp] = fun(initGuess);
 if ~quietData
     fun_log = @(coeff)modelMinimizationFunction_log(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, initGuess, paramsToFit, coeff);
     %[comp_log,JAC] = fun_log(initGuess(paramsToFit));
