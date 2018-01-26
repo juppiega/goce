@@ -820,7 +820,8 @@ function computeMajorSpeciesResidual(varStruct, Tex, dT0, T0, coeff) result(resi
     type(dataStruct) :: varStruct
     real(kind = 8), intent(in) :: Tex(:), dT0(:), T0(:), coeff(:)
     real(kind = 8), allocatable :: residual(:), Gvec(:), rhs(:)
-    integer(kind = 8) :: k, numObs(:), i
+    integer(kind = 8) :: k, i
+    integer(kind = 8), allocatable :: numObs(:)
     real(kind = 8) :: bias
     
     allocate(rhs(size(Tex)), residual(size(Tex)))
@@ -833,12 +834,12 @@ function computeMajorSpeciesResidual(varStruct, Tex, dT0, T0, coeff) result(resi
         numObs = sum(varStruct%biases,1);
         k = 0;
         do i = 1,size(numObs)
-            if (coeff(1+i) /= 0) then
-                bias = mean(varStruct%rhs(k+1:k+numObs(i)) - coeff(1) - Gvec(k+1:k+numObs(i)));
+            if (coeff(1+i) /= 0.0) then
+                bias = mean(rhs(k+1:k+numObs(i)) - coeff(1) - Gvec(k+1:k+numObs(i)));
             else
                 bias = 0;
             end if
-            residual(k+1:k+numObs(i)) = ((varStruct%rhs(k+1:k+numObs(i))) / (max(coeff(1) + bias + Gvec(k+1:k+numObs(i)), 1))) - 1;
+            residual(k+1:k+numObs(i)) = ((rhs(k+1:k+numObs(i))) / (max(coeff(1) + bias + Gvec(k+1:k+numObs(i)), 1))) - 1;
             k = k + numObs(i);
         end do
     end if
