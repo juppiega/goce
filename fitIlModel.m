@@ -488,6 +488,8 @@ else
     error('Incorrect number of biases!')
 end
 
+biasko = varStruct.rhs - coeff(1) - Gvec;
+
 end
 
 function [residual] = computeSpeciesResidual_minor(varStruct, Tex, dT0, T0, coeff)
