@@ -1126,7 +1126,7 @@ if fitSimultaneously || fitBaseAgain
 %         end
 %         save('biases.mat','final_points','final_fvals','initPoints');
         %initGuess(stormInd) = 0; % TESTAUS
-        load('optCoeff.mat','optCoeff')
+        load('coeffsAll.mat','optCoeff')
         initGuess = optCoeff;
         fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
 %        [comp] = fun(initGuess);
