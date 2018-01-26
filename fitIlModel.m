@@ -487,7 +487,7 @@ elseif varStruct.numBiases > 0
     k = 0;
     for i = 1:length(numObs)
         if coeff(1+i) ~= 0
-            bias = mean(varStruct.rhs - coeff(1) - Gvec);
+            bias = mean(varStruct.rhs(k+1:k+numObs(i)) - coeff(1) - Gvec(k+1:k+numObs(i)));
         else
             bias = 0;
         end
