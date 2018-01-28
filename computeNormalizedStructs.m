@@ -53,8 +53,8 @@ eq_mean = sum(corrs.^2 .* 1./efold') / sum(corrs.^2)
 
 b0 = 0.5 * (eq_mean + polar_mean)
 
-corrs = computeBestEfold(S, efold);
-figure; plot(1./efold, corrs.^2); title([name,' all'])
+%corrs = computeBestEfold(S, efold);
+%figure; plot(1./efold, corrs.^2); title([name,' all'])
 
 x_eq = 0; x_polar = 1.1509;
 x = [ones(size(efold))*x_eq, ones(size(efold))*x_polar];
