@@ -60,7 +60,7 @@ x_eq = 0; x_polar = 1.1509;
 x = [ones(size(efold))*x_eq, ones(size(efold))*x_polar];
 w = [corrs_eq.^2, corrs_polar.^2];
 y = [1./efold, 1./efold];
-p = fitlm(x',y','weights',w')
+p = fitlm(x',y','weights',w');
 
 end
 
