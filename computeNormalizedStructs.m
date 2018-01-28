@@ -41,13 +41,13 @@ magLat = convertToMagneticCoordinates(S.latitude, S.longitude,...
 efold = 1:0.5:24;
 Spolar = removeDataPoints(S, abs(magLat) < 50,true,true,true,true);
 corrs = computeBestEfold(Spolar, efold);
-figure; plot(1./efold, corrs.^2); title([name,' polar'])
+%figure; plot(1./efold, corrs.^2); title([name,' polar'])
 corrs_polar = corrs';
 polar_mean = sum(corrs.^2 .* 1./efold') / sum(corrs.^2)
 
 Seq = removeDataPoints(S, abs(magLat) > 30,true,true,true,true);
 corrs = computeBestEfold(Seq, efold);
-figure; plot(1./efold, corrs.^2); title([name,' equatorial'])
+%figure; plot(1./efold, corrs.^2); title([name,' equatorial'])
 corrs_eq = corrs';
 eq_mean = sum(corrs.^2 .* 1./efold') / sum(corrs.^2)
 
