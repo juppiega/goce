@@ -4,7 +4,7 @@ function [magneticLocalTime] = computeMagneticTime(magneticLongitude, doy, times
 hours = (timestampsDatenum - floor(timestampsDatenum)) * 24;
 
 subSolarLat = computeDeclination(doy);
-subSolarLon = 15 * (12 + computeEquationOfTime(doy) - hours);
+subSolarLon = 15 * (12 - computeEquationOfTime(doy) - hours);
 
 altitude = ones(size(doy)) * 270e3;
 [~, magneticSubSolarLon] = convertToMagneticCoordinates(subSolarLat, subSolarLon, altitude);
