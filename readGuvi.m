@@ -106,7 +106,7 @@ for i = 1:length(guviFiles)
 end
 p.stop;
 
-rmInd = alt == 0;
+rmInd = alt == 0 | sza > 60;
 lat(rmInd) = [];
 lon(rmInd) = [];
 sza(rmInd) = [];

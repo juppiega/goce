@@ -477,7 +477,7 @@ function G_quiet(a, S)
     !integer, intent(in) :: numBiases
     real(kind = 8), allocatable :: G_quiet(:), latitudeTerm(:), solarTerm(:), annual(:), diurnal(:), semidiurnal(:), &
                                    terdiurnal(:), quaterdiurnal(:), geomagnetic(:), geom_symmetric(:), geom_yearly(:),&
-                                   geom_lst(:), AE_base(:), longitudinal(:)
+                                   geom_lst(:), AE_base(:), longitudinal(:), df(:), dfa(:)
     integer :: k, dPh, numInts, dPy
     integer(kind = 4) :: mexPrintf, i
     real(kind = 8) :: pi
@@ -485,10 +485,12 @@ function G_quiet(a, S)
     
     k = 0; ! Counter, which helps adding termS%
     !i = mexPrintf('G Begin'//achar(13))
+    df = S%F - S%FA
+    dfa = S%FA - 80
     ! Latitude termS%
     latitudeTerm = a(k+1)*S%P10 + a(k+2)*S%P20 + a(k+3)*S%P30 + a(k+4)*S%P40 + a(k+5)*S%P50 + a(k+6)*S%P60 + &
-                     a(k+7)*S%FA*S%P10 + a(k+8)*S%FA*S%P20 + a(k+9)*S%FA*S%P30 + a(k+10)*S%FA*S%P40 + &
-                     a(k+11)*S%F*S%P10 + a(k+12)*S%F*S%P20 + a(k+13)*S%F*S%P30 + a(k+14)*S%F*S%P40;
+                     a(k+7)*dfa*S%P10 + a(k+8)*dfa*S%P20 + a(k+9)*dfa*S%P30 + a(k+10)*dfa*S%P40 + &
+                     a(k+11)*df*S%P10 + a(k+12)*df*S%P20 + a(k+13)*df*S%P30 + a(k+14)*df*S%P40;
     k = k + 14;
 
     ! % Solar activity termS%
