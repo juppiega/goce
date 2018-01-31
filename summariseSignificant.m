@@ -1,6 +1,9 @@
 function [] = summariseSignificant (saveFolder)
 
 load optCoeff.mat
+numStorm = length(OInd) - length(dTCoeffs);
+dTCoeffs = [dTCoeffs; zeros(numStorm,1)];
+T0Coeffs = [T0Coeffs; zeros(numStorm,1)];
 
 Nclass = 9 + 3;
 signMat = cell(6,Nclass);
