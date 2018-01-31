@@ -3,18 +3,20 @@ function [] = summariseSignificant (saveFolder)
 load optCoeff.mat
 
 Nclass = 9 + 3;
-signMat = cell(4,Nclass);
+signMat = cell(6,Nclass);
 
 signMat(1,:) = computeSignificant(optCoeff(TexInd),0);
 signMat(2,:) = computeSignificant(optCoeff(OInd),5);
 signMat(3,:) = computeSignificant(optCoeff(N2Ind),6);
 signMat(4,:) = computeSignificant(optCoeff(HeInd),5);
+signMat(5,:) = computeSignificant(dTCoeffs,0);
+signMat(6,:) = computeSignificant(T0Coeffs,0);
 
-outputCell = cell(5,Nclass+1);
+outputCell = cell(7,Nclass+1);
 outputCell(2:end,2:end) = signMat;
 outputCell(1,2:end) = {'latitude', 'solar', 'annualSymm', 'annualAsymm', 'diurnal', 'semidiurnal', 'terdiurnal', 'quaterdiurnal',...
                         'longitudinal','S_0','S_1','S_2'};
-outputCell(2:end,1) = {'Tex','O','N2','He'};
+outputCell(2:end,1) = {'Tex','O','N2','He','dT','T0'};
 
 cell2csv([saveFolder, '/significant.csv'], outputCell);
 
