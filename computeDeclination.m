@@ -12,4 +12,4 @@ lambda = L + 1.915*sind(g) + 0.020*sind(2*g);
 epsilon = 23.439;
 declination = asind(sind(epsilon).*sind(lambda));
 
-endfunction
+end
