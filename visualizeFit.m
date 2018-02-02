@@ -61,25 +61,25 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 400;
-lat = -90:5:90;
-lst = 0:0.5:24;
+z = 130;
+lat = -90:2:90;
+lst = 0:0.2:24;
 lon = 0;
-doy = 50;
-F = 70;
-FA = 70;
-aeInt = 400*ones(1,24);
+doy = 180;
+F = 80;
+FA = 80;
+aeInt = 20*ones(1,24);
 Ap = 3;
 lstMean = false;
 lonMean = false;
 latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
-onlyIL = false;
+onlyIL = true;
 outputNetCdf = true;
-deviationFromQuiet = true;
+deviationFromQuiet = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'He', onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
+    sameColorBars, 'yx', 'dT', onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
 
 
 z = 125:5:600;

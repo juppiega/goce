@@ -102,7 +102,7 @@ lbDTStruct.altitude = lbDTStruct.altitude(1) * ones(size(lbDTStruct.data));
 
 removeInd = lbDTStruct.solarTime < 0;
 removeInd(lbDTStruct.data <= 1 | lbDTStruct.data > 20) = true;
-removeInd(85 < lbDTStruct.zenithAngle & lbDTStruct.zenithAngle < 95) = true;
+%removeInd(85 < lbDTStruct.zenithAngle & lbDTStruct.zenithAngle < 95) = true;
 removeInd(lbDTStruct.apNow > 15) = true;
 %removeInd(lbDTStruct.nightObservation == 2) = true; % Remove twilight observations.
 %removeInd(lbDTStruct.nightObservation == 1 & abs(lbDTStruct.latitude) > 52) = true;
