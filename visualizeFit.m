@@ -17,8 +17,8 @@ end
 
 % Check the existence of the data file.
 if exist('ilData.mat', 'file')
-    load('ilData.mat', 'rhoStruct')
-    %load('ilData.mat', 'rhoStruct', 'dTCoeffs', 'T0Coeffs') % TESTAUS
+    %load('ilData.mat', 'rhoStruct')
+    load('ilData.mat', 'rhoStruct', 'dTCoeffs', 'T0Coeffs') % TESTAUS
 else
     error('File ilData.mat not found!')
 end
