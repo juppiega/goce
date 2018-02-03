@@ -132,7 +132,7 @@ removeInd = lbT0Struct.apNow > 15;
 spuriousLocationChanges = find(abs(diff(lbT0Struct.latitude)) > 1.0) + 1;
 removeInd(spuriousLocationChanges) = true;
 removeInd(lbT0Struct.data <= 250 | lbT0Struct.data >= 850) = true;
-removeInd(lbT0Struct.Ti_err > 50) = true(1);
+removeInd(lbT0Struct.Ti_err > 1000) = true(1);
 removeInd(lbT0Struct.fundPulseLen > 100*1E-6) = true; % Remove > 100 us (>~15 km) pulses.
 if nargin >= 11
     [~,~,stormInd] = findStormsForSat(lbT0Struct,'ae',aeQuietLimit,0,2,true);
