@@ -94,8 +94,12 @@ if fitSimultaneous
     [rhoStruct, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct] = ...
     removeAndFixData(rhoStruct, aeThreshold, TempStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, lbDTStruct, lbT0Struct);
     
-    [rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
+    %[rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct] = ...
+    %subsampleStructs(rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, subsampPercent);
+
+    [rhoStruct] = ...
     subsampleStructs(rhoStruct, TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, subsampPercent);
+
     
     fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign, fitSimultaneous)
     
@@ -905,7 +909,7 @@ O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
 if fitSimultaneous || quietData
-    tempSpecRelWeight = 0.05;
+    tempSpecRelWeight = 0.8;
 else
     tempSpecRelWeight = 0.125;
 end
@@ -1324,7 +1328,7 @@ tolOpt = 1E0;
 lambda0 = 1E-2;
 
 if fitSimultaneous || quietData
-    tempSpecRelWeight = 0.3;
+    tempSpecRelWeight = 0.8;
 else
     tempSpecRelWeight = 0.125;
 end
@@ -1395,7 +1399,7 @@ aeInt = [TexStruct.aeInt; OStruct.aeInt; N2Struct.aeInt; HeStruct.aeInt; ...
  aeThreshold = 400;
  ind = any(aeInt >= aeThreshold,2);
  w = sum(weights(~ind)) / sum(weights(ind));
- weights(ind) = w * weights(ind);
+ %weights(ind) = w * weights(ind); %TESTAUS
 
 % goceInd = TempAndSpectrometerLen + rhoStruct.goce;
 % graceInd = TempAndSpectrometerLen + rhoStruct.grace;
