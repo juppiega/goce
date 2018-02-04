@@ -10,7 +10,7 @@ if ~exist(saveFolder, 'file')
 end
 
 if exist('optCoeff.mat', 'file')
-    load optCoeff
+    load coeffsAll
 else
     error('File optCoeff.mat not found!')
 end
