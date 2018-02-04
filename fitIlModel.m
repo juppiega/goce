@@ -371,7 +371,7 @@ endSemidiurnal = 89;
 lat = 6:15;
 solar = 16:20;
 symmAnn = [21:38];
-assAnn = [43:52];
+assAnn = [41,43:52];
 diurnal = [53:62,64:73];
 semidiurnal = [77:79, 85:87];
 paramsToFit = setdiff(1:endSemidiurnal, [lat, solar, symmAnn, assAnn, diurnal, semidiurnal]);
@@ -394,7 +394,7 @@ paramsToFit = [];
 tolFun = 1E-10;
 [lbT0Coeffs, JTWJ] = lbFit_mex(lbT0Struct, weights, lbT0Coeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 
-lbT0Coeffs(39:41) = -lbT0Coeffs(39:41);
+%lbT0Coeffs(39:41) = -lbT0Coeffs(39:41);
 
 end
 
