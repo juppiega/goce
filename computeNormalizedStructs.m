@@ -14,7 +14,7 @@ elseif strcmpi(name,'Tex')
     S = TexStruct;
 end
 
-load('coeffsAll.s2.mat')
+load('optCoeff.mat')
 
 S = computeVariablesForFit(S);
 %[T0, dT] = computeMsisDtmLb(S);
