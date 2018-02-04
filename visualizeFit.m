@@ -61,7 +61,7 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 130;
+z = 120;
 lat = -90:2:90;
 lst = 0:0.2:24;
 lon = 0;
@@ -75,7 +75,7 @@ lonMean = false;
 latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
-onlyIL = true;
+onlyIL = false;
 outputNetCdf = true;
 deviationFromQuiet = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
