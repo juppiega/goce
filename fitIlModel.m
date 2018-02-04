@@ -1082,9 +1082,9 @@ if fitSimultaneously || fitBaseAgain
           N2biases = N2Struct.coeffInd(2:1+N2Struct.numBiases);
           HeBiases = HeStruct.coeffInd(2:1+HeStruct.numBiases);
           %ArBiases =  ArStruct.coeffInd(2:1+ArStruct.numBiases);
-          initGuess(Obiases) = [-1,-1,-1,-1,-1];%[0.0680	0	0.0665	0	-0.1162];
-          initGuess(N2biases) = [-1,-1,-1,-1,-1,-1];%[-0.1043	0.1267	0	0	0.1312	-0.1166];
-          initGuess(HeBiases) = [-1,-1,-1,-1,-1];%[0	0	0	-0.0968	0.1847];
+          initGuess(Obiases) = [-1,0,-1,0,-1];%[0.0680	0	0.0665	0	-0.1162];
+          initGuess(N2biases) = [-1,-1,0,0,-1,-1];%[-0.1043	0.1267	0	0	0.1312	-0.1166];
+          initGuess(HeBiases) = [0,0,0,-1,-1];%[0	0	0	-0.0968	0.1847];
           %initGuess(ArBiases) = [-0.0043	0.0880];
           allBiasInd = [Obiases, N2biases, HeBiases];
           paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);

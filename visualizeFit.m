@@ -1,4 +1,4 @@
-function [] = visualizeFit(saveFolder, fullscreenFigs, satellite, quietData)
+function [] = visualizeFit(saveFolder, fullscreenFigs, satellite, quietData, paramName)
 aeThreshold = 0;
 
 if nargin == 2
@@ -61,7 +61,7 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 120;
+z = 400;
 lat = -90:2:90;
 lst = 0:0.2:24;
 lon = 0;
@@ -79,7 +79,7 @@ onlyIL = true;
 outputNetCdf = true;
 deviationFromQuiet = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'T0', onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
+    sameColorBars, 'yx', paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
 
 
 z = 125:5:600;
