@@ -394,6 +394,7 @@ paramsToFit = [];
 tolFun = 1E-10;
 [lbT0Coeffs, JTWJ] = lbFit_mex(lbT0Struct, weights, lbT0Coeffs, paramsToFit, tolX, tolFun, tolOpt, lambda0, isGradient);
 
+lbT0Coeffs(39:41) = -lbT0Coeffs(39:41);
 
 end
 
