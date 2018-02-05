@@ -612,7 +612,7 @@ if strcmpi(xname, 'z')
     S.altitude = X; xNum = 1;
 elseif strcmpi(xname, 'Latitude')
     S.latitude = X; xNum = 2;
-elseif strcmpi(xname, 'Solar Time')
+elseif strcmpi(xname, 'Solar time [h]')
     S.solarTime = X; xNum = 3;
 elseif strcmpi(xname, 'Longitude')
     S.longitude = X; xNum = 4;
@@ -624,7 +624,7 @@ if strcmpi(yname, 'z')
     S.altitude = Y; yNum = 1;
 elseif strcmpi(yname, 'Latitude')
     S.latitude = Y; yNum = 2;
-elseif strcmpi(yname, 'Solar Time')
+elseif strcmpi(yname, 'Solar time [h]')
     S.solarTime = Y; yNum = 3;
 elseif strcmpi(yname, 'Longitude')
     S.longitude = Y; yNum = 4;
@@ -632,7 +632,7 @@ elseif strcmpi(yname, 'Day of Year')
     S.doy = Y; yNum = 4;
 end
 
-names = {'z', 'Latitude', 'Solar Time', 'Longitude', 'Day of Year'};
+names = {'z', 'Latitude', 'Solar time [h]', 'Longitude', 'Day of Year'};
 nonVecInd = setdiff(1:length(names), [xNum, yNum]);
 nonVecNames = names(nonVecInd);
 vals = [S.altitude(1), S.latitude(1), S.solarTime(1), S.longitude(1), S.doy(1)];
@@ -659,7 +659,7 @@ function [X, Y, xname, yname] = findSurfXY(varargin)
 lh = length(varargin{1}); llat = length(varargin{2}); llst = length(varargin{3});...
 llon = length(varargin{4});    ldoy = length(varargin{5});
 a = [lh, llat, llst, llon, ldoy];
-names = {'z', 'Latitude', 'Solar time', 'Longitude', 'Day of year'};
+names = {'z', 'Latitude', 'Solar time [h]', 'Longitude', 'Day of year'};
 if strcmpi(varargin{6}, 'xy')
     xind = find(a > 1, 1, 'first');
     yind = find(a > 1, 1, 'last');
