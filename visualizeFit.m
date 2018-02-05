@@ -75,7 +75,7 @@ lonMean = false;
 latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
-onlyIL = false;
+onlyIL = true;
 outputNetCdf = true;
 deviationFromQuiet = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
