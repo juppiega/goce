@@ -608,31 +608,31 @@ end
 
 function [S, titleAddition] = assignPlotVars(S, X, Y, xname, yname, lstMean, lonMean, latitudeMean)
 
-if strcmpi(xname, 'altitude')
+if strcmpi(xname, 'z')
     S.altitude = X; xNum = 1;
-elseif strcmpi(xname, 'lat')
+elseif strcmpi(xname, 'Latitude')
     S.latitude = X; xNum = 2;
-elseif strcmpi(xname, 'lst')
+elseif strcmpi(xname, 'Solar Time')
     S.solarTime = X; xNum = 3;
-elseif strcmpi(xname, 'lon')
+elseif strcmpi(xname, 'Longitude')
     S.longitude = X; xNum = 4;
-elseif strcmpi(xname, 'doy')
+elseif strcmpi(xname, 'Day of year')
     S.doy = X; xNum = 4;
 end
 
-if strcmpi(yname, 'altitude')
+if strcmpi(yname, 'z')
     S.altitude = Y; yNum = 1;
-elseif strcmpi(yname, 'lat')
+elseif strcmpi(yname, 'Latitude')
     S.latitude = Y; yNum = 2;
-elseif strcmpi(yname, 'lst')
+elseif strcmpi(yname, 'Solar Time')
     S.solarTime = Y; yNum = 3;
-elseif strcmpi(yname, 'lon')
+elseif strcmpi(yname, 'Longitude')
     S.longitude = Y; yNum = 4;
-elseif strcmpi(yname, 'doy')
+elseif strcmpi(yname, 'Day of Year')
     S.doy = Y; yNum = 4;
 end
 
-names = {'z', 'lat', 'lst', 'lon', 'doy'};
+names = {'z', 'Latitude', 'Solar Time', 'Longitude', 'Day of Year'};
 nonVecInd = setdiff(1:length(names), [xNum, yNum]);
 nonVecNames = names(nonVecInd);
 vals = [S.altitude(1), S.latitude(1), S.solarTime(1), S.longitude(1), S.doy(1)];
