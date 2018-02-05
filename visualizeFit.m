@@ -344,14 +344,14 @@ end
 if sameColorBars
     subplot(3,1,1);
     %clims = plotSurfSubplot(lstGrid, latGrid, dtmParam, ['DTM ', paramName], FA, doy, heights(a), 16);
-    clims = plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 16);
+    clims = plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 16, figTitle);
 
     subplot(3,1,2);
-    plotSurfSubplot(xmat, ymat, msisParam, paramName, ['MSIS ',titleAddition], xname, yname, 16, clims);
+    plotSurfSubplot(xmat, ymat, msisParam, paramName, ['MSIS ',titleAddition], xname, yname, 16, figTitle, clims);
     %plotSurfSubplot(xmat, ymat, msisParam, ['MSIS ', paramName], FA, doy, altitude(a), 16, clims);
 
     subplot(3,1,3);
-    plotSurfSubplot(xmat, ymat, dtmParam, paramName, ['DTM ',titleAddition], xname, yname, 16, clims);
+    plotSurfSubplot(xmat, ymat, dtmParam, paramName, ['DTM ',titleAddition], xname, yname, 16, figTitle, clims);
     %plotSurfSubplot(xmat, ymat, dtmParam, ['DTM ', paramName], FA, doy, altitude(a), 16, clims);
     % plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
 else
@@ -675,7 +675,7 @@ yname = names{yind};
 
 end
 
-function clims = plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, fs, clims, figTitle)
+function clims = plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, fs, figTitle, clims)
 
 surf(xmat, ymat, param, 'edgecolor', 'none');
 view(2);
@@ -684,11 +684,11 @@ colorbar;
 axis tight;
 xlabel(xname, 'fontsize', fs)
 ylabel(yname, 'fontsize', fs)
-if (nargin == 9)
+if (nargin == 10)
     caxis(clims)
 end
 clims = caxis;
-if nargin <= 9
+if nargin <= 8
     title([paramName, ' ', titleAddition], 'fontsize', fs)
 else
     title(figTitle, 'fontsize', fs)
