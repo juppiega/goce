@@ -1,4 +1,4 @@
-function [] = visualizeFit(saveFolder, fullscreenFigs, satellite, quietData, paramName)
+function [] = visualizeFit(saveFolder, fullscreenFigs, satellite, quietData, paramName, figTitle)
 aeThreshold = 0;
 
 if nargin == 2
@@ -79,7 +79,7 @@ onlyIL = false;
 outputNetCdf = true;
 deviationFromQuiet = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
+    sameColorBars, 'yx', paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet, figTitle);
 
 
 z = 125:5:600;
@@ -200,7 +200,7 @@ plot([T0_130,T0_130],[ylims(1),z0+200], 'k--', 'linewidth', linesize)
 end
 
 function [] = plotSurfs(altitude, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, ...
-    devFromXmean, sameColorBars, paramOrder, paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet)
+    devFromXmean, sameColorBars, paramOrder, paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet,figTitle)
 
 [X, Y, xname, yname] = findSurfXY(altitude, lat, lst, lon, doy, paramOrder);
 
@@ -337,7 +337,7 @@ end
 figure('renderer', 'zbuffer');
 
 if onlyIL
-    plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 15);
+    plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 14, figTitle);
     return
 end
 
@@ -659,7 +659,7 @@ function [X, Y, xname, yname] = findSurfXY(varargin)
 lh = length(varargin{1}); llat = length(varargin{2}); llst = length(varargin{3});...
 llon = length(varargin{4});    ldoy = length(varargin{5});
 a = [lh, llat, llst, llon, ldoy];
-names = {'altitude', 'lat', 'lst', 'lon', 'doy'};
+names = {'z', 'Latitude', 'Solar time', 'Longitude', 'Day of year'};
 if strcmpi(varargin{6}, 'xy')
     xind = find(a > 1, 1, 'first');
     yind = find(a > 1, 1, 'last');
@@ -675,7 +675,7 @@ yname = names{yind};
 
 end
 
-function clims = plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, fs, clims)
+function clims = plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, fs, clims, figTitle)
 
 surf(xmat, ymat, param, 'edgecolor', 'none');
 view(2);
@@ -688,7 +688,11 @@ if (nargin == 9)
     caxis(clims)
 end
 clims = caxis;
-title([paramName, ' ', titleAddition], 'fontsize', fs)
+if nargin <= 9
+    title([paramName, ' ', titleAddition], 'fontsize', fs)
+else
+    title(figTitle, 'fontsize', fs)
+end
 shading interp;
 set(gca, 'fontsize', fs);
 
