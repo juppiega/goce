@@ -895,6 +895,7 @@ set(hCount, 'color', 'k', 'linestyle', '-');
 set(hIL, 'linewidth', 2.0);
 hold all
 plot(hax(1), plotX, plotY)
+axis(hax(1), 'tight')
 
 legend('AE', 'MSIS', 'DTM', '# obs.');
 title(['Model ', rmsOrOM, ' vs. ', xName], 'fontsize', fontsize)
