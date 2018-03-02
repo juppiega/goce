@@ -78,8 +78,8 @@ sameColorBars = false;
 onlyIL = true;
 outputNetCdf = true;
 deviationFromQuiet = false;
-plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet, figTitle);
+%plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
+%    sameColorBars, 'yx', paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet, figTitle);
 
 
 z = 125:5:600;
@@ -128,8 +128,11 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 %    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.altitude, 50, originalRhoStruct.data,...
 %    modelStruct, 'O/M', 'Dst', 'alt', saveFolder,fullscreenFigs);
     
-%    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.FA, 10, originalRhoStruct.data,...
-%    modelStruct, 'O/M', 'Dst', 'FA', saveFolder,fullscreenFigs);
+    plot3DOM(originalRhoStruct.solarTime, 3, originalRhoStruct.latitude, 15, originalRhoStruct.data,...
+    modelStruct, 'O/M', 'Dst', 'FA', saveFolder,fullscreenFigs);
+    
+    plot3DOM(originalRhoStruct.solarTime, 3, originalRhoStruct.latitude, 15, originalRhoStruct.data,...
+    modelStruct, 'RMS', 'Dst', 'FA', saveFolder,fullscreenFigs);
     
 % % % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
 % % % % %  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
@@ -139,11 +142,19 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 % % % % %     10, originalRhoStruct.data,...
 % % % % %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
 % % % % % 
-% plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'O/M', 'Dst', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'O/M', 'Lat', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'O/M', 'Lst', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'O/M', 'FA', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'O/M', 'alt', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'O/M', 'Dst', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'O/M', 'Lat', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'O/M', 'Lst', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'O/M', 'FA', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'O/M', 'alt', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'O/M', 'doy', saveFolder,fullscreenFigs)
+ 
+ plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'RMS', 'Dst', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'RMS', 'Lat', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'RMS', 'Lst', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'RMS', 'FA', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'RMS', 'alt', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'RMS', 'doy', saveFolder,fullscreenFigs)
 % % % % 
 computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 % % % % % 
@@ -384,7 +395,7 @@ else
 
 end
 filename = [saveFolder,'/','surf.all.',paramName];
-saveas(gcf, filename, 'png');
+saveas(gcf, filename, 'epsc');
 
 end
 
@@ -585,7 +596,7 @@ ylabel('Orb. aver. Correlation', 'fontsize', fontsize);
 set(gca, 'fontsize', fontsize);
 legend('AE', 'DTM', 'location', 'southeast')
 filename = [saveFolder, '/OACorr'];
-saveas(gcf, filename, 'png');
+saveas(gcf, filename, 'epsc');
 
 if fullscreenFigs
     figure('units','normalized','outerposition',[0 0 1 1])
@@ -601,7 +612,7 @@ ylabel('Orb. aver. RMS', 'fontsize', fontsize);
 set(gca, 'fontsize', fontsize);
 legend('AE', 'DTM', 'location', 'southeast')
 filename = [saveFolder, '/OARMS'];
-saveas(gcf, filename, 'png');
+saveas(gcf, filename, 'epsc');
 
 if fullscreenFigs
     figure('units','normalized','outerposition',[0 0 1 1])
@@ -617,7 +628,7 @@ ylabel('Orb. aver. O/M', 'fontsize', fontsize);
 set(gca, 'fontsize', fontsize);
 legend('AE', 'DTM', 'location', 'southeast')
 filename = [saveFolder, '/OAOM'];
-saveas(gcf, filename, 'png');
+saveas(gcf, filename, 'epsc');
 
 end
 
@@ -840,7 +851,7 @@ if strcmpi(rmsOrOM, 'O/M')
     rmsOrOM = 'OM';
 end
 filename = [saveFolder,'/','3D',xName,yName,rmsOrOM];
-saveas(gcf, filename, 'png')
+saveas(gcf, filename, 'epsc')
 
 end
 
@@ -913,7 +924,7 @@ if strcmpi(rmsOrOM, 'O/M')
     rmsOrOM = 'OM';
 end
 filename = [saveFolder,'/','2D',xName,rmsOrOM];
-saveas(gcf, filename, 'png');
+saveas(gcf, filename, 'epsc');
 
 end
 
@@ -961,7 +972,7 @@ legend(satellite, 'OUR', 'MSIS', 'DTM')
 datetick('x')
 ylabel('Rho [kg/m^3]')
 filename = [saveFolder,'/','2D',satellite,date1];
-saveas(gcf, filename, 'png');
+saveas(gcf, filename, 'epsc');
 
 outputFile = fopen([saveFolder,'/','stat.out'], 'a');
 fprintf('IL CORR: %f \n', corr(measured,ilRho));
@@ -1001,7 +1012,7 @@ interpolateAndPlotByLatitude(t1, aeIntegral(i), timestamps(i), timestamps(i), la
     correctedDensity(i), msisRhoConstAlt(i), dtmRhoConstAlt(i), ilRhoConstAlt(i), limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, 'evening', fullscreenFigs)
 
 filename = [saveFolder,'/','3D',satellite,date1];
-saveas(gcf, filename, 'png');
+saveas(gcf, filename, 'epsc');
 
 end
 
