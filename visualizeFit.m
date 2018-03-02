@@ -348,6 +348,8 @@ figure('renderer', 'zbuffer');
 
 if onlyIL
     plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 14, figTitle);
+    filename = [saveFolder,'/','surf.IL.',paramName];
+    saveas(gcf, filename, 'png');
     return
 end
 
@@ -379,7 +381,7 @@ else
     % plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
 
 end
-filename = [saveFolder,'/','surf.',paramName];
+filename = [saveFolder,'/','surf.all.',paramName];
 saveas(gcf, filename, 'png');
 
 end
