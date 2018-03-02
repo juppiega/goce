@@ -348,8 +348,10 @@ figure('renderer', 'zbuffer');
 
 if onlyIL
     plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 14, figTitle);
+    disp('saving')
     filename = [saveFolder,'/','surf.IL.',paramName];
     saveas(gcf, filename, 'png');
+    disp('saved')
     return
 end
 
