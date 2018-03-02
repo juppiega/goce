@@ -61,7 +61,7 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 400;
+z = 130;
 lat = -90:2:90;
 lst = 0:0.2:24;
 lon = 0;
@@ -75,7 +75,7 @@ lonMean = false;
 latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
-onlyIL = false;
+onlyIL = true;
 outputNetCdf = true;
 deviationFromQuiet = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
@@ -139,11 +139,11 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 % % % % %     10, originalRhoStruct.data,...
 % % % % %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
 % % % % % 
- plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'O/M', 'Dst', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'O/M', 'Lat', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'O/M', 'Lst', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'O/M', 'FA', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'O/M', 'alt', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'O/M', 'Dst', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'O/M', 'Lat', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'O/M', 'Lst', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'O/M', 'FA', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'O/M', 'alt', saveFolder,fullscreenFigs)
 % % % % 
 computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 % % % % % 
