@@ -128,11 +128,11 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 %    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.altitude, 50, originalRhoStruct.data,...
 %    modelStruct, 'O/M', 'Dst', 'alt', saveFolder,fullscreenFigs);
     
-%    plot3DOM(originalRhoStruct.solarTime, 3, originalRhoStruct.latitude, 15, originalRhoStruct.data,...
-%    modelStruct, 'O/M', 'Dst', 'FA', saveFolder,fullscreenFigs);
+    plot3DOM(originalRhoStruct.solarTime, 3, originalRhoStruct.latitude, 15, originalRhoStruct.data,...
+    modelStruct, 'O/M', 'Dst', 'FA', saveFolder,fullscreenFigs);
     
-%    plot3DOM(originalRhoStruct.solarTime, 3, originalRhoStruct.latitude, 15, originalRhoStruct.data,...
-%    modelStruct, 'RMS', 'Dst', 'FA', saveFolder,fullscreenFigs);
+    plot3DOM(originalRhoStruct.solarTime, 3, originalRhoStruct.latitude, 15, originalRhoStruct.data,...
+    modelStruct, 'RMS', 'Dst', 'FA', saveFolder,fullscreenFigs);
     
 % % % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
 % % % % %  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
@@ -143,18 +143,18 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 % % % % %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
 % % % % % 
  plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'O/M', 'Dst', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'O/M', 'Lat', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'O/M', 'Lst', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'O/M', 'FA', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'O/M', 'alt', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'O/M', 'doy', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'O/M', 'Lat', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'O/M', 'Lst', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'O/M', 'FA', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'O/M', 'alt', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'O/M', 'doy', saveFolder,fullscreenFigs)
  
-% plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'RMS', 'Dst', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'RMS', 'Lat', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'RMS', 'Lst', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'RMS', 'FA', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'RMS', 'alt', saveFolder,fullscreenFigs)
-% plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'RMS', 'doy', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'RMS', 'Dst', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'RMS', 'Lat', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'RMS', 'Lst', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'RMS', 'FA', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'RMS', 'alt', saveFolder,fullscreenFigs)
+ plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'RMS', 'doy', saveFolder,fullscreenFigs)
 % % % % 
 computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 % % % % % 
@@ -909,7 +909,7 @@ end
 [hax, hIL, hCount] = plotyy(Xbins, msisVec, interpX, interpCount);
 set(hCount, 'color', 'k', 'linestyle', '-');
 set(hIL, 'linewidth', 2.0);
-set(hIL, 'color', 'r');
+%set(hIL, 'color', 'r');
 hold all
 plot(hax(1), plotX, plotY, 'linewidth', 2.0)
 axis(hax(1), 'tight')
