@@ -349,7 +349,7 @@ figure('renderer', 'zbuffer');
 if onlyIL
     plotSurfSubplot(xmat, ymat, param, paramName, titleAddition, xname, yname, 14, figTitle);
     disp('saving')
-    filename = [saveFolder,'/','surf.IL.',paramName];
+    filename = [saveFolder,'/','surf_IL_',paramName];
     print(filename,'-depsc')
     disp('saved')
     return
