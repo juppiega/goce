@@ -78,8 +78,8 @@ sameColorBars = false;
 onlyIL = false;
 outputNetCdf = true;
 deviationFromQuiet = false;
-%plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-%    sameColorBars, 'yx', paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet, figTitle);
+plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
+    sameColorBars, 'yx', paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet, figTitle);
 
 
 z = 125:5:600;
@@ -125,11 +125,11 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 %    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.solarTime, 2, originalRhoStruct.data,...
 %    modelStruct, 'O/M', 'Dst', 'lst', saveFolder,fullscreenFigs);
    
-    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.altitude, 50, originalRhoStruct.data,...
-    modelStruct, 'O/M', 'Dst', 'alt', saveFolder,fullscreenFigs);
+%    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.altitude, 50, originalRhoStruct.data,...
+%    modelStruct, 'O/M', 'Dst', 'alt', saveFolder,fullscreenFigs);
     
-    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.FA, 10, originalRhoStruct.data,...
-    modelStruct, 'O/M', 'Dst', 'FA', saveFolder,fullscreenFigs);
+%    plot3DOM(originalRhoStruct.dst, 25, originalRhoStruct.FA, 10, originalRhoStruct.data,...
+%    modelStruct, 'O/M', 'Dst', 'FA', saveFolder,fullscreenFigs);
     
 % % % % % plot3DOM(originalRhoStruct.aeInt(:,4), 50, originalRhoStruct.doy, 30, originalRhoStruct.data,...
 % % % % %  modelStruct, 'O/M', 'AE16h', 'doy', saveFolder);
