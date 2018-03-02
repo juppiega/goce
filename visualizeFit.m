@@ -379,7 +379,8 @@ else
     % plotSurfSubplot(lstGrid, latGrid, param, paramName, FA, doy, heights(a), 16, clims);
 
 end
-
+filename = [saveFolder,'/','surf.',paramName];
+saveas(gcf, filename, 'png');
 
 end
 
