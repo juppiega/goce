@@ -909,8 +909,9 @@ end
 [hax, hIL, hCount] = plotyy(Xbins, msisVec, interpX, interpCount);
 set(hCount, 'color', 'k', 'linestyle', '-');
 set(hIL, 'linewidth', 2.0);
+set(hIL, 'color', 'r');
 hold all
-plot(hax(1), plotX, plotY)
+plot(hax(1), plotX, plotY, 'linewidth', 2.0)
 axis(hax(1), 'tight')
 
 legend('MSIS', 'DTM', 'IL', '# obs.');
