@@ -2,6 +2,7 @@ function [] = testData (doy1, doy2, satellite)
 
 
 load('ilData.mat','rhoStruct')
+rhoStruct = removeAndFixData(rhoStruct,0);
 N = length(rhoStruct.data);
 if strcmpi(satellite,'goce')
     removeInd = ~ismember(1:N, rhoStruct.goce);
