@@ -55,7 +55,7 @@ end
 p.stop;
 
 if isRho
-    S = removeDataPoints(S, removeInd, false, true, false, false);
+    S = removeDataPoints(S, removeInd, true, true, true, true);
 else
     S = removeDataPoints(S, removeInd, true, true, true, true);
 end

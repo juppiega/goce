@@ -44,7 +44,10 @@ end
 if quietData
     removeInd(removeIndGeom) = true;
 end
-originalRhoStruct = removeDataPoints(originalRhoStruct, removeInd, false, true, false, false);
+originalRhoStruct = removeDataPoints(originalRhoStruct, removeInd, true, true, true, true);
+[yr,~,~,~,~,~] = datevec(originalRhoStruct.timestamps);
+yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
+originalRhoStruct.doy = originalRhoStruct.timestamps - datenum(yearVec) + 1;
 
  numBiasesStruct = struct('O', 5, 'N2', 6,...
      'He', 5, 'O2', 0); % TODO: paivita arvot lisattyasi datasetteja
@@ -153,7 +156,7 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
  %plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'RMS', 'Lat', saveFolder,fullscreenFigs)
 % plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'RMS', 'Lst', saveFolder,fullscreenFigs)
 % plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'RMS', 'FA', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'RMS', 'alt', saveFolder,fullscreenFigs)
+ %plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'RMS', 'alt', saveFolder,fullscreenFigs)
  plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'RMS', 'doy', saveFolder,fullscreenFigs)
 % % % % 
 computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
