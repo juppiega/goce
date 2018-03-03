@@ -40,7 +40,8 @@ for doy = doy1:dt:doy2
 end
 
 figure;
-[hAx, hIL] = plotyy(doy1:dt:doy2, RMS_il, doy1:dt:doy2, numObs);
+[hAx, hIL, hCount] = plotyy(doy1:dt:doy2, RMS_il, doy1:dt:doy2, numObs);
+set(hCount, 'color', 'k', 'linestyle', '-');
 ylim(hAx(1), [0 1]);
 hold on;
 plot(hAx(1), doy1:dt:doy2, RMS_dtm);
