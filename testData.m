@@ -41,9 +41,9 @@ end
 
 figure;
 [hAx, hIL] = plotyy(doy1:dt:doy2, RMS_il, doy1:dt:doy2, numObs);
+ylim(hAx(1), [0 1]);
 hold on;
 plot(hAx(1), doy1:dt:doy2, RMS_dtm);
-ylim(hAx(1), [0 1]);
 legend(hAx(1),'il','dtm')
 
 end
