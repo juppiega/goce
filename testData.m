@@ -26,17 +26,23 @@ rhoStruct.doy = rhoStruct.timestamps - datenum(yearVec) + 1;
 %rhoStruct = removeDataPoints(rhoStruct, ind,true,true,true,true);
 
 load('ilComparison.mat','ilRho')
+load('msisDtmComparison.mat')
 %ilRho(ind) = [];
 
 dt = 2;
 k = 1;
 for doy = doy1:dt:doy2
     ind = doy < rhoStruct.doy & rhoStruct.doy < doy + dt;
-    RMS(k) = rms(rhoStruct.data(ind) ./ ilRho(ind) - 1);
+    RMS_il(k)  = rms(rhoStruct.data(ind) ./ ilRho(ind) - 1);
+    RMS_dtm(k) = rms(rhoStruct.data(ind) ./ dtmRho(ind) - 1);
+    numObs(k) = sum(ind);
     k = k + 1;
 end
 
 figure;
-plot(doy1:dt:doy2, RMS);
+[hAx, hIL] = plotyy(doy1:dt:doy2, RMS_il, doy1:dt:doy2, numObs);
+plot(hAx(1), doy1:dt:doy2, RMS_dtm);
+ylim(hAx(1), [0 1]);
+legend(hAx(1),'il','dtm')
 
 end
