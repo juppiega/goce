@@ -27,7 +27,9 @@ rhoStruct.doy = rhoStruct.timestamps - datenum(yearVec) + 1;
 
 load('ilComparison.mat','ilRho')
 load('msisDtmComparison.mat')
-%ilRho(ind) = [];
+ilRho(removeInd) = [];
+msisRho(removeInd) = [];
+dtmRho(removeInd) = [];
 
 dt = 2;
 k = 1;
