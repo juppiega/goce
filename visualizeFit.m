@@ -142,17 +142,17 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind))
 % % % % %     10, originalRhoStruct.data,...
 % % % % %  modelStruct, 'O/M', 'AE16h', 'F-FA', saveFolder);
 % % % % % 
- plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'O/M', 'Dst', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'O/M', 'Lat', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'O/M', 'Lst', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'O/M', 'FA', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'O/M', 'alt', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'O/M', 'doy', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'O/M', 'Dst', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'O/M', 'Lat', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'O/M', 'Lst', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'O/M', 'FA', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'O/M', 'alt', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'O/M', 'doy', saveFolder,fullscreenFigs)
  
- plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'RMS', 'Dst', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'RMS', 'Lat', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'RMS', 'Lst', saveFolder,fullscreenFigs)
- plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'RMS', 'FA', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.aeInt(:,7), 25, originalRhoStruct.data, modelStruct, 'RMS', 'Dst', saveFolder,fullscreenFigs)
+ %plot2DOM(originalRhoStruct.latitude, 10, originalRhoStruct.data, modelStruct, 'RMS', 'Lat', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.solarTime, 2, originalRhoStruct.data, modelStruct, 'RMS', 'Lst', saveFolder,fullscreenFigs)
+% plot2DOM(originalRhoStruct.FA, 10, originalRhoStruct.data, modelStruct, 'RMS', 'FA', saveFolder,fullscreenFigs)
  plot2DOM(originalRhoStruct.altitude, 25, originalRhoStruct.data, modelStruct, 'RMS', 'alt', saveFolder,fullscreenFigs)
  plot2DOM(originalRhoStruct.doy, 30, originalRhoStruct.data, modelStruct, 'RMS', 'doy', saveFolder,fullscreenFigs)
 % % % % 
