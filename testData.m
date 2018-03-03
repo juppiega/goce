@@ -24,7 +24,7 @@ rhoStruct.doy = rhoStruct.timestamps - datenum(yearVec) + 1;
 %ind = doy1 < rhoStruct.doy & rhoStruct.doy < doy2;
 %rhoStruct = removeDataPoints(rhoStruct, ind,true,true,true,true);
 
-load('ilComparison.met','ilRho')
+load('ilComparison.mat','ilRho')
 %ilRho(ind) = [];
 
 dt = 2;
