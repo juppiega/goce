@@ -48,5 +48,6 @@ ylim(hAx(1), [0 1]);
 hold on;
 plot(hAx(1), doy1:dt:doy2, RMS_dtm);
 legend(hAx(1),'il','dtm')
+title(satellite)
 
 end
