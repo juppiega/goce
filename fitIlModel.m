@@ -914,7 +914,7 @@ O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
 if fitSimultaneous || quietData
-    tempSpecRelWeight = 0.8;
+    tempSpecRelWeight = 0.5;
 else
     tempSpecRelWeight = 0.125;
 end
@@ -962,12 +962,12 @@ initGuess(ind) = ub(ind);
 %ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
 %initGuess(ArStruct.coeffInd) = ArCoeffs;
 
-initGuess(TexStruct.coeffInd(1)) = 950;
-initGuess(OStruct.coeffInd(1)) = log(4E10);
-initGuess(N2Struct.coeffInd(1)) = log(1.4E11);
-initGuess(HeStruct.coeffInd(1)) = log(2.2E7);
+initGuess(TexStruct.coeffInd(1)) = 9.587899354044371e+02;
+initGuess(OStruct.coeffInd(1)) = 23.460872713581633;
+initGuess(N2Struct.coeffInd(1)) = 26.073951798600941;
+initGuess(HeStruct.coeffInd(1)) = 16.205097431213428;
 %initGuess(ArStruct.coeffInd(1)) = log(0.4E9);
-initGuess(O2Struct.coeffInd) = log(1.4E10);
+initGuess(O2Struct.coeffInd) = 21.495505909296508;
 
 quietInd = [TexStruct.coeffInd(TexParams(TexStruct, numQuietCoeffs)),...
             OStruct.coeffInd(OParams(OStruct, numQuietCoeffs)),...
@@ -1107,6 +1107,7 @@ if fitSimultaneously || fitBaseAgain
           initGuess(stormInd(1:numStorm:end)) = expTimes;
           initGuess(stormInd(2:numStorm:end)) = expTimesLat;
           paramsToFit = setdiff(paramsToFit, [stormInd(1:numStorm:end), stormInd(2:numStorm:end)]);
+          paramsToFit = setdiff(paramsToFit, [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)]);
           expTimeInd = [stormInd(1:numStorm:end), stormInd(2:numStorm:end)];
           %stormInd(1:numStorm:end) = [];
           
@@ -1265,7 +1266,7 @@ end
 %i=find(ismember(ind,ArStruct.coeffInd)); paramErrors_Ar = sqrt(abs(diag(inv(JTWJ(i,i)))));
 
 if fitSimultaneous || quietData
-    paramErrors_O2 = sqrt(1/abs(JTWJ(end,end)));
+    paramErrors_O2 = 0.014734037613597;
     paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; ...
                 paramErrors_O2];
 else
@@ -1305,7 +1306,7 @@ else
         [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, allInd, pe, significance, N2Struct);
         [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, allInd, pe, significance, HeStruct);
         %[optCoeff, paramsToFit] = zeroOutInsignificantQuiet(optCoeff, paramsToFit, allInd, pe, significance, ArStruct);
-        paramsToFitQuiet = [paramsToFitQuiet, O2Struct.coeffInd]; %optCoeff(O2Struct.coeffInd) = 20.0;
+        %paramsToFitQuiet = [paramsToFitQuiet, O2Struct.coeffInd]; %optCoeff(O2Struct.coeffInd) = 20.0;
         
         relError = abs(pe' ./ optCoeff);
         stormInd(1:numStorm:end) = [];
@@ -1323,6 +1324,7 @@ else
         paramsToFitStorm = stormInd(paramsToFitStorm);
         paramsToFit = unique([paramsToFitQuiet, paramsToFitStorm]);
         optCoeff(setdiff(1:length(optCoeff),[paramsToFit, expTimeInd, allBiasInd])) = 0;
+        paramsToFit = setdiff(paramsToFit, [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)]);
         
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
         %paramsToFit = sort([paramsToFit, stormInd]); % Testaus
@@ -1333,7 +1335,7 @@ tolOpt = 1E0;
 lambda0 = 1E-2;
 
 if fitSimultaneous || quietData
-    tempSpecRelWeight = 0.8;
+    tempSpecRelWeight = 0.5;
 else
     tempSpecRelWeight = 0.125;
 end
