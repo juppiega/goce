@@ -1107,7 +1107,7 @@ if fitSimultaneously || fitBaseAgain
           initGuess(stormInd(1:numStorm:end)) = expTimes;
           initGuess(stormInd(2:numStorm:end)) = expTimesLat;
           paramsToFit = setdiff(paramsToFit, [stormInd(1:numStorm:end), stormInd(2:numStorm:end)]);
-          paramsToFit = setdiff(paramsToFit, [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)]);
+          %paramsToFit = setdiff(paramsToFit, [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)]);
           expTimeInd = [stormInd(1:numStorm:end), stormInd(2:numStorm:end)];
           %stormInd(1:numStorm:end) = [];
           
@@ -1324,7 +1324,7 @@ else
         paramsToFitStorm = stormInd(paramsToFitStorm);
         paramsToFit = unique([paramsToFitQuiet, paramsToFitStorm]);
         optCoeff(setdiff(1:length(optCoeff),[paramsToFit, expTimeInd, allBiasInd])) = 0;
-        paramsToFit = setdiff(paramsToFit, [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)]);
+        %paramsToFit = setdiff(paramsToFit, [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)]);
         
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
         %paramsToFit = sort([paramsToFit, stormInd]); % Testaus
