@@ -398,7 +398,8 @@ else
 
 end
 filename = [saveFolder,'/','surf.all.',paramName];
-saveas(gcf, filename, 'epsc');
+%saveas(gcf, filename, 'epsc');
+print(filename,'-depsc')
 
 end
 
