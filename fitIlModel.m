@@ -1,3 +1,5 @@
+% TODO: Nollaa kertoimet ekan sovituksen jalkeen
+
 function [  ] = fitIlModel( recomputeTex, recomputeLbTemp, recomputeDT, recomputeQuietModel, recomputeStormModel, recomputeAlsoInsign, fitSimultaneous, optimizedMex, subsampPercent )
 
 if optimizedMex
@@ -959,6 +961,7 @@ ind = ub < 0.5 | ub > 2;
 %ind(1:numCoeffs) = ub(1:numCoeffs) < 100;
 initGuess = mean([lb;ub]);% - 0.001;
 initGuess(ind) = ub(ind);
+initGuess_init = initGuess;
 %ArCoeffs = zeros(numCoeffs+ArStruct.numBiases, 1);
 %ArCoeffs([17, 24, 28, 32, 35, 39, 41, 45, 46, 50] + ArStruct.numBiases) = 0.001;
 %initGuess(ArStruct.coeffInd) = ArCoeffs;
@@ -1148,6 +1151,7 @@ if fitSimultaneously || fitBaseAgain
         %initGuess(stormInd) = 0; % TESTAUS
         %load('coeffsAll.mat','optCoeff')
         %initGuess = optCoeff;
+        initGuess_init = initGuess;
         fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
         %[comp] = fun(initGuess);
         tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
@@ -1329,6 +1333,7 @@ else
         
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
         %paramsToFit = sort([paramsToFit, stormInd]); % Testaus
+        optCoeff(optCoeff~=0) = initGuess_init(optCoeff~=0); 
 end
 
 tolFun = 1E-5;
