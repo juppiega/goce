@@ -1154,8 +1154,8 @@ if fitSimultaneously || fitBaseAgain
         initGuess_init = initGuess;
         fun = @(coeff)modelMinimizationFunction(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, tolX, coeff, paramsToFit);
         %[comp] = fun(initGuess);
-        tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
-        %load('coeffsAll.noSemiAn.mat','optCoeff','JTWJ')
+        %tic;[optCoeff, JTWJ] = levenbergMarquardt_mex(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, weights, initGuess, paramsToFit, tolX, tolFun, tolOpt, lambda0, minLambda);toc;
+        load('coeffsAll.50half.mat','optCoeff','JTWJ')
         %paramsToFit = ptfOrig; % Testaus
     else
          
