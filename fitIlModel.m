@@ -973,8 +973,7 @@ initGuess(O2Struct.coeffInd) = 21.495505909296508;
 quietInd = [TexStruct.coeffInd(TexParams(TexStruct, numQuietCoeffs)),...
             OStruct.coeffInd(OParams(OStruct, numQuietCoeffs)),...
             N2Struct.coeffInd(N2Params(N2Struct, numQuietCoeffs)),...
-            HeStruct.coeffInd(HeParams(HeStruct, numQuietCoeffs)),...
-            O2Struct.coeffInd(1)]; 
+            HeStruct.coeffInd(HeParams(HeStruct, numQuietCoeffs))]; 
 
 stormInd = [TexStruct.coeffInd(geomParams(TexStruct, numQuietCoeffs)),...
             OStruct.coeffInd(geomParams(OStruct, numQuietCoeffs)),...
@@ -1111,6 +1110,7 @@ if fitSimultaneously || fitBaseAgain
           %paramsToFit = setdiff(paramsToFit, [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)]);
           expTimeInd = [stormInd(1:numStorm:end), stormInd(2:numStorm:end)];
           %stormInd(1:numStorm:end) = [];
+  
           
           %paramsToFit(end) = []; %TESTAUS
           %paramsToFit = [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)];         
@@ -1268,8 +1268,9 @@ end
 
 if fitSimultaneous || quietData
     paramErrors_O2 = 0.014734037613597;
-    paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; ...
-                paramErrors_O2];
+    %paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He; ...
+    %            paramErrors_O2];
+    paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He];
 else
     paramErrors = [paramErrors_Tex; paramErrors_O; paramErrors_N2; paramErrors_He;];
 end
