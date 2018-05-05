@@ -1167,7 +1167,7 @@ subroutine mexFunction(nlhs, plhs, nrhs, prhs)
     !tolOpt = 1E3
     !lambda0 = 1E-2
     maxFuncEvals = 5000 * size(initGuess)
-    maxIter = 200 !!!!!!!!!!!!!!!!!!!!!!
+    maxIter = 1 !!!!!!!!!!!!!!!!!!!!!!
 
     !funVec = modelMinimizationFunction(initGuess)
     
