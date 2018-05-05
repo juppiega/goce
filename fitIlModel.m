@@ -1098,7 +1098,7 @@ if fitSimultaneously || fitBaseAgain
           allBiasInd = [Obiases, N2biases, HeBiases];
           paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
           quietInd = setdiff(quietInd,[Obiases, N2biases, HeBiases]);
-          paramsToFit(O2Struct.coeffInd) = [];
+          paramsToFit(end) = [];
           ptfOrig = paramsToFit;
           
           %expTimes = [6.0546   17.9177    5.2326    3.9629];
