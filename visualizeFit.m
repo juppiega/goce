@@ -171,7 +171,7 @@ computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 %plotStormFig(originalRhoStruct, modelStruct, '2014-11-07', '2014-11-13', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 
 
-analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
+%analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
 
 end
 
