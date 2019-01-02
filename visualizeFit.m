@@ -80,7 +80,7 @@ devFromXmean = false;
 sameColorBars = false;
 onlyIL = true;
 outputNetCdf = true;
-deviationFromQuiet = true;
+deviationFromQuiet = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
     sameColorBars, 'yx', paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet, figTitle);
 
