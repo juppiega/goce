@@ -556,7 +556,12 @@ disp({'OA Corr. IL', 'OA Corr. MSIS', 'OA Corr. DTM',...
                         'OA O/M IL', 'OA O/M MSIS', 'OA O/M DTM',...
                         'OA RMS IL', 'OA RMS MSIS','OA RMS DTM'});
 
+
+disp('All storms:')
 disp([mean(OACorr), mean(OAOM), mean(OARMS)]);
+i = minDst < -200;
+disp('Dst < -200')
+disp([mean(OACorr(i,:)), mean(OAOM(i,:)), mean(OARMS(i,:))]);
 
 fontsize = 15;
 if fullscreenFigs
