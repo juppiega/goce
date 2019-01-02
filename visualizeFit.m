@@ -552,6 +552,11 @@ outputCell(1,1:end) = {'Begin', 'End', 'Mean F10.7', 'Min Dst', 'SatInfo (0=GO:1
                         'OA RMS IL', 'OA RMS MSIS','OA RMS DTM'};
 
 cell2csv([saveFolder, '/storms.',satellite,'.csv'], outputCell);
+disp({'OA Corr. IL', 'OA Corr. MSIS', 'OA Corr. DTM',...
+                        'OA O/M IL', 'OA O/M MSIS', 'OA O/M DTM',...
+                        'OA RMS IL', 'OA RMS MSIS','OA RMS DTM'});
+
+disp([mean(OACorr), mean(OAOM), mean(OARMS)]);
 
 fontsize = 15;
 if fullscreenFigs
