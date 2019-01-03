@@ -894,7 +894,7 @@ O2Struct = computeVariablesForFit(O2Struct);
 rhoStruct = computeVariablesForFit(rhoStruct);
 
 if fitSimultaneous || quietData
-    tempSpecRelWeight = 0.5;
+    tempSpecRelWeight = 0.25;
 else
     tempSpecRelWeight = 0.125;
 end
@@ -1357,7 +1357,7 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 
 aeInt = [TexStruct.aeInt; OStruct.aeInt; N2Struct.aeInt; HeStruct.aeInt; ...
      O2Struct.aeInt; rhoStruct.aeInt];
- aeThreshold = 300;%400;
+ aeThreshold = 400;
  ind = any(aeInt >= aeThreshold,2);
  w = sum(weights(~ind)) / sum(weights(ind));
  weights(ind) = w * weights(ind);
