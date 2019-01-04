@@ -100,6 +100,7 @@ if fitSimultaneous
     fitModelVariables(TexStruct, OStruct, N2Struct, HeStruct, ArStruct, O2Struct, rhoStruct, dTCoeffs, T0Coeffs, opt, ms, numStartPoints, numThreads, quietData, recomputeAlsoInsign, fitSimultaneous)
     
     fprintf('Everything fitted.\n')
+    return;
 end
 
 if recomputeQuietModel
