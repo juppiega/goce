@@ -439,13 +439,6 @@ function model = fixBiasBySatellite(model, rhoStruct)
 
 if isfield(rhoStruct, 'goce') && isfield(rhoStruct, 'swarm')
     ind = rhoStruct.goce; 
-    model(ind) = model(ind) * mean(rhoStruct.data(ind)./model(ind));
-    ind = rhoStruct.champ; 
-    model(ind) = model(ind) * mean(rhoStruct.data(ind)./model(ind));
-    ind = rhoStruct.grace; 
-    model(ind) = model(ind) * mean(rhoStruct.data(ind)./model(ind));
-    ind = rhoStruct.swarm; 
-    model(ind) = model(ind) * mean(rhoStruct.data(ind)./model(ind));
 end
 
 end
@@ -453,7 +446,11 @@ end
 function [] = analyzeStormTimes(rhoStruct, modelStruct, saveFolder, fullscreenFigs, satellite)
 
 modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
-modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
+OM_MSIS = mean(rhoStruct.data ./ modelStruct.msis);
+OM_DTM = mean(rhoStruct.data ./ modelStruct.dtm);
+
+modelStruct.msis = OM_MSIS * modelStruct.msis;
+modelStruct.dtm = OM_DTM * modelStruct.dtm;
 
 [stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -75);
 rawCorr = zeros(length(stormBeginInd),3);
