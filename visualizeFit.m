@@ -1,4 +1,4 @@
-function [] = visualizeFit(saveFolder, fullscreenFigs, satellite, quietData)
+function [] = visualizeFit(saveFolder, fullscreenFigs, satellite, quietData, plotVar)
 aeThreshold = 0;
 
 if nargin == 2
@@ -68,7 +68,7 @@ lon = 0;
 doy = 50;
 F = 70;
 FA = 70;
-aeInt = 400*ones(1,24);
+aeInt = 10*ones(1,24);
 Ap = 3;
 lstMean = false;
 lonMean = false;
@@ -79,7 +79,7 @@ onlyIL = true;
 outputNetCdf = true;
 deviationFromQuiet = true;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', 'N2', onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
+    sameColorBars, 'yx', plotVar, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
 
 
 z = 125:5:600;
