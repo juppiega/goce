@@ -948,7 +948,7 @@ initGuess(OStruct.coeffInd(1)) = log(4E10);
 initGuess(N2Struct.coeffInd(1)) = log(1.4E11);
 initGuess(HeStruct.coeffInd(1)) = log(2.2E7);
 %initGuess(ArStruct.coeffInd(1)) = log(0.4E9);
-initGuess(O2Struct.coeffInd) = log(1.4E10);
+initGuess(O2Struct.coeffInd) = log(1.47E10);
 
 quietInd = [TexStruct.coeffInd(TexParams(TexStruct, numQuietCoeffs)),...
             OStruct.coeffInd(OParams(OStruct, numQuietCoeffs)),...
@@ -1079,6 +1079,8 @@ if fitSimultaneously || fitBaseAgain
           paramsToFit = setdiff(paramsToFit, stormInd(1:numStorm:end));
           expTimeInd = stormInd(1:numStorm:end);
           stormInd(1:numStorm:end) = [];
+          
+          paramsToFit(end) = []; % O2
           
           %paramsToFit(end) = []; %TESTAUS
           %paramsToFit = [TexStruct.coeffInd(1), OStruct.coeffInd(1), N2Struct.coeffInd(1), HeStruct.coeffInd(1), O2Struct.coeffInd(1)];         
