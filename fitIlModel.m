@@ -1129,7 +1129,6 @@ if fitSimultaneously || fitBaseAgain
         optCoeff(Obiases) = initGuess(Obiases);
         optCoeff(N2biases) = initGuess(N2biases);
         optCoeff(HeBiases) = initGuess(HeBiases);
-        optCoeff(~ismember(1:length(optCoeff), paramsToFit)) = 0;
     else
          
 %         efolds_init = [7, 11.4, 13.0, 7.3];
@@ -1278,6 +1277,8 @@ else
         quietInd_noBias = [1:numQuietCoeffs, numCoeffs+(1:numQuietCoeffs), 2*numCoeffs+(1:numQuietCoeffs),...
                             3*numCoeffs+(1:numQuietCoeffs),length(paramErrors)];
         pe(paramsToFit) = paramErrors;
+        HeRemove = HeStruct.coeffInd(setdiff(1 : numQuietCoeffs+HeStruct.numBiases, HeParams(HeStruct, numQuietCoeffs)));
+        pe(HeRemove) = 1E30;
         paramsToFitQuiet = [];
         [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, allInd, pe, significance, TexStruct);
         [~, paramsToFitQuiet] = zeroOutInsignificantQuiet(optCoeff, paramsToFitQuiet, allInd, pe, significance, OStruct);
