@@ -828,7 +828,7 @@ end
 
 function [ind] = HeParams(varStruct, numQuietCoeffs)
 
-ind = quietParams(varStruct, numQuietCoeffs);
+ind = ArParams(varStruct, numQuietCoeffs);
 
 end
 
@@ -1068,9 +1068,9 @@ if fitSimultaneously || fitBaseAgain
           %initGuess(N2biases) = [-0.1043	0.1267	0.0401	-0.0289	0.1312	-0.1166];
           %initGuess(HeBiases) = [-0.0223	-0.0086	0.0474	-0.0968	0.1847];
           initGuess(Obiases) = [0.	0.2379	0.	0.1053	-0.1162];
-          initGuess(N2biases) = [0.	0.1267	0.	-0.0289	0.1312	-0.1166];
+          initGuess(N2biases) = [0.	0.6267	0.	0.7	0.7312	0.6];
           %initGuess(HeBiases) = [0.,	0.3920-1,	0.,	0.8065-1,	0.8713-1];
-          initGuess(HeBiases) = [0	-0.44	0.	-1.0968	-0.5];
+          initGuess(HeBiases) = [0	-0.44	0.	-0.0968	-0.5];
           %initGuess(ArBiases) = [-0.0043	0.0880];
           allBiasInd = [Obiases, N2biases, HeBiases];
           paramsToFit = setdiff(paramsToFit,[Obiases, N2biases, HeBiases]);
@@ -1129,6 +1129,7 @@ if fitSimultaneously || fitBaseAgain
         optCoeff(Obiases) = initGuess(Obiases);
         optCoeff(N2biases) = initGuess(N2biases);
         optCoeff(HeBiases) = initGuess(HeBiases);
+        optCoeff(~ismember(1:length(optCoeff), paramsToFit)) = 0;
     else
          
 %         efolds_init = [7, 11.4, 13.0, 7.3];
