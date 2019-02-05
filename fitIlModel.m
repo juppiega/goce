@@ -1353,6 +1353,10 @@ wHe = ones(size(HeStruct.data)); wHe(HeStruct.de2) = length(HeStruct.aeENace) / 
 %wAr = ones(size(ArStruct.data)); wAr(ArStruct.de2) = 2*length(ArStruct.aeros) / length(ArStruct.de2);
 wO2 = ones(size(O2Struct.data));
 
+wO(OStruct.aeENace) = 2 * wO(OStruct.aeENace); wO(OStruct.aeEOss) = 2 * wO(OStruct.aeEOss); 
+wN2(N2Struct.aeENace) = 2 * wN2(N2Struct.aeENace); wN2(N2Struct.aeEOss) = 2 * wN2(N2Struct.aeEOss); 
+wHe(HeStruct.aeENace) = 3 * wHe(HeStruct.aeENace); wHe(HeStruct.aeEOss) = 3 * wHe(HeStruct.aeEOss); 
+
 %wAr = wAr / 4; 
 wTex = wTex * 2; wN2 = wN2 / 2;
 tempSpecWeight = [wTex; wO; wN2; wHe; wO2];
