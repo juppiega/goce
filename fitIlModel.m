@@ -819,7 +819,7 @@ lat = 6:15;
 symmAnn = [25:26, 30:38];
 assAnn = [43:44, 48:52];
 diur = [56:59, 67:70];
-semiDiurn = 74:89;%[76:69, 84:87];
+semiDiurn = [76:69, 84:87];
 rest = 90:numQuietCoeffs;
 removeInd = [lat, symmAnn, assAnn, diur, semiDiurn, rest] + varStruct.numBiases;
 ind = setdiff(1 : numQuietCoeffs+varStruct.numBiases, removeInd);
@@ -1054,7 +1054,7 @@ if fitSimultaneously || fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
-    rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 0.95;
+    rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 0.91;
     rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.94;
     rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.99;
     numStorm = numCoeffs - numQuietCoeffs;
