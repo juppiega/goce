@@ -1,4 +1,4 @@
-function [param, msisParam, dtmParam, obs_130] = computeParams(S, coeffStruct, paramName, numBiasesStruct, norm_130)
+function [param, msisParam, dtmParam, obs_130] = computeParams_norm(S, coeffStruct, paramName, numBiasesStruct, norm_130)
 
 TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
 T0Coeffs = coeffStruct.T0Coeff;
