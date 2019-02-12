@@ -17,8 +17,6 @@ if nargin > 4 && norm_130
     S.name = paramName;
     S = computeDensityRHS(S, Tex, dT0, T0);
     obs_130 = exp(S.rhs);
-    S.Z(:) = 0;
-    S.altitude(:) = 130;
 end
 
 if strcmpi(paramName, 'Tex')
