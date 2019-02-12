@@ -61,7 +61,7 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 320;
+z = 370;
 lat = -90:5:90;
 lst = 0:0.5:24;
 lon = 90;
@@ -71,7 +71,7 @@ FA = 110;
 aeInt = 10*ones(1,24);
 Ap = 3;
 lstMean = false;
-lonMean = false;
+lonMean = true;
 latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
