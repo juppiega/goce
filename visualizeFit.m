@@ -107,8 +107,14 @@ if exist('ilComparison.mat', 'file')
 else
     if ~strcmpi(satellite,'all') || quietData; error('Must have satellite=all and quietData = false to compute comparisons!');end
     [ilRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
+    S = originalRhoStruct; S.altitude(:) = 370;
+    [ilRho_370] = computeComparisonData(S, coeffStruct, numBiasesStruct);
+    S.altitude(:) = 270;
+    [ilRho_270] = computeComparisonData(S, coeffStruct, numBiasesStruct);
+    S.altitude(:) = 470;
+    [ilRho_470] = computeComparisonData(S, coeffStruct, numBiasesStruct);
 
-    save('ilComparison.mat', 'ilRho')
+    save('ilComparison.mat', 'ilRho', 'ilRho_370', 'ilRho_270', 'ilRho_470')
 end
 
 if ~isfield(originalRhoStruct, 'dst')
