@@ -43,6 +43,16 @@ elseif strcmpi(paramName, 'N2')
     [~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);
     [~,~,~,msisParam] = computeMsis(S);
     [~,~,~,dtmParam] = computeDtm(S);
+elseif strcmpi(paramName, 'O/N2')
+    [~,~,il_N2] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);
+    [~,~,~,msis_N2] = computeMsis(S);
+    [~,~,~,dtm_N2] = computeDtm(S);
+    [~,il_O] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);
+    [~,~,msis_O] = computeMsis(S);
+    [~,~,dtm_O] = computeDtm(S);
+    param = il_O./il_N2;
+    msisParam = msis_O./msis_N2;
+    dtmParam = dtm_O./dtm_N2;
 elseif strcmpi(paramName, 'He')
     [~,~,~,param] = computeRho(T0, dT0, Tex, S.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);   
     [~,~,~,~,msisParam] = computeMsis(S);
