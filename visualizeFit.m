@@ -510,9 +510,9 @@ for i = 1:length(stormBeginInd)
     dtmRho = modelStruct.dtm(ind);
 
     
-    %ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
-    %msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
-    %dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
+    ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
+    msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
+    dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
     
     lat(firstDay) = [];
     timestamps(firstDay) = [];
