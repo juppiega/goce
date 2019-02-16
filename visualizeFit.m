@@ -479,7 +479,7 @@ function [] = analyzeStormTimes(rhoStruct, modelStruct, saveFolder, fullscreenFi
 %modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
 %modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
 
-[stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -50);
+[stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -75);
 rawCorr = zeros(length(stormBeginInd),3);
 rawOM = zeros(length(stormBeginInd),3);
 rawRMS = zeros(length(stormBeginInd),3);
