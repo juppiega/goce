@@ -157,8 +157,8 @@ computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 %      plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2015-04-09', '2015-04-14', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %plotStormFig(originalRhoStruct, modelStruct, '2014-11-07', '2014-11-13', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 
 analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
 
@@ -476,8 +476,8 @@ end
 function [] = analyzeStormTimes(rhoStruct, modelStruct, saveFolder, fullscreenFigs, satellite)
 
 %modelStruct.il = fixBiasBySatellite(modelStruct.il, rhoStruct);
-modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
-modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
+%modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
+%modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
 
 [stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -50);
 rawCorr = zeros(length(stormBeginInd),3);
@@ -513,8 +513,8 @@ for i = 1:length(stormBeginInd)
 
     
 %     ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
-%     msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
-%     dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
+     msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
+     dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
     
     lat(firstDay) = [];
     timestamps(firstDay) = [];
