@@ -986,6 +986,11 @@ ilRho = modelStruct.il(ind);
 msisRho = modelStruct.msis(ind);
 dtmRho = modelStruct.dtm(ind);
 
+[measuredOrbAver,t_oa] = computeOrbitAverage(measured, lat, timestamps);
+il_oa = computeOrbitAverage(ilRho, lat, timestamps);
+msis_oa = computeOrbitAverage(msisRho, lat, timestamps);
+dtm_oa = computeOrbitAverage(dtmRho, lat, timestamps);
+
 os = 95*60 / (mode(round(diff(timestamps*86400))));
 if mod(os, 2) == 0; os = os + 1; end
 
@@ -994,8 +999,8 @@ if fullscreenFigs
 else
     figure;
 end
-plot(timestamps, smooth(measured,os), timestamps, smooth(ilRho,os), timestamps, smooth(msisRho,os), timestamps, smooth(dtmRho,os));
-legend(satellite, 'OUR', 'MSIS', 'DTM')
+plot(t_oa, measuredOrbAver, t_oa, il_oa, t_oa, msis_oa, t_oa, dtm_oa);
+legend(satellite, 'IL', 'MSIS', 'DTM')
 datetick('x')
 ylabel('Rho [kg/m^3]')
 filename = [saveFolder,'/','2D',satellite,date1];
@@ -1028,18 +1033,18 @@ correctedDensity = measured .* (msisRho./msisRhoConstAlt);
 
 lat = convertToMagneticCoordinates(lat, lon, alt);
 
-i = rhoStruct.solarTime <= 12;
-[limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps(i), lat(i), false);
-interpolateAndPlotByLatitude(t1, aeIntegral(i), timestamps(i), timestamps(i), lat(i), ...
-    correctedDensity(i), msisRhoConstAlt(i), dtmRhoConstAlt(i), ilRhoConstAlt(i), limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, 'morning', fullscreenFigs)
-
-i = rhoStruct.solarTime > 12;
-[limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps(i), lat(i), false);
-interpolateAndPlotByLatitude(t1, aeIntegral(i), timestamps(i), timestamps(i), lat(i), ...
-    correctedDensity(i), msisRhoConstAlt(i), dtmRhoConstAlt(i), ilRhoConstAlt(i), limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, 'evening', fullscreenFigs)
-
-filename = [saveFolder,'/','3D',satellite,date1];
-saveas(gcf, filename, 'png');
+% i = rhoStruct.solarTime <= 12;
+% [limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps(i), lat(i), false);
+% interpolateAndPlotByLatitude(t1, aeIntegral(i), timestamps(i), timestamps(i), lat(i), ...
+%     correctedDensity(i), msisRhoConstAlt(i), dtmRhoConstAlt(i), ilRhoConstAlt(i), limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, 'morning', fullscreenFigs)
+% 
+% i = rhoStruct.solarTime > 12;
+% [limitedTimestamps, limitedLatitude, minAllowedLatitude, maxAllowedLatitude] = giveExactOrbits(timestamps(i), lat(i), false);
+% interpolateAndPlotByLatitude(t1, aeIntegral(i), timestamps(i), timestamps(i), lat(i), ...
+%     correctedDensity(i), msisRhoConstAlt(i), dtmRhoConstAlt(i), ilRhoConstAlt(i), limitedLatitude, limitedTimestamps, minAllowedLatitude, maxAllowedLatitude, 'evening', fullscreenFigs)
+% 
+% filename = [saveFolder,'/','3D',satellite,date1];
+% saveas(gcf, filename, 'png');
 
 end
 
