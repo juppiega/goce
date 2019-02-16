@@ -518,14 +518,20 @@ for i = 1:length(stormBeginInd)
     
      
     minDst(i) = min(rhoStruct.dst(ind));
-    if (minDst(i) > -250)
+    
+    if minDst(i) < -250
+        [measuredOrbAver,t] = computeOrbitAverage(measuredRho, lat, timestamps);
+        ilOrbAver = computeOrbitAverage(ilRho, lat, timestamps);
+        msisOrbAver = computeOrbitAverage(msisRho, lat, timestamps);
+        dtmOrbAver = computeOrbitAverage(dtmRho, lat, timestamps);
+        figure; plot(t,measuredOrbAver, t,msisOrbAver, t, dtmOrbAver);
+    end
     lat(firstDay) = [];
     timestamps(firstDay) = [];
     measuredRho(firstDay) = [];
     ilRho(firstDay) = [];
     msisRho(firstDay) = [];
     dtmRho(firstDay) = [];
-    end
     
     [measuredOrbAver,t] = computeOrbitAverage(measuredRho, lat, timestamps);
     ilOrbAver = computeOrbitAverage(ilRho, lat, timestamps);
@@ -568,10 +574,6 @@ for i = 1:length(stormBeginInd)
 %     OARMS(i,2) = std(log(measuredOrbAver ./ msisOrbAver));
 %     OARMS(i,3) = std(log(measuredOrbAver ./ dtmOrbAver));
     
-    
-    if (minDst(i) < -250)
-        figure; plot(t,measuredOrbAver, t,msisOrbAver, t, dtmOrbAver);
-    end
     averF81A(i) = mean(rhoStruct.FA(ind));
 end
 

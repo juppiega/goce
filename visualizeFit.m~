@@ -157,8 +157,8 @@ computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 %      plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2015-04-09', '2015-04-14', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %plotStormFig(originalRhoStruct, modelStruct, '2014-11-07', '2014-11-13', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+%plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 
 analyzeStormTimes(originalRhoStruct, modelStruct, saveFolder,fullscreenFigs, satellite);
 
@@ -476,10 +476,10 @@ end
 function [] = analyzeStormTimes(rhoStruct, modelStruct, saveFolder, fullscreenFigs, satellite)
 
 %modelStruct.il = fixBiasBySatellite(modelStruct.il, rhoStruct);
-modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
-modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
+%modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
+%modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
 
-[stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -50);
+[stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -75);
 rawCorr = zeros(length(stormBeginInd),3);
 rawOM = zeros(length(stormBeginInd),3);
 rawRMS = zeros(length(stormBeginInd),3);
@@ -513,9 +513,19 @@ for i = 1:length(stormBeginInd)
 
     
 %     ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
-%     msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
-%     dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
+     msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
+     dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
     
+     
+    minDst(i) = min(rhoStruct.dst(ind));
+    
+    if minDst(i) < -250
+        [measuredOrbAver,t] = computeOrbitAverage(measuredRho, lat, timestamps);
+        ilOrbAver = computeOrbitAverage(ilRho, lat, timestamps);
+        msisOrbAver = computeOrbitAverage(msisRho, lat, timestamps);
+        dtmOrbAver = computeOrbitAverage(dtmRho, lat, timestamps);
+        
+    end
     lat(firstDay) = [];
     timestamps(firstDay) = [];
     measuredRho(firstDay) = [];
@@ -527,7 +537,6 @@ for i = 1:length(stormBeginInd)
     ilOrbAver = computeOrbitAverage(ilRho, lat, timestamps);
     msisOrbAver = computeOrbitAverage(msisRho, lat, timestamps);
     dtmOrbAver = computeOrbitAverage(dtmRho, lat, timestamps);
-    %figure; plot(t,measuredOrbAver, t,ilOrbAver, t, msisOrbAver);
     
     
     t1{i} = datestr(t(1));
@@ -565,7 +574,10 @@ for i = 1:length(stormBeginInd)
 %     OARMS(i,2) = std(log(measuredOrbAver ./ msisOrbAver));
 %     OARMS(i,3) = std(log(measuredOrbAver ./ dtmOrbAver));
     
-    minDst(i) = min(rhoStruct.dst(ind));
+    
+    if (minDst(i) < -250)
+        figure; plot(t,measuredOrbAver, t,msisOrbAver, t, dtmOrbAver);
+    end
     averF81A(i) = mean(rhoStruct.FA(ind));
 end
 
@@ -986,7 +998,10 @@ ilRho = modelStruct.il(ind);
 msisRho = modelStruct.msis(ind);
 dtmRho = modelStruct.dtm(ind);
 
-[measuredOrbAver,t] = computeOrbitAverage(measured, lat, timestamps);
+[measuredOrbAver,t_oa] = computeOrbitAverage(measured, lat, timestamps);
+il_oa = computeOrbitAverage(ilRho, lat, timestamps);
+msis_oa = computeOrbitAverage(msisRho, lat, timestamps);
+dtm_oa = computeOrbitAverage(dtmRho, lat, timestamps);
 
 os = 95*60 / (mode(round(diff(timestamps*86400))));
 if mod(os, 2) == 0; os = os + 1; end
@@ -996,8 +1011,8 @@ if fullscreenFigs
 else
     figure;
 end
-plot(timestamps, smooth(measured,os), timestamps, smooth(ilRho,os), timestamps, smooth(msisRho,os), timestamps, smooth(dtmRho,os));
-legend(satellite, 'OUR', 'MSIS', 'DTM')
+plot(t_oa, measuredOrbAver, t_oa, il_oa, t_oa, msis_oa, t_oa, dtm_oa);
+legend(satellite, 'IL', 'MSIS', 'DTM')
 datetick('x')
 ylabel('Rho [kg/m^3]')
 filename = [saveFolder,'/','2D',satellite,date1];
