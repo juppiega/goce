@@ -518,7 +518,7 @@ for i = 1:length(stormBeginInd)
     
      
     minDst(i) = min(rhoStruct.dst(ind));
-    if (minDst > -250)
+    if (minDst(i) > -250)
     lat(firstDay) = [];
     timestamps(firstDay) = [];
     measuredRho(firstDay) = [];
@@ -569,7 +569,7 @@ for i = 1:length(stormBeginInd)
 %     OARMS(i,3) = std(log(measuredOrbAver ./ dtmOrbAver));
     
     
-    if (minDst < -250)
+    if (minDst(i) < -250)
         figure; plot(t,measuredOrbAver, t,msisOrbAver, t, dtmOrbAver);
     end
     averF81A(i) = mean(rhoStruct.FA(ind));
