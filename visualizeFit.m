@@ -540,29 +540,29 @@ for i = 1:length(stormBeginInd)
     OACorr(i,2) = corr(msisOrbAver, measuredOrbAver);
     OACorr(i,3) = corr(dtmOrbAver, measuredOrbAver);
     
-    rawOM(i,1) = mean(log(measuredRho ./ ilRho));
-    rawOM(i,2) = mean(log(measuredRho ./ msisRho));
-    rawOM(i,3) = mean(log(measuredRho ./ dtmRho));
+    rawOM(i,1) = mean((measuredRho ./ ilRho));
+    rawOM(i,2) = mean((measuredRho ./ msisRho));
+    rawOM(i,3) = mean((measuredRho ./ dtmRho));
     
-    OAOM(i,1) = mean(log(measuredOrbAver ./ ilOrbAver));
-    OAOM(i,2) = mean(log(measuredOrbAver ./ msisOrbAver));
-    OAOM(i,3) = mean(log(measuredOrbAver ./ dtmOrbAver));
+    OAOM(i,1) = mean((measuredOrbAver ./ ilOrbAver));
+    OAOM(i,2) = mean((measuredOrbAver ./ msisOrbAver));
+    OAOM(i,3) = mean((measuredOrbAver ./ dtmOrbAver));
     
-%     rawRMS(i,1) = rms(measuredRho ./ ilRho-1);
-%     rawRMS(i,2) = rms(measuredRho ./ msisRho-1);
-%     rawRMS(i,3) = rms(measuredRho ./ dtmRho-1);
+    rawRMS(i,1) = rms(measuredRho ./ ilRho-1);
+    rawRMS(i,2) = rms(measuredRho ./ msisRho-1);
+    rawRMS(i,3) = rms(measuredRho ./ dtmRho-1);
+    
+    OARMS(i,1) = rms(measuredOrbAver ./ ilOrbAver-1);
+    OARMS(i,2) = rms(measuredOrbAver ./ msisOrbAver-1);
+    OARMS(i,3) = rms(measuredOrbAver ./ dtmOrbAver-1);
+    
+%     rawRMS(i,1) = std(log(measuredRho ./ ilRho));
+%     rawRMS(i,2) = std(log(measuredRho ./ msisRho));
+%     rawRMS(i,3) = std(log(measuredRho ./ dtmRho));
 %     
-%     OARMS(i,1) = rms(measuredOrbAver ./ ilOrbAver-1);
-%     OARMS(i,2) = rms(measuredOrbAver ./ msisOrbAver-1);
-%     OARMS(i,3) = rms(measuredOrbAver ./ dtmOrbAver-1);
-    
-    rawRMS(i,1) = std(log(measuredRho ./ ilRho));
-    rawRMS(i,2) = std(log(measuredRho ./ msisRho));
-    rawRMS(i,3) = std(log(measuredRho ./ dtmRho));
-    
-    OARMS(i,1) = std(log(measuredOrbAver ./ ilOrbAver));
-    OARMS(i,2) = std(log(measuredOrbAver ./ msisOrbAver));
-    OARMS(i,3) = std(log(measuredOrbAver ./ dtmOrbAver));
+%     OARMS(i,1) = std(log(measuredOrbAver ./ ilOrbAver));
+%     OARMS(i,2) = std(log(measuredOrbAver ./ msisOrbAver));
+%     OARMS(i,3) = std(log(measuredOrbAver ./ dtmOrbAver));
     
     minDst(i) = min(rhoStruct.dst(ind));
     averF81A(i) = mean(rhoStruct.FA(ind));
