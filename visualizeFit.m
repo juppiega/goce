@@ -476,8 +476,8 @@ end
 function [] = analyzeStormTimes(rhoStruct, modelStruct, saveFolder, fullscreenFigs, satellite)
 
 %modelStruct.il = fixBiasBySatellite(modelStruct.il, rhoStruct);
-modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
-modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
+%modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
+%modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
 
 [stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -75);
 rawCorr = zeros(length(stormBeginInd),3);
@@ -513,8 +513,8 @@ for i = 1:length(stormBeginInd)
 
     
 %     ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
-%     msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
-%     dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
+     msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
+     dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
     
     lat(firstDay) = [];
     timestamps(firstDay) = [];
