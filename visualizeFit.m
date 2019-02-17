@@ -519,13 +519,13 @@ for i = 1:length(stormBeginInd)
      
     minDst(i) = min(rhoStruct.dst(ind));
     
-    if minDst(i) < -250
-        [measuredOrbAver,t] = computeOrbitAverage(measuredRho, lat, timestamps);
-        ilOrbAver = computeOrbitAverage(ilRho, lat, timestamps);
-        msisOrbAver = computeOrbitAverage(msisRho, lat, timestamps);
-        dtmOrbAver = computeOrbitAverage(dtmRho, lat, timestamps);
-        figure; plot(t,measuredOrbAver, t,msisOrbAver, t, dtmOrbAver);
-    end
+%     if minDst(i) < -250
+%         [measuredOrbAver,t] = computeOrbitAverage(measuredRho, lat, timestamps);
+%         ilOrbAver = computeOrbitAverage(ilRho, lat, timestamps);
+%         msisOrbAver = computeOrbitAverage(msisRho, lat, timestamps);
+%         dtmOrbAver = computeOrbitAverage(dtmRho, lat, timestamps);
+%         figure; plot(t,measuredOrbAver, t,msisOrbAver, t, dtmOrbAver);
+%     end
     lat(firstDay) = [];
     timestamps(firstDay) = [];
     measuredRho(firstDay) = [];
