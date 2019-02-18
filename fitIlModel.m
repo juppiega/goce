@@ -1054,7 +1054,7 @@ if fitSimultaneously || fitBaseAgain
     setenv('OMP_NUM_THREADS', num2str(numThreads))
     disp('Calling LM solver')
     clear mex;
-    rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 0.91;
+    rhoStruct.data(rhoStruct.goce) = rhoStruct.data(rhoStruct.goce) * 0.97;
     rhoStruct.data(rhoStruct.grace) = rhoStruct.data(rhoStruct.grace) * 0.94;
     rhoStruct.data(rhoStruct.champ) = rhoStruct.data(rhoStruct.champ) * 0.99;
     numStorm = numCoeffs - numQuietCoeffs;
