@@ -61,7 +61,7 @@ coeffStruct = struct('TexCoeff' , optCoeff(TexInd),...
 'dTCoeff', dTCoeffs,...
 'T0Coeff', T0Coeffs);
 
-z = 370;
+z = 450;
 lat = -90:5:90;
 lst = 0:0.5:24;
 lon = 90;
