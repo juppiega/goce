@@ -10,15 +10,15 @@ numBiases = struct('O', 5, 'N2', 6,...
 OInd(2:1+numBiases.O) = [];
 N2Ind(2:1+numBiases.N2) = [];
 HeInd(2:1+numBiases.He) = [];
-ArInd(2:1+numBiases.Ar) = [];
+%ArInd(2:1+numBiases.Ar) = [];
 
-optCoeff = optCoeff([TexInd, OInd, N2Ind, HeInd, ArInd, O2Ind]);
+optCoeff = optCoeff([TexInd, OInd, N2Ind, HeInd, O2Ind]);
 
 OInd = TexInd(length(TexInd)) + (1:N);
 N2Ind = OInd(end) + (1:N);
 HeInd = N2Ind(end) + (1:N);
-ArInd = HeInd(end) + (1:N);
-O2Ind = ArInd(end) + 1;
+%ArInd = HeInd(end) + (1:N);
+O2Ind = HeInd(end) + 1;
 
 file = fopen('IL2017_coeff_mod.f90', 'w');
 
@@ -34,7 +34,7 @@ writeIndices(file, 'TexInd', TexInd)
 writeIndices(file, 'OInd', OInd)
 writeIndices(file, 'N2Ind', N2Ind)
 writeIndices(file, 'HeInd', HeInd)
-writeIndices(file, 'ArInd', ArInd)
+%writeIndices(file, 'ArInd', ArInd)
 writeIndices(file, 'O2Ind', O2Ind)
 fprintf(file,'\n');
 fprintf(file,'%s\n','end module IL2017_coeff_mod');
