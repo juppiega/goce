@@ -68,16 +68,16 @@ lon = 90;
 doy = 80;
 F = 70;
 FA = 70;
-aeInt = 10*ones(1,24);
+aeInt = 500*ones(1,24);
 Ap = 3;
 lstMean = false;
 lonMean = true;
 latitudeMean = false;
 devFromXmean = false;
 sameColorBars = false;
-onlyIL = false;
+onlyIL = true;
 outputNetCdf = true;
-deviationFromQuiet = false;
+deviationFromQuiet = true;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
     sameColorBars, 'yx', plotVar, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
 
