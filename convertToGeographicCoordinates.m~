@@ -1,0 +1,15 @@
+function [lat, lon] = convertToGeographicCoordinates(mag_lat, mag_lon)
+
+ecefXYZ = geod2ecef(mag_lat, mag_lon, zeros(size)';
+ecefToMagTransform = [0.33907 -0.91964 -0.19826; ...
+                      0.93826  0.34594  0      ; ...
+                      0.06859  0.18602  0.98015];
+magXYZ = ecefToMagTransform * ecefXYZ;
+r = sqrt(magXYZ(1,:).^2 + magXYZ(2,:).^2 + magXYZ(3,:).^2);
+magneticLatitude = pi/2 - acos(magXYZ(3,:) ./ r);
+magneticLatitude = magneticLatitude' * 180 / pi;
+
+magneticLongitude = 180 * atan2(magXYZ(2,:), magXYZ(1,:))' / pi;
+
+
+end
