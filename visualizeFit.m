@@ -78,7 +78,7 @@ sameColorBars = false;
 onlyIL = true;
 outputNetCdf = true;
 deviationFromQuiet = true;
-magnetic_latlon = true;
+magnetic_latlon = false;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
     sameColorBars, 'yx', plotVar, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet, magnetic_latlon);
 
