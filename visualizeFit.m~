@@ -274,7 +274,7 @@ S = computeGeopotentialHeight(S);
 if magnetic_latlon
     mag_lon = (S.solarTime(:) * 15) - 180;
     [S.latitude(:), geog_lon] = convertToGeographicCoordinates(S.latitude(:), mag_lon);
-    S.solarTime(:) = ((geog_lon+180)/15);
+    
 end
 
 [param, msisParam, dtmParam] = computeParams(S, coeffStruct, paramName, numBiasesStruct);
