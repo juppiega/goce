@@ -78,8 +78,9 @@ sameColorBars = false;
 onlyIL = true;
 outputNetCdf = true;
 deviationFromQuiet = true;
+magnetic_latlon = true;
 plotSurfs(z, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, devFromXmean, ...
-    sameColorBars, 'yx', plotVar, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet);
+    sameColorBars, 'yx', plotVar, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet, magnetic_latlon);
 
 
 z = 125:5:600;
@@ -212,7 +213,7 @@ plot([T0_130,T0_130],[ylims(1),z0+200], 'k--', 'linewidth', linesize)
 end
 
 function [] = plotSurfs(altitude, lat, lst, lon, doy, F, FA, aeInt, Ap, lstMean, lonMean, latitudeMean, ...
-    devFromXmean, sameColorBars, paramOrder, paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet)
+    devFromXmean, sameColorBars, paramOrder, paramName, onlyIL, coeffStruct, numBiasesStruct, outputNetCdf,saveFolder,deviationFromQuiet, magnetic_latlon)
 
 [X, Y, xname, yname] = findSurfXY(altitude, lat, lst, lon, doy, paramOrder);
 
@@ -269,6 +270,12 @@ S.ap9h = Ap*ones(N,1); S.ap12To33h = Ap*ones(N,1); S.ap36To57h = Ap*ones(N,1);
 % S.numBiases = 0;
 S = computeVariablesForFit(S, false);
 S = computeGeopotentialHeight(S);
+
+if magnetic_latlon
+    mag_lon = (S.solarTime(:) * 15) - 180;
+    [S.latitude(:), geog_lon] = convertToGeographicCoordinates(S.latitude(:), mag_lon);
+    S.solarTime(:) = ((geog_lon+180)/15);
+end
 
 [param, msisParam, dtmParam] = computeParams(S, coeffStruct, paramName, numBiasesStruct);
 if deviationFromQuiet
