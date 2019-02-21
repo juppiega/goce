@@ -518,7 +518,7 @@ for i = 1:length(stormBeginInd)
     msisRho = modelStruct.msis(ind);
     dtmRho = modelStruct.dtm(ind);
 
-    if satInfo == 3
+    if satInfo(i) == 3
         ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
     end
     msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
