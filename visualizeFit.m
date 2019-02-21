@@ -518,10 +518,11 @@ for i = 1:length(stormBeginInd)
     msisRho = modelStruct.msis(ind);
     dtmRho = modelStruct.dtm(ind);
 
-    
-%     ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
-     msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
-     dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
+    if satInfo == 3
+        ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
+    end
+    msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
+    dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
     
      
     minDst(i) = min(rhoStruct.dst(ind));
