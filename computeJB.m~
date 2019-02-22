@@ -1,0 +1,29 @@
+function rho = computeJB(S)
+
+% Annual parameter.
+if ~isfield(S, 'doy')
+    [yr,~,~,~,~,~] = datevec(S.timestamps);
+    yearVec = [yr, repmat([1,1,0,0,0], length(yr), 1)];
+    S.doy = S.timestamps - datenum(yearVec) + 1;
+end
+
+N = length(S.latitude);
+rho = zeros(N,1);
+
+targetCount = round(N / 10000);
+barWidth = 50;
+p = TimedProgressBar( targetCount, barWidth, ...
+                    'Running JB2008, ETA ', ...
+                    '. Now at ', ...
+                    'Completed in ' );
+                
+
+for i = 1:N
+    [~,~,~,~,~,~,~,~,~,~,~,~,rho(i),~,~,~,~,~,~,~,~,~,~] = jb2k8(years,doy,hour,min,sec,ht,lat,lon);
+    if mod(i, 10000) == 0
+        p.progress;
+    end
+end
+p.stop;
+
+end

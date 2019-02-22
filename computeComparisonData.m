@@ -1,4 +1,4 @@
-function [ilRho, msisRho, dtmRho] = computeComparisonData(rhoStruct, coeffStruct, numBiasesStruct)
+function [ilRho, msisRho, dtmRho, jbRho] = computeComparisonData(rhoStruct, coeffStruct, numBiasesStruct)
 
 rhoStruct = computeVariablesForFit(rhoStruct);
 TexCoeffs = coeffStruct.TexCoeff; dTCoeffs = coeffStruct.dTCoeff;
@@ -16,6 +16,9 @@ ilRho = computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, 0, O2
 if nargout > 1
     [~, msisRho] = computeMsis(rhoStruct);
     [~, dtmRho] = computeDtm(rhoStruct);
+    if nargout > 3
+        jbRho = computeJB(rhoStruct);
+    end
 end
 
 end

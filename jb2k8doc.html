@@ -1,0 +1,176 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>JB2008 Calling Script</title><meta name="generator" content="MATLAB 8.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2015-04-29"><meta name="DC.source" content="jb2k8doc.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>JB2008 Calling Script</h1><!--introduction--><p>The script jb2k8.m is used to call the JB2008 model in MATLAB&reg;.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Formatting</a></li><li><a href="#3">Inputs</a></li><li><a href="#4">Outputs</a></li><li><a href="#5">More About</a></li><li><a href="#6">See Also</a></li></ul></div><h2>Syntax<a name="1"></a></h2><p>[outputyear,outputdoy,outputhr,outputmin,outputsec,outputht,outputlat,outputlon,outputsun1,outputsun2,outputtemp1,outputtemp2,outputdensity,outputD1950,outputF10,outputF10B,outputS10,outputS10B,outputXM10,outputXM10B,outputY10,outputY10B,outputDSTDTC] = jb2k8(years,doy,hour,min,sec,ht,lat,lon)</p><p>[~,~,~,~,~,~,~,~,~,~,~,~,outputdensity,~,~,~,~,~,~,~,~,~,~] = jb2k8(years,doy,hour,min,sec,ht,lat,lon)</p><h2>Formatting<a name="2"></a></h2><p>The script <tt>UpdateFile.m</tt> must be included to update input files automatically. Any files that are <i>missing</i> or <i>out of date</i> will be updated automatically.</p><p>MATLAB&reg; 2014b is required to use this function.</p><pre class="language-matlab">FileSum = exist(<span class="string">'SOLFSMY.TXT'</span>) + exist(<span class="string">'SOLRESAP.TXT'</span>) + <span class="keyword">...</span>
+exist(<span class="string">'DSTFILE.TXT'</span>) +  exist(<span class="string">'DTCFILE.TXT'</span>);
+</pre><pre class="language-matlab"><span class="keyword">if</span>  verLessThan(<span class="string">'matlab'</span>, <span class="string">'8.4'</span>) == 1 &amp; FileSum == 8
+  disp([<span class="string">'MATLAB 2014b or later is required to automatically update files.'</span>])
+  disp([<span class="string">'Files may be out of date!'</span>])
+<span class="keyword">end</span>
+</pre><h2>Inputs<a name="3"></a></h2><div><ul><li>years is the simulation year.</li><li>doy is the simulation day of year.</li><li>hour is the simulation hour.</li><li>min is the simulation minutes.</li><li>sec is the simulation seconds.</li><li>ht is the simulation altitude, in km.</li><li>lat is the simulation latitude, in degrees.</li><li>lon is the simulation longitude, in degrees.</li></ul></div><h2>Outputs<a name="4"></a></h2><p>Time:</p><div><ul><li>outputyear is the simulation year.</li><li>outputdoy is the simulation day of year.</li><li>outputhr is the simulation hour.</li><li>outputmin is the simulation minute.</li><li>outputsec is the simulation second.</li></ul></div><p>Location:</p><div><ul><li>outputht is the altitude, in km.</li><li>outputlat is the latitude, in degrees.</li><li>outputlon is the longitude, in degrees.</li></ul></div><p>Other:</p><div><ul><li>outputsun1 is the right ascension of the Sun, in radians.</li><li>outputsun2 is the declination of the Sun, in radians.</li><li>outputtemp1 is the exospheric temperature above the input position, in degrees K.</li><li>outputtemp2 is the temperature at the input position, in degrees K.</li><li>outputdensity is the mass density at the input position.</li><li>outputD1950 is the number of days since 1950.</li><li>outputF10 is the 10.7-cm Solar Flux, in <img src="jb2k8doc_eq10432129373116880453.png" alt="$10^{-22} \frac{Watt}{M^2 Hertz}$">.</li><li>outputF10B is the 81-day average of the 10.7-cm Solar Flux, centered on the input time.</li><li>outputS10 is the EUV index (26-34 nm) scaled to F10.</li><li>outputS10B is the 81-day average of the EUV index, centered on the input time.</li><li>outputXM10 is the MG2 index scaled to F10.</li><li>outputXM10B is the 81-day average of the MG2 index, centered on the input time.</li><li>outputY10 is the Solar X-Ray &amp; Lya index scaled to F10.</li><li>outputY10B is the 81-day average of the Solar X-Ray &amp; Lya Index.</li><li>outputDSTDTC is the temperature change computed from Dst index.</li></ul></div><h2>More About<a name="5"></a></h2><p>Please find the latest version of the code at the <a href="http://sol.spacenvironment.net/jb2008/code.html">JB2008</a> website.</p><h2>See Also<a name="6"></a></h2><p><a href="http://www.mathworks.com/help/aerotbx/ug/atmosnrlmsise00.html">atmosnrlmsise00</a></p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% JB2008 Calling Script
+% 
+% The script jb2k8.m is used to call the JB2008 model in MATLAB(R).
+
+
+%% Syntax
+% [outputyear,outputdoy,outputhr,outputmin,outputsec,outputht,outputlat,outputlon,outputsun1,outputsun2,outputtemp1,outputtemp2,outputdensity,outputD1950,outputF10,outputF10B,outputS10,outputS10B,outputXM10,outputXM10B,outputY10,outputY10B,outputDSTDTC] = jb2k8(years,doy,hour,min,sec,ht,lat,lon)
+% 
+% [~,~,~,~,~,~,~,~,~,~,~,~,outputdensity,~,~,~,~,~,~,~,~,~,~] = jb2k8(years,doy,hour,min,sec,ht,lat,lon)
+% 
+
+%% Formatting
+% The script |UpdateFile.m| must be included to update input files
+% automatically. Any files that are _missing_ or _out of date_ will be
+% updated automatically.
+%
+% MATLAB(R) 2014b is required to use this function.
+% 
+%   FileSum = exist('SOLFSMY.TXT') + exist('SOLRESAP.TXT') + ...
+%   exist('DSTFILE.TXT') +  exist('DTCFILE.TXT');
+% 
+%   if  verLessThan('matlab', '8.4') == 1 & FileSum == 8
+%     disp(['MATLAB 2014b or later is required to automatically update files.'])
+%     disp(['Files may be out of date!'])
+%   end
+
+
+
+
+% 
+% Calling DTM-2013 from the command-line requires a particular format. This
+% format is used with sprintf() to call DTM-2013 with the inputs to dtm2k13.
+% 
+%   formatSpec = 'DTM2013.exe%12.1f%12.1f %12.1f %2i%2i %4i %2i %2i %12.9f';
+%   inputd5ata = sprintf(formatSpec,alti,xlon,xlat,day,month,year,hour,minute,second)
+%   [status,cmdout] = system(inputdata);
+% 
+% Note that the input string above can be pasted into the command window
+% if desired.
+
+%% Inputs
+% * years is the simulation year.
+% * doy is the simulation day of year.
+% * hour is the simulation hour.
+% * min is the simulation minutes.
+% * sec is the simulation seconds.
+% * ht is the simulation altitude, in km.
+% * lat is the simulation latitude, in degrees.
+% * lon is the simulation longitude, in degrees.
+
+%% Outputs
+% Time:
+% 
+% * outputyear is the simulation year.
+% * outputdoy is the simulation day of year.
+% * outputhr is the simulation hour.
+% * outputmin is the simulation minute.
+% * outputsec is the simulation second.
+% 
+% Location:
+% 
+% * outputht is the altitude, in km.
+% * outputlat is the latitude, in degrees.
+% * outputlon is the longitude, in degrees.
+% 
+% Other:
+% 
+% * outputsun1 is the right ascension of the Sun, in radians.
+% * outputsun2 is the declination of the Sun, in radians.
+% * outputtemp1 is the exospheric temperature above the input position, in
+% degrees K.
+% * outputtemp2 is the temperature at the input position, in degrees K.
+% * outputdensity is the mass density at the input position.
+% * outputD1950 is the number of days since 1950.
+% * outputF10 is the 10.7-cm Solar Flux, in $10^{-22} \frac{Watt}{M^2 Hertz}$.
+% * outputF10B is the 81-day average of the 10.7-cm Solar Flux, centered on
+% the input time.
+% * outputS10 is the EUV index (26-34 nm) scaled to F10.
+% * outputS10B is the 81-day average of the EUV index, centered on
+% the input time.
+% * outputXM10 is the MG2 index scaled to F10.
+% * outputXM10B is the 81-day average of the MG2 index, centered on
+% the input time.
+% * outputY10 is the Solar X-Ray & Lya index scaled to F10.
+% * outputY10B is the 81-day average of the Solar X-Ray & Lya Index.
+% * outputDSTDTC is the temperature change computed from Dst index.
+
+%% More About
+% 
+% Please find the latest version of the code at the 
+% <http://sol.spacenvironment.net/jb2008/code.html JB2008> website.
+
+
+%% See Also
+% 
+% <http://www.mathworks.com/help/aerotbx/ug/atmosnrlmsise00.html atmosnrlmsise00>
+
+
+##### SOURCE END #####
+--></body></html>

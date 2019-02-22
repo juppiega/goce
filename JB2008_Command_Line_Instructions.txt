@@ -1,0 +1,46 @@
+-Compile the code with gfortran using "compilejb2008.txt". This produces "JB2008.exe".
+-Call "jb2k8.m" from MATLAB. This can also be embedded in a SIMULINK block if desired. Syntax is contained in the .m file.
+-If  you would like to call JB2008.exe from the command line in this way, the syntax is:
+
+JB2008.exe AAAAA BBBBB CCCCC DDDDD EEE.EEE FFFFFF.FF GGGGG.GG HHHHH.HH
+
+A = year
+B = day of year
+C = hour
+D = minute
+E = second
+F = height (km)
+G = latitude (degrees)
+H = longitude (degrees)
+
+
+The maximum field sizes are indicated by how many times the letter is repeated.
+Spaces are ignored unless they separate fields.
+Run the command below to test the command-line input.
+
+
+JB2008.exe 2004   32   12   34 23.000   500.00   45.00   54.00
+
+Which should return: 
+ 
+  104
+   32
+   12
+   34
+ 23.000
+   500.00
+   45.00
+   54.00
+    5.4882   -0.3001
+   915.9   917.0
+    0.34433D-12
+    19755.52388
+     94.
+    112.
+     97.
+    111.
+     88.
+    113.
+    104.
+    123.
+     75.

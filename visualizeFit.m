@@ -97,7 +97,7 @@ if exist('msisDtmComparison.mat', 'file')
     load msisDtmComparison.mat
 else
     if ~strcmpi(satellite,'all') || quietData; error('Must have satellite=all and quietData = false to compute comparisons!');end
-    [~, msisRho, dtmRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
+    [~, msisRho, dtmRho, jbRho] = computeComparisonData(originalRhoStruct, coeffStruct, numBiasesStruct);
     S = originalRhoStruct; S.altitude(:) = 370;
     [~, msis_370, dtm_370] = computeComparisonData(S, coeffStruct, numBiasesStruct);
     S.altitude(:) = 270;
@@ -105,7 +105,7 @@ else
     S.altitude(:) = 470;
     [~, msis_470, dtm_470] = computeComparisonData(S, coeffStruct, numBiasesStruct);
 
-    save('msisDtmComparison.mat', 'msisRho', 'dtmRho', 'msis_370','dtm_370', 'msis_270','dtm_270', 'msis_470','dtm_470')
+    save('msisDtmComparison.mat', 'msisRho', 'dtmRho', 'jbRho', 'msis_370','dtm_370', 'msis_270','dtm_270', 'msis_470','dtm_470')
 end
 
 if exist('ilComparison.mat', 'file')
