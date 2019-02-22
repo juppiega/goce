@@ -25,7 +25,7 @@ p = TimedProgressBar( targetCount, barWidth, ...
 doy = S.doy;
 alt = S.altitude;
 lat = S.latitude;
-lon = S.logitude;
+lon = S.longitude;
 parfor i = 1:N
     [~,~,~,~,~,~,~,~,~,~,~,~,rho(i),~,~,~,~,~,~,~,~,~,~] = jb2k8(yr(i),doy(i),h(i),m(i),s(i),alt(i),lat(i),lon(i));
     if mod(i, 10000) == 0
