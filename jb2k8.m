@@ -60,8 +60,19 @@ outputs2 = G{1,2};
 if length(outputs1) < 21
     disp(inputdata)
     disp(cmdout)
-    disp(outputs1)
-    error('JB2008 output too short')
+    %disp(outputs1)
+    %error('JB2008 output too short')
+    k = 1;
+    while length(outputs1) < 21 && k <= 5
+        [status,cmdout] = system(inputdata);
+        G = textscan(cmdout,'%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f');
+        outputs1 = G{1,1};
+        outputs2 = G{1,2};
+        k = k + 1;
+    end
+    if k == 5
+        error('JB2008 output systematically too short')
+    end
 end
 
 % Time
