@@ -23,6 +23,7 @@ for i = 1:N
     if mod(i, 10000) == 0
         p.progress;
     end
+    i
 end
 p.stop;
 
