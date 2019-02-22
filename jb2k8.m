@@ -43,7 +43,7 @@ end
 %% Call the JB2008 function
 
 formatSpec = './JB2008%5d%5d%5d%5d%7.3f%9.2f%8.2f%8.2f';
-inputdata = sprintf(formatSpec,years,doy,hour,min,sec,ht,lat,lon);
+inputdata = sprintf(formatSpec,years,floor(doy),hour,min,sec,ht,lat,lon);
 
 [status,cmdout] = system(inputdata);
 
