@@ -47,8 +47,7 @@ inputdata = sprintf(formatSpec,years,floor(doy),hour,min,sec,ht,lat,lon);
 
 [status,cmdout] = system(inputdata);
 if status
-    disp(cmdout)
-    error('JB2008 command line fail')
+    disp
 end
 
 G = textscan(cmdout,'%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f');
