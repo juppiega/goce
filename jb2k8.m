@@ -58,6 +58,8 @@ G = textscan(cmdout,'%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f
 outputs1 = G{1,1};
 outputs2 = G{1,2};
 if length(outputs1) < 21
+    disp(inputdata)
+    disp(cmdout)
     disp(outputs1)
     error('JB2008 output too short')
 end
