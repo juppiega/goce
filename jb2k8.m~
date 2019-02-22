@@ -47,7 +47,8 @@ inputdata = sprintf(formatSpec,years,floor(doy),hour,min,sec,ht,lat,lon);
 
 [status,cmdout] = system(inputdata);
 if status
-    disp
+    disp(cmdout)
+    error('JB2008 command line fail')
 end
 
 G = textscan(cmdout,'%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f');
@@ -56,6 +57,9 @@ G = textscan(cmdout,'%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f
 %% Outputs
 outputs1 = G{1,1};
 outputs2 = G{1,2};
+if length(outputs1) < 21
+    
+end
 
 % Time
     outputyear = outputs1(1);

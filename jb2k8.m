@@ -57,6 +57,10 @@ G = textscan(cmdout,'%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f
 %% Outputs
 outputs1 = G{1,1};
 outputs2 = G{1,2};
+if length(outputs1) < 21
+    disp(outputs1)
+    error('JB2008 output too short')
+end
 
 % Time
     outputyear = outputs1(1);
