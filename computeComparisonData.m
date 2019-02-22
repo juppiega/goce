@@ -14,11 +14,11 @@ O2lbDens = exp(coeffStruct.O2Coeff);
 ilRho = computeRho(T0, dT0, Tex, rhoStruct.Z, OlbDens, N2lbDens, HelbDens, 0, O2lbDens);
 
 if nargout > 1
-    [~, msisRho] = computeMsis(rhoStruct);
-    [~, dtmRho] = computeDtm(rhoStruct);
     if nargout > 3
         jbRho = computeJB(rhoStruct);
     end
+    [~, msisRho] = computeMsis(rhoStruct);
+    [~, dtmRho] = computeDtm(rhoStruct);
 end
 
 end
