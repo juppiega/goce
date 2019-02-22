@@ -1,5 +1,10 @@
 function rho = computeJB(S)
 
+poolobj = gcp('nocreate'); % If no pool, create a new one.
+if isempty(poolobj)
+    parpool();
+end
+
 [yr,~,~,h,m,s] = datevec(S.timestamps);
 % Annual parameter.
 if ~isfield(S, 'doy')
@@ -18,12 +23,11 @@ p = TimedProgressBar( targetCount, barWidth, ...
                     'Completed in ' );
                 
 
-for i = 1:N
+parfor i = 1:N
     [~,~,~,~,~,~,~,~,~,~,~,~,rho(i),~,~,~,~,~,~,~,~,~,~] = jb2k8(yr(i),S.doy(i),h(i),m(i),s(i),S.altitude(i),S.latitude(i),S.longitude(i));
     if mod(i, 10000) == 0
         p.progress;
     end
-    i
 end
 p.stop;
 
