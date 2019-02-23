@@ -58,8 +58,8 @@ G = textscan(cmdout,'%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f
 outputs1 = G{1,1};
 outputs2 = G{1,2};
 if length(outputs1) < 21
-    %disp(inputdata)
-    %disp(cmdout)
+    disp(inputdata)
+    disp(cmdout)
     %disp(outputs1)
     %error('JB2008 output too short')
     k = 1;
@@ -70,25 +70,14 @@ if length(outputs1) < 21
         outputs2 = G{1,2};
         k = k + 1;
     end
-    if k > 5
+    if k == 5
         error('JB2008 output systematically too short')
     end
 end
 
-k = 1;
-while (length(outputs1) < 21 || outputs1(11) > 1E-5) && k <= 5
-    disp(inputdata)
-    disp(cmdout)
-    [status,cmdout] = system(inputdata);
-    G = textscan(cmdout,'%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f');
-    outputs1 = G{1,1};
-    outputs2 = G{1,2};
-    k = k + 1;
+if outputs1(11) > 1E-5
+    
 end
-if k > 5
-    error('JB2008 density systematically too large')
-end
-
 
 % Time
     outputyear = outputs1(1);
