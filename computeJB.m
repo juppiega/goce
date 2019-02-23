@@ -27,7 +27,7 @@ alt = S.altitude;
 lat = S.latitude;
 lon = S.longitude;
 timestamps = S.timestamps;
-time_max = datenum('2015-01-01');
+time_max = datenum('2015-03-11');
 parfor i = 1:N
     if timestamps(i) < time_max
         [~,~,~,~,~,~,~,~,~,~,~,~,rho(i),~,~,~,~,~,~,~,~,~,~] = jb2k8(yr(i),doy(i),h(i),m(i),s(i),alt(i),lat(i),lon(i));
