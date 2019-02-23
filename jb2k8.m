@@ -76,7 +76,7 @@ if length(outputs1) < 21
 end
 
 k = 1;
-while (length(outputs1) < 21 || outputs1(11) > 1E-5) && k <= 5
+while (length(outputs1) < 21 || outputs1(11) > 1E-5 || outputs1(11) <= 0) && k <= 5
     disp(inputdata)
     disp(cmdout)
     [status,cmdout] = system(inputdata);
