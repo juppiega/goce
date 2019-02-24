@@ -469,13 +469,13 @@ function model = fixBiasBySatellite(model, rhoStruct)
 
 if isfield(rhoStruct, 'goce') && isfield(rhoStruct, 'swarm')
     ind = rhoStruct.goce; 
-    model(ind) = model(ind) * mean(rhoStruct.data(ind)./model(ind));
+    model(ind) = model(ind) * nanmean(rhoStruct.data(ind)./model(ind));
     ind = rhoStruct.champ; 
-    model(ind) = model(ind) * mean(rhoStruct.data(ind)./model(ind));
+    model(ind) = model(ind) * nanmean(rhoStruct.data(ind)./model(ind));
     ind = rhoStruct.grace; 
-    model(ind) = model(ind) * mean(rhoStruct.data(ind)./model(ind));
+    model(ind) = model(ind) * nanmean(rhoStruct.data(ind)./model(ind));
     ind = rhoStruct.swarm; 
-    model(ind) = model(ind) * mean(rhoStruct.data(ind)./model(ind));
+    model(ind) = model(ind) * nanmean(rhoStruct.data(ind)./model(ind));
 end
 
 end
