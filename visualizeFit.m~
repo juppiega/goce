@@ -482,6 +482,8 @@ end
 
 function [] = analyzeStormTimes(rhoStruct, modelStruct, saveFolder, fullscreenFigs, satellite)
 
+modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rho
+
 [stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -75);
 rawCorr = zeros(length(stormBeginInd),4);
 rawOM = zeros(length(stormBeginInd),4);
@@ -615,40 +617,47 @@ outputCell(2:end, 22:25) = num2cell(OAOM);
 outputCell(2:end, 26:29) = num2cell(OARMS);
 
 outputCell(1,1:end) = {'Begin', 'End', 'Mean F10.7', 'Min Dst', 'SatInfo (0=GO:1=CH:2=GR:3=SW)',...
-                        'Corr. IL','Corr. MSIS','Corr. DTM','O/M IL','O/M MSIS','O/M DTM',...
-                        'RMS IL','RMS MSIS','RMS DTM', ...
-                        'OA Corr. IL', 'OA Corr. MSIS', 'OA Corr. DTM',...
-                        'OA O/M IL', 'OA O/M MSIS', 'OA O/M DTM',...
-                        'OA RMS IL', 'OA RMS MSIS','OA RMS DTM'};
+                        'Corr. IL','Corr. MSIS','Corr. DTM','Corr. JB',...
+                        'O/M IL','O/M MSIS','O/M DTM','O/M JB',...
+                        'RMS IL','RMS MSIS','RMS DTM','RMS JB', ...
+                        'OA Corr. IL', 'OA Corr. MSIS', 'OA Corr. DTM','OA Corr. JB',...
+                        'OA O/M IL', 'OA O/M MSIS', 'OA O/M DTM','OA O/M JB',...
+                        'OA RMS IL', 'OA RMS MSIS','OA RMS DTM','OA RMS JB'};
 
 cell2csv([saveFolder, '/storms.',satellite,'.csv'], outputCell);
-disp({'OA Corr. IL', 'OA Corr. MSIS', 'OA Corr. DTM',...
-                        'OA O/M IL', 'OA O/M MSIS', 'OA O/M DTM',...
-                        'OA RMS IL', 'OA RMS MSIS','OA RMS DTM'});
+%disp({'OA Corr. IL', 'OA Corr. MSIS', 'OA Corr. DTM',...
+%                        'OA O/M IL', 'OA O/M MSIS', 'OA O/M DTM',...
+%                        'OA RMS IL', 'OA RMS MSIS','OA RMS DTM'});
 
 
 disp('All storms:')
 disp([mean(OACorr), mean(OAOM), mean(OARMS)]);
+i = minDst < -75;
+disp('Dst < -75')
+disp([mean(OACorr(i,:)), mean(OAOM(i,:)), mean(OARMS(i,:))]);
+i = minDst < -200;
+disp('Dst < -200')
+disp([mean(OACorr(i,:)), mean(OAOM(i,:)), mean(OARMS(i,:))]);
 i = minDst < -250;
 disp('Dst < -250')
 disp([mean(OACorr(i,:)), mean(OAOM(i,:)), mean(OARMS(i,:))]);
 
 fontsize = 15;
-if fullscreenFigs
-    figure('units','normalized','outerposition',[0 0 1 1])
-else
-    figure;
-end
-X = repmat(-minDst, 1, 2);
-h = plot(X, OACorr(:,[1,3]), 's');
-set(h(1), 'markerFaceColor', 'b');
-set(h(2), 'markerFaceColor', 'g');
-xlabel('-1 * min Dst', 'fontsize', fontsize);
-ylabel('Orb. aver. Correlation', 'fontsize', fontsize);
-set(gca, 'fontsize', fontsize);
-legend('AE', 'DTM', 'location', 'southeast')
-filename = [saveFolder, '/OACorr'];
-saveas(gcf, filename, 'png');
+% if fullscreenFigs
+%     figure('units','normalized','outerposition',[0 0 1 1])
+% else
+%     figure;
+% end
+% X = repmat(-minDst, 1, 2);
+% h = plot(X, OACorr(:,[1,3]), 's');
+% set(h(1), 'markerFaceColor', 'b');
+% set(h(2), 'markerFaceColor', 'g');
+% xlabel('-1 * min Dst', 'fontsize', fontsize);
+% ylabel('Orb. aver. Correlation', 'fontsize', fontsize);
+% set(gca, 'fontsize', fontsize);
+% legend('AE', 'DTM', 'location', 'southeast')
+% filename = [saveFolder, '/OACorr'];
+% saveas(gcf, filename, 'png');
 
 if fullscreenFigs
     figure('units','normalized','outerposition',[0 0 1 1])
@@ -666,21 +675,21 @@ legend('AE', 'DTM', 'location', 'southeast')
 filename = [saveFolder, '/OARMS'];
 saveas(gcf, filename, 'png');
 
-if fullscreenFigs
-    figure('units','normalized','outerposition',[0 0 1 1])
-else
-    figure;
-end
-X = repmat(-minDst, 1, 2);
-h = plot(X, OAOM(:,[1,3]), 's');
-set(h(1), 'markerFaceColor', 'b');
-set(h(2), 'markerFaceColor', 'g');
-xlabel('-1 * min Dst', 'fontsize', fontsize);
-ylabel('Orb. aver. O/M', 'fontsize', fontsize);
-set(gca, 'fontsize', fontsize);
-legend('AE', 'DTM', 'location', 'southeast')
-filename = [saveFolder, '/OAOM'];
-saveas(gcf, filename, 'png');
+% if fullscreenFigs
+%     figure('units','normalized','outerposition',[0 0 1 1])
+% else
+%     figure;
+% end
+% X = repmat(-minDst, 1, 2);
+% h = plot(X, OAOM(:,[1,3]), 's');
+% set(h(1), 'markerFaceColor', 'b');
+% set(h(2), 'markerFaceColor', 'g');
+% xlabel('-1 * min Dst', 'fontsize', fontsize);
+% ylabel('Orb. aver. O/M', 'fontsize', fontsize);
+% set(gca, 'fontsize', fontsize);
+% legend('AE', 'DTM', 'location', 'southeast')
+% filename = [saveFolder, '/OAOM'];
+% saveas(gcf, filename, 'png');
 
 end
 
