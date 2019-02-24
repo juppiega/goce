@@ -1299,7 +1299,7 @@ else
         
         %paramsToFitShort
         paramsToFitStorm = stormInd(paramsToFitStorm);
-        paramsToFit = unique([paramsToFitQuiet, paramsToFitStorm, expTimeInd]);
+        paramsToFit = unique([paramsToFitQuiet, paramsToFitStorm, expTimeInd(1)]);
         optCoeff(setdiff(1:length(optCoeff),[paramsToFit, expTimeInd, allBiasInd])) = 0;
         
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
@@ -1374,7 +1374,7 @@ weights(wInd(end)+1:end) = rhoStruct.weights;
 
 aeInt = [TexStruct.aeInt; OStruct.aeInt; N2Struct.aeInt; HeStruct.aeInt; ...
      O2Struct.aeInt; rhoStruct.aeInt];
- aeThreshold = 400;
+ aeThreshold = 500;
  ind = any(aeInt >= aeThreshold,2);
  w = sum(weights(~ind)) / sum(weights(ind));
  weights(ind) = w * weights(ind);
