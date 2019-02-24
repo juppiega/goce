@@ -630,6 +630,12 @@ cell2csv([saveFolder, '/storms.',satellite,'.csv'], outputCell);
 
 disp('All storms:')
 disp([mean(OACorr), mean(OAOM), mean(OARMS)]);
+i = minDst < -75;
+disp('Dst < -75')
+disp([mean(OACorr(i,:)), mean(OAOM(i,:)), mean(OARMS(i,:))]);
+i = minDst < -200;
+disp('Dst < -200')
+disp([mean(OACorr(i,:)), mean(OAOM(i,:)), mean(OARMS(i,:))]);
 i = minDst < -250;
 disp('Dst < -250')
 disp([mean(OACorr(i,:)), mean(OAOM(i,:)), mean(OARMS(i,:))]);
