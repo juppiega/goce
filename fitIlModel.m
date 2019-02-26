@@ -1077,7 +1077,7 @@ if fitSimultaneously || fitBaseAgain
           quietInd = setdiff(quietInd,[Obiases, N2biases, HeBiases]);
           ptfOrig = paramsToFit;
           
-          expTimes = [6.0546   17.9177    5.2326    3.9629];
+          expTimes = [7.6297   17.9177    5.2326    3.9629];
 
           initGuess(stormInd(1:numStorm:end)) = expTimes;
           paramsToFit = setdiff(paramsToFit, stormInd(1:numStorm:end));
@@ -1129,6 +1129,7 @@ if fitSimultaneously || fitBaseAgain
         optCoeff(Obiases) = initGuess(Obiases);
         optCoeff(N2biases) = initGuess(N2biases);
         optCoeff(HeBiases) = initGuess(HeBiases);
+        optCoeff(TexStruct.coeffInd(numQuietCoeffs+1)) = expTimes(1);
     else
          
 %         efolds_init = [7, 11.4, 13.0, 7.3];
@@ -1299,7 +1300,7 @@ else
         
         %paramsToFitShort
         paramsToFitStorm = stormInd(paramsToFitStorm);
-        paramsToFit = unique([paramsToFitQuiet, paramsToFitStorm, expTimeInd(1)]);
+        paramsToFit = unique([paramsToFitQuiet, paramsToFitStorm, expTimeInd(2)]);
         optCoeff(setdiff(1:length(optCoeff),[paramsToFit, expTimeInd, allBiasInd])) = 0;
         
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
