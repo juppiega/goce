@@ -667,13 +667,13 @@ else
     figure;
 end
 X = repmat(-minDst, 1, 2);
-h = plot(X, OARMS(:,[1,3]), 's');
+h = plot(X, OARMS(:,[1,4]), 's');
 set(h(1), 'markerFaceColor', 'b');
 set(h(2), 'markerFaceColor', 'g');
 xlabel('-1 * min Dst', 'fontsize', fontsize);
 ylabel('Orb. aver. RMS', 'fontsize', fontsize);
 set(gca, 'fontsize', fontsize);
-legend('AE', 'DTM', 'location', 'southeast')
+legend('AE', 'JB', 'location', 'southeast')
 filename = [saveFolder, '/OARMS'];
 saveas(gcf, filename, 'png');
 
