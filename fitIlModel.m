@@ -1300,7 +1300,7 @@ else
         
         %paramsToFitShort
         paramsToFitStorm = stormInd(paramsToFitStorm);
-        paramsToFit = unique([paramsToFitQuiet, paramsToFitStorm, expTimeInd(3), expTimeInd(4)]);
+        paramsToFit = unique([paramsToFitQuiet, paramsToFitStorm, expTimeInd(1), expTimeInd(3), expTimeInd(4)]);
         optCoeff(setdiff(1:length(optCoeff),[paramsToFit, expTimeInd, allBiasInd])) = 0;
         
         %[optCoeff, paramsToFit] = zeroOutInsignificantStorm(optCoeff, paramsToFit, stormInd, paramErrors, significance);TESTAUS
