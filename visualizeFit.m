@@ -520,7 +520,7 @@ for i = 1:length(stormBeginInd)
     jbRho = modelStruct.jb(ind);
 
     %if satInfo(i) == 3
-    %    ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
+        ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
     %end
     msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
     dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
