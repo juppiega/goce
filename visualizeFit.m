@@ -482,9 +482,9 @@ end
 
 function [] = analyzeStormTimes(rhoStruct, modelStruct, saveFolder, fullscreenFigs, satellite)
 
-modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
-modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
-modelStruct.jb = fixBiasBySatellite(modelStruct.jb, rhoStruct);
+%modelStruct.msis = fixBiasBySatellite(modelStruct.msis, rhoStruct);
+%modelStruct.dtm = fixBiasBySatellite(modelStruct.dtm, rhoStruct);
+%modelStruct.jb = fixBiasBySatellite(modelStruct.jb, rhoStruct);
 
 [stormBeginInd, stormEndInd, combinedInd, satInfo] = findStorms(rhoStruct, 'Dst', -75);
 rawCorr = zeros(length(stormBeginInd),4);
@@ -522,9 +522,9 @@ for i = 1:length(stormBeginInd)
     %if satInfo(i) == 3
     %    ilRho = ilRho * mean(measuredRho(firstDay)) / mean(ilRho(firstDay));
     %end
-    %msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
-    %dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
-    %jbRho = jbRho * mean(measuredRho(firstDay)) / mean(jbRho(firstDay));
+    msisRho = msisRho * mean(measuredRho(firstDay)) / mean(msisRho(firstDay));
+    dtmRho = dtmRho * mean(measuredRho(firstDay)) / mean(dtmRho(firstDay));
+    jbRho = jbRho * mean(measuredRho(firstDay)) / mean(jbRho(firstDay));
      
     minDst(i) = min(rhoStruct.dst(ind));
     
