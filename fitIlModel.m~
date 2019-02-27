@@ -1384,9 +1384,7 @@ ind = datenum('2005-05-13') < rhoStruct.timestamps & rhoStruct.timestamps < date
 ind(datenum('2004-11-05') < rhoStruct.timestamps & rhoStruct.timestamps < datenum('2004-11-15')) = true;
 ind(datenum('2003-10-27') < rhoStruct.timestamps & rhoStruct.timestamps < datenum('2003-11-03')) = true;
 ind = find(ind); ind = ind + TempAndSpectrometerLen;
-ind = ismember(1:length(weights), ind);
-w = sum(weights(~ind)) / sum(weights(ind));
-weights(ind) = 0.15*w * weights(ind);
+
 
 
 % goceInd = TempAndSpectrometerLen + rhoStruct.goce;
