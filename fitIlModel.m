@@ -1388,7 +1388,9 @@ ind = ismember(1:length(weights), ind);
 w = sum(weights(~ind)) / sum(weights(ind));
 weights(ind) = 0.1*w * weights(ind);
 
-
+ind = datenum('2004-11-05') < rhoStruct.timestamps & rhoStruct.timestamps < datenum('2004-11-15');
+ind = find(ind); ind = ind + TempAndSpectrometerLen;
+weights(ind) = 2.5*weights(ind);
 % goceInd = TempAndSpectrometerLen + rhoStruct.goce;
 % graceInd = TempAndSpectrometerLen + rhoStruct.grace;
 % swarmInd = TempAndSpectrometerLen + rhoStruct.swarm;
