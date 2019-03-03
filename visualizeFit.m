@@ -1021,11 +1021,13 @@ measured = rhoStruct.data(ind);
 ilRho = modelStruct.il(ind);
 msisRho = modelStruct.msis(ind);
 dtmRho = modelStruct.dtm(ind);
+jbRho = modelStruct.jb(ind);
 
 [measuredOrbAver,t_oa] = computeOrbitAverage(measured, lat, timestamps);
 il_oa = computeOrbitAverage(ilRho, lat, timestamps);
 msis_oa = computeOrbitAverage(msisRho, lat, timestamps);
 dtm_oa = computeOrbitAverage(dtmRho, lat, timestamps);
+jb_oa = computeOrbitAverage(jbRho, lat, timestamps);
 
 os = 95*60 / (mode(round(diff(timestamps*86400))));
 if mod(os, 2) == 0; os = os + 1; end
@@ -1035,8 +1037,8 @@ if fullscreenFigs
 else
     figure;
 end
-plot(t_oa, measuredOrbAver, t_oa, il_oa, t_oa, msis_oa, t_oa, dtm_oa);
-legend(satellite, 'IL', 'MSIS', 'DTM')
+plot(t_oa, measuredOrbAver, t_oa, il_oa, t_oa, msis_oa, t_oa, dtm_oa, t_oa, jb_oa);
+legend(satellite, 'IL', 'MSIS', 'DTM', 'JB2008')
 datetick('x')
 ylabel('Rho [kg/m^3]')
 filename = [saveFolder,'/','2D',satellite,date1];
