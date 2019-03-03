@@ -5,10 +5,10 @@ champStruct = removeDataPoints(rhoStruct, [rhoStruct.goce'; rhoStruct.grace'; rh
 graceStruct = removeDataPoints(rhoStruct, [rhoStruct.champ'; rhoStruct.goce'; rhoStruct.swarm'], true, true, true, true);
 swarmStruct = removeDataPoints(rhoStruct, [rhoStruct.champ'; rhoStruct.goce'; rhoStruct.grace'], true, true, true, true);
 
-if length(goceStruct.data) > 0; [goceBI, goceEI, goceCI] = findStormsForSat(goceStruct, dstOrAE, threshold,0,4); else goceBI = []; end
-if length(champStruct.data) > 0; [champBI, champEI, champCI] = findStormsForSat(champStruct, dstOrAE, threshold,0,4); else champBI = []; end
-if length(graceStruct.data) > 0; [graceBI, graceEI, graceCI] = findStormsForSat(graceStruct, dstOrAE, threshold,0,4); else graceBI = []; end
-if length(swarmStruct.data) > 0; [swarmBI, swarmEI, swarmCI] = findStormsForSat(swarmStruct, dstOrAE, threshold,0,4); else swarmBI = []; end
+if length(goceStruct.data) > 0; [goceBI, goceEI, goceCI] = findStormsForSat(goceStruct, dstOrAE, threshold,0,3); else goceBI = []; end
+if length(champStruct.data) > 0; [champBI, champEI, champCI] = findStormsForSat(champStruct, dstOrAE, threshold,0,3); else champBI = []; end
+if length(graceStruct.data) > 0; [graceBI, graceEI, graceCI] = findStormsForSat(graceStruct, dstOrAE, threshold,0,3); else graceBI = []; end
+if length(swarmStruct.data) > 0; [swarmBI, swarmEI, swarmCI] = findStormsForSat(swarmStruct, dstOrAE, threshold,0,3); else swarmBI = []; end
 
 satInfo(1:length(goceBI)) = 0; k = length(goceBI);
 satInfo(k+1:k+length(champBI)) = 1; k = k + length(champBI);
