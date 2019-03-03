@@ -505,7 +505,7 @@ for i = 1:length(stormBeginInd)
     lat = rhoStruct.latitude(ind);
     aeInt = rhoStruct.aeInt(ind,:);
     timestamps = rhoStruct.timestamps(ind);
-    firstDay = timestamps < timestamps(1) + 3;
+    firstDay = timestamps < timestamps(1) + 2;
     
     firstDayAE = aeInt(firstDay,5);
     %if any(firstDayAE > 400)

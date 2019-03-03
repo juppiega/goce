@@ -53,7 +53,7 @@ stormBeginSat(rmInd) = [];
 stormSat = stormBeginSat;
 
 if strcmpi(dstOrAE, 'Dst')    
-    stormBegin = stormBegin - 2 - 3;
+    stormBegin = stormBegin - 2 - 2;
 else
     stormBegin = stormBegin - 1;
 end
