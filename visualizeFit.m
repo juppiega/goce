@@ -669,14 +669,15 @@ if fullscreenFigs
 else
     figure;
 end
-X = repmat(-minDst, 1, 2);
-h = plot(X, OARMS(:,[1,4]), 's');
+X = repmat(-minDst, 1, 3);
+h = plot(X, OARMS(:,[1,3,4]), 's');
 set(h(1), 'markerFaceColor', 'b');
-set(h(2), 'markerFaceColor', 'g');
+set(h(2), 'markerFaceColor', 'r');
+set(h(3), 'markerFaceColor', 'g');
 xlabel('-1 * min Dst', 'fontsize', fontsize);
 ylabel('Orb. aver. RMS', 'fontsize', fontsize);
 set(gca, 'fontsize', fontsize);
-legend('AE', 'JB', 'location', 'southeast')
+legend('IL', 'DTM', 'JB', 'location', 'southeast')
 filename = [saveFolder, '/OARMS'];
 saveas(gcf, filename, 'png');
 
