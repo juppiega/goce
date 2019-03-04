@@ -149,15 +149,17 @@ modelStruct = struct('il', ilRho(ind), 'msis', msisRho(ind), 'dtm', dtmRho(ind),
 % % % % 
 computeStatistics(originalRhoStruct, modelStruct, saveFolder, satellite);
 % % % % % 
-      plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-      plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+      %plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+      %plotStormFig(originalRhoStruct, modelStruct, '2003-10-27', '2003-11-02', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+      plotStormFig(originalRhoStruct, modelStruct, '2005-05-13', '2005-05-20', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+      plotStormFig(originalRhoStruct, modelStruct, '2005-05-13', '2005-05-20', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2010-04-03', '2010-04-08', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
  %     plotStormFig(originalRhoStruct, modelStruct, '2007-03-22', '2007-03-26', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2006-12-13', '2006-12-17', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2011-05-26', '2011-05-31', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %      plotStormFig(originalRhoStruct, modelStruct, '2013-06-26', '2013-07-03', 'GOCE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-      plotStormFig(originalRhoStruct, modelStruct, '2015-01-05', '2015-01-11', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
-      plotStormFig(originalRhoStruct, modelStruct, '2014-08-25', '2014-08-31', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+      %plotStormFig(originalRhoStruct, modelStruct, '2015-01-05', '2015-01-11', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
+      %plotStormFig(originalRhoStruct, modelStruct, '2014-08-25', '2014-08-31', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %plotStormFig(originalRhoStruct, modelStruct, '2014-11-07', '2014-11-13', 'SWARM', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'GRACE', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
 %plotStormFig(originalRhoStruct, modelStruct, '05-Nov-2004 23:11:35', '15-Nov-2004 20:04:55', 'CHAMP', coeffStruct, numBiasesStruct, saveFolder,fullscreenFigs);
