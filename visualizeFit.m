@@ -1023,11 +1023,18 @@ msisRho = modelStruct.msis(ind);
 dtmRho = modelStruct.dtm(ind);
 jbRho = modelStruct.jb(ind);
 
+fd = timestamps < timestamps(1) + 2;
+ilRho = ilRho * mean(measured(fd)./ilRho(fd));
+msisRho = msisRho * mean(measured(fd)./msisRho(fd));
+dtmRho = dtmRho * mean(measured(fd)./dtmRho(fd));
+jbRho = jbRho * mean(measured(fd)./jbRho(fd));
+
 [measuredOrbAver,t_oa] = computeOrbitAverage(measured, lat, timestamps);
 il_oa = computeOrbitAverage(ilRho, lat, timestamps);
 msis_oa = computeOrbitAverage(msisRho, lat, timestamps);
 dtm_oa = computeOrbitAverage(dtmRho, lat, timestamps);
 jb_oa = computeOrbitAverage(jbRho, lat, timestamps);
+
 
 os = 95*60 / (mode(round(diff(timestamps*86400))));
 if mod(os, 2) == 0; os = os + 1; end
