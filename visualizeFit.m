@@ -1025,7 +1025,7 @@ dtmRho = modelStruct.dtm(ind);
 jbRho = modelStruct.jb(ind);
 
 fd = timestamps < timestamps(1) + 2;
-ilRho = ilRho * mean(measured(fd)./ilRho(fd));
+%ilRho = ilRho * mean(measured(fd)./ilRho(fd));
 msisRho = msisRho * mean(measured(fd)./msisRho(fd));
 dtmRho = dtmRho * mean(measured(fd)./dtmRho(fd));
 jbRho = jbRho * mean(measured(fd)./jbRho(fd));
