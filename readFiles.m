@@ -376,6 +376,7 @@ ae = interp1(tInterp, aeInterp, timestampsAeDatenum, 'linear', 'extrap');
 load AE_global.mat
 ind_common = ismembertol(timestampsAeDatenum, timestamps_AE_global, 1e-11);
 common_corr = corr(ae(ind_common), AE_global)
+save('AE_original.mat','ae','timestampsAeDatenum')
 ae(ind_common) = AE_global;
 
 end
